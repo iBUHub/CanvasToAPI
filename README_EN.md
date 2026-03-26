@@ -74,7 +74,7 @@ docker run -d \
   -p 7860:7860 \
   -v /path/to/auth:/app/configs/auth \
   -e API_KEYS=your-api-key-1,your-api-key-2 \
-  -e TZ=Asia/Shanghai \
+  -e TZ=America/New_York \
   --restart unless-stopped \
   ghcr.io/ibuhub/aistudio-to-api:latest
 ```
@@ -86,7 +86,7 @@ Parameters:
 - `-p 7860:7860`: API server port (if using a reverse proxy, strongly consider `127.0.0.1:7860`)
 - `-v /path/to/auth:/app/configs/auth`: Mount directory containing auth files
 - `-e API_KEYS`: Comma-separated list of API keys for authentication
-- `-e TZ=Asia/Shanghai`: Timezone for logs (optional, defaults to system timezone)
+- `-e TZ=America/New_York`: Timezone for logs (optional, defaults to system timezone)
 
 ##### 📦 Option 2: Docker Compose
 
@@ -110,7 +110,7 @@ services:
       # Comma-separated list of API keys for authentication
       API_KEYS: your-api-key-1,your-api-key-2
       # Timezone setting (optional, defaults to system timezone)
-      TZ: Asia/Shanghai
+      TZ: America/New_York
 ```
 
 ##### 🛠️ Option 3: Build from Source
@@ -131,7 +131,7 @@ If you prefer to build the Docker image yourself, you can use the following comm
      -p 7860:7860 \
      -v /path/to/auth:/app/configs/auth \
      -e API_KEYS=your-api-key-1,your-api-key-2 \
-     -e TZ=Asia/Shanghai \
+     -e TZ=America/New_York \
      --restart unless-stopped \
      aistudio-to-api
    ```
@@ -225,7 +225,7 @@ This endpoint forwards requests to the official Gemini API format endpoint.
 | `RATE_LIMIT_WINDOW_MINUTES` | Time window for rate limiting in minutes.                                                                                                                                   | `15`                 |
 | `CHECK_UPDATE`              | Enable version update check on page load (`false` to disable).                                                                                                              | `true`               |
 | `LOG_LEVEL`                 | Logging output level. Set to `DEBUG` for detailed debug logs.                                                                                                               | `INFO`               |
-| `TZ`                        | Timezone used for logs and displayed times, for example `Asia/Shanghai`. Defaults to the system timezone when empty.                                                        | System timezone      |
+| `TZ`                        | Timezone used for logs and displayed times, for example `America/New_York`. Defaults to the system timezone when empty.                                                     | System timezone      |
 
 #### 🌐 Proxy Configuration
 
