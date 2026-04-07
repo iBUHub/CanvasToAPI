@@ -67,8 +67,7 @@ class BrowserManager {
         this._wsInitState = new Map();
 
         // Target URL for AI Studio app
-        this.targetUrl = "https://gemini.google.com/share/1ceb8146526d";
-        // this.targetUrl = "https://gemini.google.com";
+        this.targetUrl = "https://gemini.google.com/share/fe24c455a570";
 
         // Firefox/Camoufox does not use Chromium-style command line args.
         // We keep this empty; Camoufox has its own anti-fingerprinting optimizations built-in.
@@ -230,6 +229,7 @@ class BrowserManager {
 
         const startTime = Date.now();
         const checkInterval = 1000; // Check every 1 second
+        let lastButtonCheckTime = 0;
 
         try {
             while (Date.now() - startTime < timeout) {
@@ -267,6 +267,13 @@ class BrowserManager {
                 if (errors.appletFailed || errors.concurrentUpdates || errors.snapshotFailed) {
                     this.logger.warn(`${logPrefix} Detected page error: ${JSON.stringify(errors)}`);
                     return false;
+                }
+                if (Date.now() - lastButtonCheckTime >= 10000) {
+                    lastButtonCheckTime = Date.now();
+                    const entryButtonClicked = await this._tryClickLaunchButton(page, `${logPrefix} [WS-Wait]`);
+                    if (entryButtonClicked) {
+                        await this._checkForSignInButtonAuthExpired(page, `${logPrefix} [WS-Wait]`, authIndex);
+                    }
                 }
                 // Random mouse movement while waiting (80% chance per iteration)
                 if (Math.random() < 0.3) {
@@ -796,6 +803,11 @@ class BrowserManager {
                 name: "Continue to the app",
                 text: "Continue to the app",
             },
+            {
+                logFound: `${logPrefix} Found "继续" button, clicking...`,
+                name: "继续",
+                text: "继续",
+            },
         ];
 
         // Polling-based detection with smart exit conditions
@@ -927,10 +939,15 @@ class BrowserManager {
                     label: "Continue",
                     selectors: [
                         'button:text("Continue")',
+                        'button:text("继续")',
                         'button:has-text("Continue")',
+                        'button:has-text("继续")',
                         'button[aria-label*="Continue"]',
+                        'button[aria-label*="继续"]',
                         'button span:has-text("Continue")',
+                        'button span:has-text("继续")',
                         'div[role="button"]:has-text("Continue")',
+                        'div[role="button"]:has-text("继续")',
                     ],
                 },
             ];

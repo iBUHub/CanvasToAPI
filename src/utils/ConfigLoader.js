@@ -34,7 +34,7 @@ class ConfigLoader {
             maxContexts: 1,
             maxRetries: 3,
             retryDelay: 2000,
-            streamingMode: "real",
+            streamingMode: "fake",
             switchOnUses: 40,
             wsPort: 9998,
         };
@@ -135,17 +135,17 @@ class ConfigLoader {
                     );
                 } else {
                     this.logger.warn(`[System] models.json is not in the expected format, using default model list.`);
-                    config.modelList = [{ name: "models/gemini-2.5-flash-lite" }];
+                    config.modelList = [{ name: "models/gemini-2.5-flash" }];
                 }
             } else {
                 this.logger.warn(`[System] models.json file not found, using default model list.`);
-                config.modelList = [{ name: "models/gemini-2.5-flash-lite" }];
+                config.modelList = [{ name: "models/gemini-2.5-flash" }];
             }
         } catch (error) {
             this.logger.error(
                 `[System] Failed to read or parse models.json: ${error.message}, using default model list.`
             );
-            config.modelList = [{ name: "models/gemini-2.5-flash-lite" }];
+            config.modelList = [{ name: "models/gemini-2.5-flash" }];
         }
 
         this._printConfiguration(config);

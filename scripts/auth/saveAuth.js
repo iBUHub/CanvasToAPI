@@ -250,16 +250,13 @@ const getNextAuthIndex = () => {
     if (autoFillEmail) {
         console.log(
             getText(
-                "Please confirm login is complete in the browser before continuing.",
+                "请在浏览器中确认已完成登录后再继续。",
                 "Please confirm login is complete in the browser before continuing."
             )
         );
     }
     console.log(
-        getText(
-            'Return to this terminal, then press "Enter" to continue...',
-            'Return to this terminal, then press "Enter" to continue...'
-        )
+        getText("返回此终端，然后按“回车键”继续...", 'Return to this terminal, then press "Enter" to continue...')
     );
     await new Promise(resolve => process.stdin.once("data", resolve));
 

@@ -384,7 +384,7 @@ class CreateAuth {
 
             await this._runWithSignal(
                 page
-                    .goto("https://aistudio.google.com/", {
+                    .goto("https://gemini.google.com/", {
                         timeout: 120000,
                         waitUntil: "domcontentloaded",
                     })

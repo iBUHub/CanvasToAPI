@@ -245,13 +245,13 @@ This endpoint forwards requests to the official Gemini API format endpoint.
 
 #### 🗒️ Other Configuration
 
-| Variable                   | Description                                                                                                                | Default       |
-| :------------------------- | :------------------------------------------------------------------------------------------------------------------------- | :------------ |
-| `STREAMING_MODE`           | Streaming mode. `real` for real streaming, `fake` for fake streaming.                                                      | `real`        |
-| `FORCE_THINKING`           | Force enable thinking mode for all requests.                                                                               | `false`       |
-| `FORCE_WEB_SEARCH`         | Force enable web search for all requests.                                                                                  | `false`       |
-| `FORCE_URL_CONTEXT`        | Force enable URL context for all requests.                                                                                 | `false`       |
-| `CAMOUFOX_EXECUTABLE_PATH` | Path to the Camoufox browser executable (supports both absolute and relative paths). Only required if manually downloaded. | Auto-detected |
+| Variable                   | Description                                                                                                                                         | Default       |
+| :------------------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------- | :------------ |
+| `STREAMING_MODE`           | Streaming mode. `real` for real streaming, `fake` for fake streaming. Defaults to fake streaming. Note: Canvas may error when using real streaming. | `fake`        |
+| `FORCE_THINKING`           | Force enable thinking mode for all requests.                                                                                                        | `false`       |
+| `FORCE_WEB_SEARCH`         | Force enable web search for all requests.                                                                                                           | `false`       |
+| `FORCE_URL_CONTEXT`        | Force enable URL context for all requests.                                                                                                          | `false`       |
+| `CAMOUFOX_EXECUTABLE_PATH` | Path to the Camoufox browser executable (supports both absolute and relative paths). Only required if manually downloaded.                          | Auto-detected |
 
 ### ⚡ Account Auto-fill
 
