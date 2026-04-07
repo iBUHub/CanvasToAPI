@@ -2,7 +2,7 @@
  * File: src/routes/WebRoutes.js
  * Description: Web routes coordinator - delegates to specialized route handlers
  *
- * Author: Ellinav, iBenzene, bbbugg
+ * Author: iBUHUB
  */
 
 const session = require("express-session");

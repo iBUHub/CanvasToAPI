@@ -2,7 +2,7 @@
  * File: ui/index.js
  * Description: Main entry point for the Vue application, initializing Vue, Element Plus, router and i18n
  *
- * Author: Ellinav, iBenzene, bbbugg
+ * Author: iBUHUB
  */
 
 import { createApp } from 'vue';

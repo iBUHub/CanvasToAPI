@@ -2,7 +2,7 @@
  * File: src/auth/AuthSource.js
  * Description: Authentication source manager that loads and validates authentication data from config files
  *
- * Author: Ellinav, iBenzene, bbbugg
+ * Author: iBUHUB
  */
 
 const fs = require("fs");

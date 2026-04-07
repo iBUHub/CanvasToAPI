@@ -2,7 +2,7 @@
  * File: ui/app/components/EnvVarTooltip.vue
  * Description: Reusable tooltip component for environment variable documentation
  *
- * Author: iBenzene, bbbugg
+ * Author: iBUHUB
 -->
 
 <template>

@@ -273,7 +273,7 @@ services:
 
 ## 📄 许可证
 
-本项目基于 [**ais2api**](https://github.com/Ellinav/ais2api)（作者：[**Ellinav**](https://github.com/Ellinav)）分支开发，并完全沿用上游项目所采用的 CC BY-NC 4.0 许可证，其使用、分发与修改行为均需遵守原有许可证的全部条款，完整许可的内容请参见 [LICENSE](LICENSE) 文件。
+本项目基于 [**iBUHub/AIStudioToAPI**](https://github.com/iBUHub/AIStudioToAPI) 开发，并采用 CC BY-NC 4.0 许可证，其使用、分发与修改行为均需遵守许可证的全部条款，完整许可的内容请参见 [LICENSE](LICENSE) 文件。
 
 ## 🤝 贡献者
 

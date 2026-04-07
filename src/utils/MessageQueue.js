@@ -2,7 +2,7 @@
  * File: src/utils/MessageQueue.js
  * Description: Asynchronous message queue for managing request/response communication between server and browser client
  *
- * Author: Ellinav, iBenzene, bbbugg
+ * Author: iBUHUB
  */
 
 const { EventEmitter } = require("events");

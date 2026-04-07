@@ -271,7 +271,7 @@ Edit `configs/models.json` to customize available models and their settings.
 
 ## 📄 License
 
-This project is a fork of [**ais2api**](https://github.com/Ellinav/ais2api) by [**Ellinav**](https://github.com/Ellinav), and fully adopts the CC BY-NC 4.0 license used by the upstream project. All usage, distribution, and modification activities must comply with all terms of the original license. See the full license text in [LICENSE](LICENSE).
+This project is based on [**iBUHub/AIStudioToAPI**](https://github.com/iBUHub/AIStudioToAPI) and uses the CC BY-NC 4.0 license. All usage, distribution, and modification activities must comply with the license terms. See the full license text in [LICENSE](LICENSE).
 
 ## 🤝 Contributors
 

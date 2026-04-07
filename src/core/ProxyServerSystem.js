@@ -2,7 +2,7 @@
  * File: src/core/ProxyServerSystem.js
  * Description: Main proxy server system that orchestrates all components including HTTP/WebSocket servers, authentication, and request handling
  *
- * Author: Ellinav, iBenzene, bbbugg
+ * Author: iBUHUB
  */
 
 const { EventEmitter } = require("events");

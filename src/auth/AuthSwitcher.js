@@ -2,7 +2,7 @@
  * File: src/auth/AuthSwitcher.js
  * Description: Authentication switcher that handles account rotation logic, failure tracking, and usage-based switching
  *
- * Author: Ellinav, iBenzene, bbbugg
+ * Author: iBUHUB
  */
 
 /**

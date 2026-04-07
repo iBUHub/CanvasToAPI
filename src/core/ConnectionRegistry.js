@@ -2,7 +2,7 @@
  * File: src/core/ConnectionRegistry.js
  * Description: Connection registry that manages WebSocket connections and routes messages to appropriate message queues
  *
- * Author: Ellinav, iBenzene, bbbugg
+ * Author: iBUHUB
  */
 
 const { EventEmitter } = require("events");

@@ -2,7 +2,7 @@
  * File: src/utils/ProxyUtils.js
  * Description: Utility functions for parsing proxy configuration from environment variables
  *
- * Author: iBenzene, bbbugg
+ * Author: iBUHUB
  */
 
 const PROXY_SERVER_ENV_KEYS = ["HTTPS_PROXY", "https_proxy", "HTTP_PROXY", "http_proxy", "ALL_PROXY", "all_proxy"];

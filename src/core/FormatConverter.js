@@ -2,7 +2,7 @@
  * File: src/core/FormatConverter.js
  * Description: Format converter that translates between OpenAI and Google Gemini API request/response formats
  *
- * Author: Ellinav, iBenzene, bbbugg
+ * Author: iBUHUB
  */
 
 const axios = require("axios");

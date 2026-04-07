@@ -2,7 +2,7 @@
  * File: ui/app/router/index.js
  * Description: Vue Router configuration for the application, defining all routes and navigation behavior
  *
- * Author: Ellinav, iBenzene, bbbugg
+ * Author: iBUHUB
  */
 
 import { createRouter, createWebHistory } from 'vue-router';

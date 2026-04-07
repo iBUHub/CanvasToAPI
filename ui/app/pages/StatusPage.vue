@@ -2,7 +2,7 @@
  * File: ui/app/pages/StatusPage.vue
  * Description: Status page component for displaying system status and logs
  *
- * Author: Ellinav, iBenzene, bbbugg
+ * Author: iBUHUB
 -->
 
 <template>
