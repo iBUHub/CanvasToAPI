@@ -131,7 +131,7 @@ On that page, manually enter the browser tag (`Browser Identifier`) and the serv
 - `POST /v1/responses`: OpenAI Responses API compatible endpoint for conversation generation, does not support image generation, and supports non-streaming, real streaming, and fake streaming.
 - `POST /v1/responses/input_tokens`: Count input tokens for an OpenAI Responses API request.
 
-### ❤️ Gemini Native API Format
+### ♊ Gemini Native API Format
 
 - `GET /v1beta/models`: List available Gemini models.
 - `POST /v1beta/models/{model_name}:generateContent`: Generate content, images, and speech.
@@ -178,12 +178,12 @@ On that page, manually enter the browser tag (`Browser Identifier`) and the serv
 
 #### 🗒️ Other Configuration
 
-| Variable            | Description                                                                    | Default |
-| :------------------ | :----------------------------------------------------------------------------- | :------ |
-| `STREAMING_MODE`    | Streaming mode. `real` for real streaming, `fake` for buffered/fake streaming. | `fake`  |
-| `FORCE_THINKING`    | Force-enable thinking mode for all requests.                                   | `false` |
-| `FORCE_WEB_SEARCH`  | Force-enable web search for all requests.                                      | `false` |
-| `FORCE_URL_CONTEXT` | Force-enable URL context for all requests.                                     | `false` |
+| Variable            | Description                                                                                                                                       | Default |
+| :------------------ | :------------------------------------------------------------------------------------------------------------------------------------------------ | :------ |
+| `STREAMING_MODE`    | Streaming mode. `real` for real streaming, `fake` for buffered/fake streaming. Based on current testing, real streaming may cause request errors. | `fake`  |
+| `FORCE_THINKING`    | Force-enable thinking mode for all requests.                                                                                                      | `false` |
+| `FORCE_WEB_SEARCH`  | Force-enable web search for all requests. Based on current testing, enabling it may cause request errors.                                         | `false` |
+| `FORCE_URL_CONTEXT` | Force-enable URL context for all requests.                                                                                                        | `false` |
 
 ### 🔌 Browser Session Connection
 

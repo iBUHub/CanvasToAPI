@@ -190,8 +190,6 @@ curl -X POST http://localhost:7861/v1beta/models/gemini-2.5-flash-image-preview:
   }'
 ```
 
-````
-
 > 💡 **提示**：Imagen 响应返回的是 base64 编码的图像数据，每张生成的图像都会包含在 `predictions` 数组中。
 
 ### 🎤 TTS 语音合成 [官方文档](https://ai.google.dev/gemini-api/docs/speech-generation?hl=zh-cn)
@@ -217,7 +215,7 @@ curl -X POST http://localhost:7861/v1beta/models/gemini-2.5-flash-preview-tts:ge
       "responseModalities": ["AUDIO"]
     }
   }'
-````
+```
 
 #### 指定声音
 
@@ -299,8 +297,6 @@ curl -X POST http://localhost:7861/v1beta/models/gemini-2.5-flash-preview-tts:ge
 ```
 
 > 💡 **提示**：TTS 响应返回的是 `audio/L16;codec=pcm;rate=24000` 格式的 base64 编码音频数据，需要解码后转换为 WAV 格式播放。
-
-### 📐 文本嵌入 (Embeddings)
 
 ## 👤 Anthropic 兼容 API
 

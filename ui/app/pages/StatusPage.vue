@@ -1475,8 +1475,26 @@ const postSetting = async (setting, body = {}) => {
 const toggleStreamingMode = () =>
     postSetting("streaming-mode", { mode: state.streamingMode === "real" ? "fake" : "real" });
 const toggleFlag = setting => postSetting(setting);
-const handleStreamingModeChange = value => {
+const confirmExperimentalToggle = async messageKey => {
+    try {
+        await ElMessageBox.confirm(t(messageKey), t("warningTitle"), {
+            cancelButtonText: t("cancel"),
+            confirmButtonText: t("ok"),
+            type: "warning",
+        });
+        return true;
+    } catch {
+        return false;
+    }
+};
+const handleStreamingModeChange = async value => {
     if ((state.streamingMode === "real") !== value) {
+        if (value) {
+            const confirmed = await confirmExperimentalToggle("streamingModeEnableConfirm");
+            if (!confirmed) {
+                return false;
+            }
+        }
         return toggleStreamingMode();
     }
     return true;
@@ -1486,8 +1504,14 @@ const handleSelectionStrategyChange = async value => {
         await postSetting("selection-strategy", { strategy: value });
     }
 };
-const handleBooleanSettingChange = (setting, value, currentValue) => {
+const handleBooleanSettingChange = async (setting, value, currentValue) => {
     if (value !== currentValue) {
+        if (setting === "force-web-search" && value) {
+            const confirmed = await confirmExperimentalToggle("forceWebSearchEnableConfirm");
+            if (!confirmed) {
+                return false;
+            }
+        }
         return toggleFlag(setting);
     }
     return true;

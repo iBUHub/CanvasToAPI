@@ -78,7 +78,7 @@ onMounted(() => {
 });
 
 onUnmounted(() => {
-    // I18n does not currently expose listener cleanup.
+    // Note: I18n doesn't provide a way to remove listeners, but this is fine for this use case
 });
 
 const t = (key, options) => {
@@ -135,7 +135,7 @@ const copyEnvVar = () => {
     background-color: #2b2d30;
     border: 1px solid #414243;
     color: #cfd3d8;
-    box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.5));
+    box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.5);
 }
 
 .el-popper.is-dark.custom-theme-tooltip .el-popper__arrow::before {

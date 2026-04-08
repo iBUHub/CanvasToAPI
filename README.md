@@ -131,7 +131,7 @@ services:
 - `POST /v1/responses`：OpenAI Responses API 兼容接口，用于对话生成，不支持图像生成，支持非流式、真流式和假流式。
 - `POST /v1/responses/input_tokens`：计算 OpenAI Responses API 请求的输入 token 数量。
 
-### ❤️ Gemini 原生 API 格式
+### ♊ Gemini 原生 API 格式
 
 - `GET /v1beta/models`：列出可用的 Gemini 模型。
 - `POST /v1beta/models/{model_name}:generateContent`：生成内容、图片和语音。
@@ -178,12 +178,12 @@ services:
 
 #### 🗒️ 其他配置
 
-| 变量名              | 描述                                             | 默认值  |
-| :------------------ | :----------------------------------------------- | :------ |
-| `STREAMING_MODE`    | 流式传输模式。`real` 为真流式，`fake` 为假流式。 | `fake`  |
-| `FORCE_THINKING`    | 强制为所有请求启用思考模式。                     | `false` |
-| `FORCE_WEB_SEARCH`  | 强制为所有请求启用联网搜索。                     | `false` |
-| `FORCE_URL_CONTEXT` | 强制为所有请求启用 URL 上下文。                  | `false` |
+| 变量名              | 描述                                                                                     | 默认值  |
+| :------------------ | :--------------------------------------------------------------------------------------- | :------ |
+| `STREAMING_MODE`    | 流式传输模式。`real` 为真流式，`fake` 为假流式。根据目前的测试，使用真流式可能导致报错。 | `fake`  |
+| `FORCE_THINKING`    | 强制为所有请求启用思考模式。                                                             | `false` |
+| `FORCE_WEB_SEARCH`  | 强制为所有请求启用联网搜索。根据目前的测试，启用后可能导致请求报错。                     | `false` |
+| `FORCE_URL_CONTEXT` | 强制为所有请求启用 URL 上下文。                                                          | `false` |
 
 ### 🔌 浏览器会话连接
 
