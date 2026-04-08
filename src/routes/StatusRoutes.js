@@ -198,6 +198,7 @@ class StatusRoutes {
     _getSystemSummary() {
         return {
             browserSessionCount: this.serverSystem.sessionRegistry.getConnectionCount(),
+            browserWsPath: this.config.browserWsPath || "/ws",
             debugMode: LoggingService.isDebugEnabled(),
             forceThinking: this.serverSystem.forceThinking,
             forceUrlContext: this.serverSystem.forceUrlContext,
@@ -209,7 +210,6 @@ class StatusRoutes {
             sessionSelectionState: this.serverSystem.sessionRegistry.getSelectionState(),
             sharePageUrl: this.config.sharePageUrl,
             streamingMode: this.serverSystem.streamingMode,
-            wsPort: this.config.wsPort,
         };
     }
 

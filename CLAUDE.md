@@ -125,7 +125,6 @@ The system maintains multiple browser contexts simultaneously:
 Key variables (see `.env.example` for full list):
 
 - `PORT`: API server port (default: 7861)
-- `WS_PORT`: WebSocket port for browser communication (default: 9997)
 - `API_KEYS`: Comma-separated API keys for client authentication
 - `STREAMING_MODE`: "real" or "fake" streaming
 - `ROUND`: Session selection strategy (`round` or `random`)
@@ -155,7 +154,6 @@ Edit `configs/models.json` to customize available models and their settings.
 
 ### WebSocket Communication
 
-- Browser contexts connect to WebSocket server on WS_PORT
 - Each connection identified by a session id
 - MessageQueue pattern for request/response correlation
 - Grace period (60s) for reconnection before triggering callback

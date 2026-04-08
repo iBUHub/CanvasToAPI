@@ -204,11 +204,8 @@
                                         <path d="M8 5v14"></path>
                                         <path d="M16 5v14"></path>
                                     </svg>
-                                    <span>
-                                        {{ t("wsPortLabel") }}
-                                        <EnvVarTooltip env-var="WS_PORT" doc-section="proxy-config" />
-                                    </span> </span
-                                ><span class="value mono">{{ state.wsPort }}</span>
+                                    <span>{{ t("wsEndpointLabel") }}</span> </span
+                                ><span class="value mono">{{ browserWsEndpointText }}</span>
                             </div>
                             <div class="status-item">
                                 <span class="label">
@@ -1256,6 +1253,7 @@ const langVersion = ref(I18n.state.version);
 const { theme, setTheme } = useTheme();
 
 const state = reactive({
+    browserWsPath: "/ws",
     currentLang: I18n.getLang(),
     currentVersion: "",
     debugMode: false,
@@ -1276,7 +1274,6 @@ const state = reactive({
     sessionErrorThreshold: 3,
     sharePageUrl: "",
     streamingMode: "fake",
-    wsPort: 9997,
 });
 const t = (key, options) => (langVersion.value, I18n.t(key, options));
 const tf = (key, fallback) => t(key, { fallback });
@@ -1329,6 +1326,14 @@ const browserConnectedText = computed(() =>
     activeSessionCount.value > 0 ? t("connected", { fallback: "Connected" }) : t("disconnected")
 );
 const browserConnectedClass = computed(() => (activeSessionCount.value > 0 ? "status-ok" : "status-warning"));
+const browserWsEndpointText = computed(() => {
+    if (typeof window === "undefined") {
+        return state.browserWsPath || "/ws";
+    }
+
+    const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+    return `${protocol}//${window.location.host}${state.browserWsPath || "/ws"}`;
+});
 const selectionStrategyText = computed(() =>
     state.selectionStrategy === "random" ? t("selectionStrategyRandom") : t("selectionStrategyRound")
 );
@@ -1413,8 +1418,8 @@ const applyStatusPayload = payload => {
     state.selectionStrategy = status.selectionStrategy || "round";
     state.serviceConnected = Boolean(status.serviceConnected);
     state.streamingMode = status.streamingMode || "fake";
+    state.browserWsPath = status.browserWsPath || "/ws";
     state.sharePageUrl = status.sharePageUrl || "";
-    state.wsPort = Number(status.wsPort || state.wsPort || 9997);
     sessions.value = Array.isArray(status.browserSessions) ? status.browserSessions : [];
 };
 

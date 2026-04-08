@@ -52,12 +52,13 @@
 
    在需要承载 Gemini 会话的浏览器中打开：
 
-   [https://gemini.google.com/share/7f1c38698fc1](https://gemini.google.com/share/7f1c38698fc1)
+   [https://gemini.google.com/share/38b50bd0acb0](https://gemini.google.com/share/38b50bd0acb0)
 
    该页面的实际内容可参考仓库中的 [scripts/client/canvas.html](scripts/client/canvas.html)。
 
    打开后请手动填写：
-   - `Server WS Endpoint`：例如本地部署填写 `ws://127.0.0.1:9997`，远程部署填写你的服务端 WebSocket 地址
+   - `Server WS Endpoint`：例如本地部署填写 `ws://127.0.0.1:7861/ws`，远程部署填写你的服务端 WebSocket 地址
+   - `API Key`：填写与请求时相同的 `API_KEYS` 中任意一个 key
    - `Browser Identifier`：浏览器标志，可自定义；留空时页面会自动生成每日标志
 
    填写完成后点击 `Connect`。连接成功后，回到状态页确认 `Browser Sessions` 中已有在线会话。
@@ -70,7 +71,7 @@
 > 旧版 README 中的 `npm run setup-auth`、`auth-N.json`、VNC 登录和上传 Auth 文件等流程，已不适用于当前版本。
 
 > 💡 **提示：**
-> 如果服务部署在远程机器上，建立会话的浏览器必须能够访问服务端的 HTTP 端口 `PORT` 以及 WebSocket 端口 `WS_PORT`。默认情况下，除了 `7861` 之外，还需要额外开放 `9997`。
+> 如果服务部署在远程机器上，建立会话的浏览器只需要能够访问服务端的 HTTP 端口 `PORT`。浏览器会话 WebSocket 现已复用同一端口，通过 `/ws` 路径连接。
 
 ### 🐋 Docker 部署
 
@@ -80,7 +81,6 @@
 docker run -d \
   --name canvas-to-api \
   -p 7861:7861 \
-  -p 9997:9997 \
   -e API_KEYS=your-api-key \
   -e TZ=Asia/Shanghai \
   --restart unless-stopped \
@@ -92,7 +92,6 @@ docker run -d \
 参数说明：
 
 - `-p 7861:7861`：HTTP API 与控制台端口
-- `-p 9997:9997`：浏览器会话连接使用的 WebSocket 端口，这个端口也必须对建立会话的浏览器可达
 - `-e API_KEYS`：客户端访问 API 和控制台时使用的密钥
 - `-e TZ=Asia/Shanghai`：日志和页面显示时间的时区（可选）
 
@@ -109,7 +108,6 @@ services:
     container_name: canvas-to-api
     ports:
       - 7861:7861
-      - 9997:9997
     restart: unless-stopped
     environment:
       API_KEYS: your-api-key
@@ -120,9 +118,17 @@ services:
 
 容器启动后，仍然需要手动打开以下页面建立浏览器会话：
 
-[https://gemini.google.com/share/7f1c38698fc1](https://gemini.google.com/share/7f1c38698fc1)
+[https://gemini.google.com/share/38b50bd0acb0](https://gemini.google.com/share/38b50bd0acb0)
 
-页面中需要手动填写浏览器标志（`Browser Identifier`）和服务端 WebSocket 地址（`Server WS Endpoint`，例如 `ws://your-host:9997` 或 `wss://your-host:9997`）。连接建立成功后，状态页会显示在线浏览器会话，之后 API 请求才会被转发。
+页面中需要手动填写浏览器标志（`Browser Identifier`）、API Key，以及服务端 WebSocket 地址（`Server WS Endpoint`，例如 `ws://your-host:7861/ws` 或 `wss://your-host/ws`）。其中 API Key 请填写与请求时相同的 key。连接建立成功后，状态页会显示在线浏览器会话，之后 API 请求才会被转发。
+
+#### 🌐 步骤 3（可选）：使用 Nginx 反向代理
+
+如果需要通过域名访问服务，或希望放在反向代理之后统一管理，可以使用 Nginx。
+
+> 重要：请确保 Nginx 正确转发 WebSocket 升级请求，至少包含 `proxy_http_version 1.1`、`proxy_set_header Upgrade $http_upgrade` 和 `proxy_set_header Connection "Upgrade"`。
+>
+> 📖 详细的 Nginx 配置说明请参阅：[Nginx 反向代理配置文档](docs/zh/nginx-setup.md)
 
 ## 📗 使用 API
 
@@ -172,7 +178,6 @@ services:
 
 | 变量名                    | 描述                                                                | 默认值  |
 | :------------------------ | :------------------------------------------------------------------ | :------ |
-| `WS_PORT`                 | 浏览器会话连接服务端时使用的 WebSocket 端口。                       | `9997`  |
 | `ROUND`                   | 会话选择策略，支持 `round`（轮询）和 `random`（随机）。             | `round` |
 | `SESSION_ERROR_THRESHOLD` | 单个浏览器会话累计 WebSocket / 浏览器错误达到该阈值后会被自动禁用。 | `3`     |
 | `MAX_RETRIES`             | 单次请求失败后的最大重试次数。                                      | `3`     |
@@ -191,9 +196,9 @@ services:
 
 当前版本不再读取本地 `auth` 文件，也不包含 `setup-auth` 初始化脚本。正确的使用方式是：
 
-1. 启动服务端，并确保 `PORT` 和 `WS_PORT` 都能被建立会话的浏览器访问到。
-2. 打开控制台查看当前 `WS_PORT` 和连接状态。
-3. 在浏览器中打开 [https://gemini.google.com/share/7f1c38698fc1](https://gemini.google.com/share/7f1c38698fc1)。
+1. 启动服务端，并确保 `PORT` 能被建立会话的浏览器访问到。
+2. 打开控制台查看当前浏览器会话连接地址和连接状态。
+3. 在浏览器中打开 [https://gemini.google.com/share/38b50bd0acb0](https://gemini.google.com/share/38b50bd0acb0)。
 4. 在页面中填写浏览器标志和服务端 WebSocket 地址。
 5. 等待状态页出现在线会话后，再开始调用 API。
 

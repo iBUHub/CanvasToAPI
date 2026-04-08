@@ -34,14 +34,21 @@ class ProxyServerSystem extends EventEmitter {
         this.requestHandler = new RequestHandler(this, this.sessionRegistry, this.logger, this.config);
 
         this.httpServer = null;
-        this.wsServer = null;
+        this.wsServer = new WebSocket.Server({ noServer: true });
         this.webRoutes = new WebRoutes(this);
+
+        this.wsServer.on("connection", (ws, req) => {
+            this.sessionRegistry.addConnection(ws, this._buildBrowserSessionMeta(req));
+        });
+
+        this.wsServer.on("error", error => {
+            this.logger.error(`[System] WebSocket server runtime error: ${error.message}`);
+        });
     }
 
     async start() {
         this.logger.info("[System] Starting protocol adapter server...");
         await this._startHttpServer();
-        await this._startWebSocketServer();
 
         this.staleQueueCleanupInterval = setInterval(() => {
             try {
@@ -57,23 +64,12 @@ class ProxyServerSystem extends EventEmitter {
 
     _createAuthMiddleware() {
         return (req, res, next) => {
-            const serverApiKeys = this.config.apiKeys;
-            if (!serverApiKeys || serverApiKeys.length === 0) {
+            if (!this._hasConfiguredApiKeys()) {
                 return next();
             }
 
-            let clientKey = null;
-            if (req.headers["x-goog-api-key"]) {
-                clientKey = req.headers["x-goog-api-key"];
-            } else if (req.headers.authorization && req.headers.authorization.startsWith("Bearer ")) {
-                clientKey = req.headers.authorization.substring(7);
-            } else if (req.headers["x-api-key"]) {
-                clientKey = req.headers["x-api-key"];
-            } else if (req.query.key) {
-                clientKey = req.query.key;
-            }
-
-            if (clientKey && serverApiKeys.includes(clientKey)) {
+            const clientKey = this._extractClientKey(req);
+            if (this._isValidApiKey(clientKey)) {
                 this.logger.info(
                     `[Auth] API key verification passed (from: ${this.webRoutes.authRoutes.getClientIP(req)})`
                 );
@@ -119,6 +115,10 @@ class ProxyServerSystem extends EventEmitter {
         } else {
             this.httpServer = http.createServer(app);
         }
+
+        this.httpServer.on("upgrade", (req, socket, head) => {
+            this._handleUpgradeRequest(req, socket, head);
+        });
 
         this.httpServer.keepAliveTimeout = 120000;
         this.httpServer.headersTimeout = 125000;
@@ -266,6 +266,16 @@ class ProxyServerSystem extends EventEmitter {
             this.requestHandler.processClaudeCountTokens(req, res);
         });
 
+        // Browser-session WebSocket downgrade / missing headers handler.
+        // If a proxy strips Upgrade headers, the request may arrive as a normal GET.
+        app.get(this.config.browserWsPath, (req, res) => {
+            res.status(400).send(
+                "Error: WebSocket connection failed. " +
+                    "If you are using a proxy (like Nginx), ensure it forwards 'Upgrade' and 'Connection' headers " +
+                    `for ${this.config.browserWsPath}.`
+            );
+        });
+
         app.all(/(.*)/, (req, res) => {
             this.requestHandler.processRequest(req, res);
         });
@@ -273,36 +283,118 @@ class ProxyServerSystem extends EventEmitter {
         return app;
     }
 
-    async _startWebSocketServer() {
-        return new Promise((resolve, reject) => {
-            let isListening = false;
+    _hasConfiguredApiKeys() {
+        return Array.isArray(this.config.apiKeys) && this.config.apiKeys.length > 0;
+    }
 
-            this.wsServer = new WebSocket.Server({
-                host: this.config.host,
-                port: this.config.wsPort,
-            });
+    _extractClientKey(req, requestUrl = null) {
+        if (req.headers["x-goog-api-key"]) {
+            return req.headers["x-goog-api-key"];
+        }
 
-            this.wsServer.once("listening", () => {
-                isListening = true;
-                this.logger.info(
-                    `[System] WebSocket server is listening on ws://${this.config.host}:${this.config.wsPort}`
+        if (req.headers.authorization && req.headers.authorization.startsWith("Bearer ")) {
+            return req.headers.authorization.substring(7);
+        }
+
+        if (req.headers["x-api-key"]) {
+            return req.headers["x-api-key"];
+        }
+
+        if (requestUrl?.searchParams?.has("key")) {
+            return requestUrl.searchParams.get("key");
+        }
+
+        if (req.query?.key) {
+            return req.query.key;
+        }
+
+        return null;
+    }
+
+    _isValidApiKey(clientKey) {
+        return Boolean(clientKey && this._hasConfiguredApiKeys() && this.config.apiKeys.includes(clientKey));
+    }
+
+    _handleUpgradeRequest(req, socket, head) {
+        let requestUrl;
+        const browserWsPath = this.config.browserWsPath || "/ws";
+
+        try {
+            requestUrl = new URL(req.url || "/", `http://${req.headers.host || "localhost"}`);
+        } catch (error) {
+            this.logger.warn(`[System] Failed to parse upgrade URL: ${error.message}`);
+            this._rejectUpgrade(socket, 400, "Invalid WebSocket URL");
+            return;
+        }
+
+        if (requestUrl.pathname !== browserWsPath) {
+            this.logger.warn(`[System] Received an upgrade request for an unknown path: ${requestUrl.pathname}`);
+            this._rejectUpgrade(socket, 404, "Unknown WebSocket path");
+            return;
+        }
+
+        if (String(req.headers.upgrade || "").toLowerCase() !== "websocket") {
+            this.logger.warn(
+                `[System] Rejected upgrade request without websocket header on path ${requestUrl.pathname}.`
+            );
+            this._rejectUpgrade(socket, 400, "Expected WebSocket upgrade");
+            return;
+        }
+
+        this.webRoutes.sessionParser(req, {}, () => {
+            const authResult = this._isBrowserSessionUpgradeAuthorized(req, requestUrl);
+            const clientIp = this.webRoutes.authRoutes.getClientIP(req);
+
+            if (!authResult.authorized) {
+                this.logger.warn(
+                    `[Auth] Rejected browser WebSocket connection from ${clientIp}: ${authResult.reason || "unauthorized"}`
                 );
-                resolve();
-            });
+                this._rejectUpgrade(socket, 401, "Unauthorized WebSocket connection");
+                return;
+            }
 
-            this.wsServer.on("error", error => {
-                if (!isListening) {
-                    reject(error);
-                    return;
-                }
+            this.logger.info(`[Auth] Browser WebSocket verification passed via ${authResult.via} (from: ${clientIp})`);
 
-                this.logger.error(`[System] WebSocket server runtime error: ${error.message}`);
-            });
-
-            this.wsServer.on("connection", (ws, req) => {
-                this.sessionRegistry.addConnection(ws, this._buildBrowserSessionMeta(req));
+            this.wsServer.handleUpgrade(req, socket, head, ws => {
+                this.wsServer.emit("connection", ws, req);
             });
         });
+    }
+
+    _isBrowserSessionUpgradeAuthorized(req, requestUrl) {
+        if (!this._hasConfiguredApiKeys()) {
+            return { authorized: true, via: "no_api_key_configured" };
+        }
+
+        const clientKey = this._extractClientKey(req, requestUrl);
+        if (this._isValidApiKey(clientKey)) {
+            return { authorized: true, via: "api_key" };
+        }
+
+        return {
+            authorized: false,
+            reason: clientKey ? "invalid_api_key" : "missing_api_key",
+        };
+    }
+
+    _rejectUpgrade(socket, statusCode, message) {
+        try {
+            socket.write(
+                `HTTP/1.1 ${statusCode} ${message}\r\n` +
+                    "Connection: close\r\n" +
+                    "Content-Type: text/plain; charset=utf-8\r\n" +
+                    "\r\n" +
+                    `${message}\r\n`
+            );
+        } catch (error) {
+            this.logger.debug(`[System] Failed to write upgrade rejection response: ${error.message}`);
+        }
+
+        try {
+            socket.destroy();
+        } catch (error) {
+            this.logger.debug(`[System] Failed to close rejected upgrade socket: ${error.message}`);
+        }
     }
 
     _buildBrowserSessionMeta(req) {

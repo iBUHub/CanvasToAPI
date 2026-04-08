@@ -217,7 +217,7 @@
     "viewRelease": "View Release",
     "warningDeleteCurrentAccount": "You are about to delete the currently active account. After deletion, there will be no active account and you will need to manually switch to another account. Continue?",
     "warningTitle": "Warning",
-    "wsPortLabel": "WS Port",
+    "wsEndpointLabel": "WS Endpoint",
     "zipExtractFailed": "Extract failed",
     "zipNoJsonFiles": "No JSON files in archive"
 }

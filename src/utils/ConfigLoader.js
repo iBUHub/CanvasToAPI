@@ -18,6 +18,7 @@ class ConfigLoader {
         const config = {
             apiKeys: [],
             apiKeySource: "Not set",
+            browserWsPath: "/ws",
             forceThinking: false,
             forceUrlContext: false,
             forceWebSearch: false,
@@ -29,12 +30,17 @@ class ConfigLoader {
             sessionSelectionStrategy: "round",
             sharePageUrl: loadGeminiShareUrl(this.logger),
             streamingMode: "fake",
-            wsPort: 9997,
         };
 
         if (process.env.PORT) {
             const parsed = parseInt(process.env.PORT, 10);
             config.httpPort = Number.isFinite(parsed) ? parsed : config.httpPort;
+        }
+
+        if (process.env.WS_PORT) {
+            this.logger.warn(
+                `[Config] WS_PORT is deprecated and ignored. Browser sessions now connect through ${config.browserWsPath}.`
+            );
         }
 
         if (process.env.HOST) {
@@ -53,11 +59,6 @@ class ConfigLoader {
         if (process.env.RETRY_DELAY) {
             const parsed = parseInt(process.env.RETRY_DELAY, 10);
             config.retryDelay = Number.isFinite(parsed) ? Math.max(50, parsed) : config.retryDelay;
-        }
-
-        if (process.env.WS_PORT) {
-            const parsed = parseInt(process.env.WS_PORT, 10);
-            config.wsPort = Number.isFinite(parsed) ? parsed : config.wsPort;
         }
 
         if (process.env.ROUND) {
@@ -138,7 +139,7 @@ class ConfigLoader {
     _printConfiguration(config) {
         this.logger.info("================ [ Active Configuration ] ================");
         this.logger.info(`  HTTP Server Port: ${config.httpPort}`);
-        this.logger.info(`  WebSocket Port: ${config.wsPort}`);
+        this.logger.info(`  Browser WebSocket Path: ${config.browserWsPath}`);
         this.logger.info(`  Listening Address: ${config.host}`);
         this.logger.info(`  Streaming Mode: ${config.streamingMode}`);
         this.logger.info(`  Session Selection: ${config.sessionSelectionStrategy}`);

@@ -217,7 +217,7 @@
     "viewRelease": "查看版本发布",
     "warningDeleteCurrentAccount": "您即将删除当前正在使用的账号。删除后将进入无活动账号状态，需要手动切换到其他账号。是否继续？",
     "warningTitle": "警告",
-    "wsPortLabel": "WS 端口",
+    "wsEndpointLabel": "WS 地址",
     "zipExtractFailed": "解压失败",
     "zipNoJsonFiles": "压缩包内无 JSON 文件"
 }

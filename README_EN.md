@@ -52,12 +52,13 @@ A tool that exposes a Gemini web session as OpenAI API, Gemini API, and Anthropi
 
    Open this page in the browser that should carry the Gemini session:
 
-   [https://gemini.google.com/share/7f1c38698fc1](https://gemini.google.com/share/7f1c38698fc1)
+   [https://gemini.google.com/share/38b50bd0acb0](https://gemini.google.com/share/38b50bd0acb0)
 
    The actual page content is also available in the repository at [scripts/client/canvas.html](scripts/client/canvas.html).
 
    Fill in:
-   - `Server WS Endpoint`: for example `ws://127.0.0.1:9997` for local use, or your public server WebSocket address for remote deployments
+   - `Server WS Endpoint`: for example `ws://127.0.0.1:7861/ws` for local use, or your public server WebSocket address for remote deployments
+   - `API Key`: enter the same key you use for API requests
    - `Browser Identifier`: an optional browser tag; if left blank, the page auto-generates a daily identifier
 
    Then click `Connect`. Once connected, confirm that `Browser Sessions` shows at least one online session in the status page.
@@ -70,7 +71,7 @@ A tool that exposes a Gemini web session as OpenAI API, Gemini API, and Anthropi
 > The old `npm run setup-auth`, `auth-N.json`, VNC login, and auth upload flow described in earlier versions no longer applies.
 
 > 💡 **Tip:**
-> If the server is deployed remotely, the browser that opens the share page must be able to reach both the HTTP port (`PORT`) and the WebSocket port (`WS_PORT`). With the default configuration, that means exposing `7861` and `9997`.
+> If the server is deployed remotely, the browser that opens the share page only needs to reach the HTTP port (`PORT`). Browser-session WebSocket traffic now reuses the same port through the `/ws` path.
 
 ### 🐋 Docker Deployment
 
@@ -80,7 +81,6 @@ A tool that exposes a Gemini web session as OpenAI API, Gemini API, and Anthropi
 docker run -d \
   --name canvas-to-api \
   -p 7861:7861 \
-  -p 9997:9997 \
   -e API_KEYS=your-api-key \
   -e TZ=America/New_York \
   --restart unless-stopped \
@@ -92,7 +92,6 @@ docker run -d \
 Parameters:
 
 - `-p 7861:7861`: HTTP API and web console port
-- `-p 9997:9997`: WebSocket port used by browser sessions; this port must also be reachable from the browser that connects the session
 - `-e API_KEYS`: API and console access key
 - `-e TZ=America/New_York`: Time zone for logs and UI timestamps (optional)
 
@@ -109,7 +108,6 @@ services:
     container_name: canvas-to-api
     ports:
       - 7861:7861
-      - 9997:9997
     restart: unless-stopped
     environment:
       API_KEYS: your-api-key
@@ -120,9 +118,17 @@ services:
 
 After the container starts, you still need to manually open the following page and connect a browser session:
 
-[https://gemini.google.com/share/7f1c38698fc1](https://gemini.google.com/share/7f1c38698fc1)
+[https://gemini.google.com/share/38b50bd0acb0](https://gemini.google.com/share/38b50bd0acb0)
 
-On that page, manually enter the browser tag (`Browser Identifier`) and the server WebSocket address (`Server WS Endpoint`), for example `ws://your-host:9997` or `wss://your-host:9997`. Once the browser session is connected, the status page will show it as online and the API can begin forwarding requests.
+On that page, manually enter the browser tag (`Browser Identifier`), API key, and the server WebSocket address (`Server WS Endpoint`), for example `ws://your-host:7861/ws` or `wss://your-host/ws`. The API key should be the same one you use for API requests. Once the browser session is connected, the status page will show it as online and the API can begin forwarding requests.
+
+#### 🌐 Step 3 (Optional): Nginx Reverse Proxy
+
+If you need to access the service through a domain name or put it behind a reverse proxy, you can use Nginx.
+
+> Important: Make sure your Nginx config forwards WebSocket upgrade headers, including `proxy_http_version 1.1`, `proxy_set_header Upgrade $http_upgrade`, and `proxy_set_header Connection "Upgrade"`.
+>
+> 📖 For detailed Nginx configuration instructions, see: [Nginx Reverse Proxy Configuration](docs/en/nginx-setup.md)
 
 ## 📗 API Usage
 
@@ -172,7 +178,6 @@ On that page, manually enter the browser tag (`Browser Identifier`) and the serv
 
 | Variable                  | Description                                                                                     | Default |
 | :------------------------ | :---------------------------------------------------------------------------------------------- | :------ |
-| `WS_PORT`                 | WebSocket port used by browser sessions to connect back to the server.                          | `9997`  |
 | `ROUND`                   | Session selection strategy. Supported values: `round` and `random`.                             | `round` |
 | `SESSION_ERROR_THRESHOLD` | Automatically disable a browser session after this many accumulated browser / WebSocket errors. | `3`     |
 | `MAX_RETRIES`             | Maximum number of retries for a failed request.                                                 | `3`     |
@@ -191,9 +196,9 @@ On that page, manually enter the browser tag (`Browser Identifier`) and the serv
 
 The current version no longer uses local `auth` files or a `setup-auth` bootstrap script. The correct flow is:
 
-1. Start the server and make sure both `PORT` and `WS_PORT` are reachable from the browser that will carry the session.
-2. Open the console and check the current `WS_PORT` and status.
-3. Open [https://gemini.google.com/share/7f1c38698fc1](https://gemini.google.com/share/7f1c38698fc1) in a browser.
+1. Start the server and make sure `PORT` is reachable from the browser that will carry the session.
+2. Open the console and check the browser-session endpoint and connection status.
+3. Open [https://gemini.google.com/share/38b50bd0acb0](https://gemini.google.com/share/38b50bd0acb0) in a browser.
 4. Enter the browser identifier and the server WebSocket endpoint on that page.
 5. Wait until the status page shows at least one online browser session before sending API traffic.
 

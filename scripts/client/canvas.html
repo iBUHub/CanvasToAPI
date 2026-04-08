@@ -79,7 +79,8 @@
         }
         body.theme-light .control-chip,
         body.theme-light #ws-endpoint,
-        body.theme-light #client-label {
+        body.theme-light #client-label,
+        body.theme-light #api-key {
             border-color: #cbd5e1 !important;
             background: rgba(255, 255, 255, 0.96) !important;
             color: #0f172a !important;
@@ -156,7 +157,7 @@
             </div>
         </div>
 
-        <div class="grid min-w-0 grid-cols-2 gap-2 md:gap-4">
+        <div class="grid min-w-0 grid-cols-1 gap-2 md:grid-cols-3 md:gap-4">
             <div class="min-w-0 space-y-1.5">
                 <div class="flex justify-between items-center px-1">
                     <label
@@ -169,7 +170,7 @@
                 </div>
                 <input
                     id="ws-endpoint"
-                    placeholder="ws://127.0.0.1:9997"
+                    placeholder="ws://127.0.0.1:7861/ws"
                     class="w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-2 font-mono text-sm text-slate-100 outline-none transition focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500/50"
                 />
             </div>
@@ -189,6 +190,25 @@
                     id="client-label"
                     data-i18n-placeholder="clientLabelPlaceholder"
                     placeholder="Auto-generate a browser tag"
+                    class="w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-2 font-mono text-sm text-slate-100 outline-none transition focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500/50"
+                />
+            </div>
+
+            <div class="min-w-0 space-y-1.5">
+                <div class="flex justify-between items-center px-1">
+                    <label
+                        class="field-label text-[10px] uppercase font-bold tracking-wider text-slate-500"
+                        for="api-key"
+                        data-i18n="apiKeyLabel"
+                    >
+                        API Key
+                    </label>
+                </div>
+                <input
+                    id="api-key"
+                    type="password"
+                    data-i18n-placeholder="apiKeyPlaceholder"
+                    placeholder="Same API key used for requests"
                     class="w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-2 font-mono text-sm text-slate-100 outline-none transition focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500/50"
                 />
             </div>
@@ -249,7 +269,8 @@
 </div>
 
 <script>
-    const DEFAULT_ENDPOINT = "ws://127.0.0.1:9997";
+    const DEFAULT_ENDPOINT = "ws://127.0.0.1:7861/ws";
+    const API_KEY_STORAGE_KEY = "canvasToApi.apiKey";
     const ENDPOINT_STORAGE_KEY = "canvasToApi.wsEndpoint";
     const CLIENT_LABEL_MODE_STORAGE_KEY = "canvasToApi.clientLabelMode";
     const CLIENT_LABEL_STORAGE_KEY = "canvasToApi.clientLabel";
@@ -260,6 +281,8 @@
     const SUPPORTED_LOCALES = ["zh-CN", "en-US"];
     const translations = {
         "zh-CN": {
+            apiKeyLabel: "API 密钥",
+            apiKeyPlaceholder: "输入与请求相同的 API 密钥",
             documentTitle: "CanvasToAPI 浏览器客户端 v0.0.2",
             pageTitle: "浏览器会话客户端",
             pageDescription: "代理 Gemini API 请求。先保存配置，再连接，并保持这个页面处于打开状态。",
@@ -292,6 +315,8 @@
             themeDarkShort: "深色",
         },
         "en-US": {
+            apiKeyLabel: "API Key",
+            apiKeyPlaceholder: "Enter the same API key used for requests",
             documentTitle: "CanvasToAPI Browser Client v0.0.2",
             pageTitle: "Browser Session Client",
             pageDescription: "Proxy Gemini API requests. Save the endpoint, then connect and keep the page open.",
@@ -368,6 +393,7 @@
             .map(value => (value % 36).toString(36))
             .join("")
             .toUpperCase();
+    const sanitizeApiKey = value => String(value || "").trim();
     const generateAutoClientLabel = () => `browser-${generateRandomSuffix(8)}`;
     const sanitizeClientLabel = value => String(value || "").trim().replace(/\s+/g, " ").slice(0, 64);
 
@@ -390,6 +416,7 @@
 
     let currentLocale = getPreferredLocale();
     let currentTheme = getPreferredTheme();
+    let currentApiKey = sanitizeApiKey(safeStorageGet(API_KEY_STORAGE_KEY));
     let currentEndpoint = safeStorageGet(ENDPOINT_STORAGE_KEY) || DEFAULT_ENDPOINT;
     let currentClientLabelMode = safeStorageGet(CLIENT_LABEL_MODE_STORAGE_KEY) || "auto";
     let currentClientLabel =
@@ -562,9 +589,10 @@
         Logger.info("Logs cleared.");
     });
     class ConnectionManager extends EventTarget {
-        constructor(endpoint = DEFAULT_ENDPOINT, clientLabel = "") {
+        constructor(endpoint = DEFAULT_ENDPOINT, clientLabel = "", apiKey = "") {
             super();
             this.endpoint = endpoint;
+            this.apiKey = sanitizeApiKey(apiKey);
             this.clientLabel = sanitizeClientLabel(clientLabel);
             this.socket = null;
             this.isConnected = false;
@@ -577,6 +605,12 @@
         updateEndpoint(newEndpoint) {
             Logger.output("Endpoint updated to:", newEndpoint);
             this.endpoint = newEndpoint;
+            this.reset();
+        }
+
+        updateApiKey(newApiKey) {
+            Logger.output("API key updated.");
+            this.apiKey = sanitizeApiKey(newApiKey);
             this.reset();
         }
 
@@ -597,7 +631,7 @@
             const wsUrl = this._buildConnectionUrl();
             Logger.output(
                 "Connecting to server:",
-                wsUrl,
+                this._maskSensitiveUrl(wsUrl),
                 this.clientLabel ? `(browser identifier: ${this.clientLabel})` : ""
             );
             setStatus("connecting");
@@ -631,7 +665,9 @@
                     });
 
                     this.socket.addEventListener("error", error => {
-                        Logger.output(`WebSocket connection error. Please check if local server is running at ${this.endpoint}`);
+                        Logger.output(
+                            `WebSocket connection error. Please check if the server is reachable at ${this.endpoint}`
+                        );
                         setStatus("error");
                         this.dispatchEvent(new CustomEvent("error", { detail: error }));
                         if (!this.isConnected) reject(error);
@@ -687,6 +723,12 @@
         _buildConnectionUrl() {
             const wsUrl = new URL(this.endpoint, window.location.href);
 
+            if (this.apiKey) {
+                wsUrl.searchParams.set("key", this.apiKey);
+            } else {
+                wsUrl.searchParams.delete("key");
+            }
+
             if (this.clientLabel) {
                 wsUrl.searchParams.set("client_label", this.clientLabel);
             } else {
@@ -694,6 +736,18 @@
             }
 
             return wsUrl.toString();
+        }
+
+        _maskSensitiveUrl(url) {
+            try {
+                const maskedUrl = new URL(url);
+                if (maskedUrl.searchParams.has("key")) {
+                    maskedUrl.searchParams.set("key", "***");
+                }
+                return maskedUrl.toString();
+            } catch {
+                return url;
+            }
         }
     }
 
@@ -967,9 +1021,9 @@
     }
 
     class ProxySystem extends EventTarget {
-        constructor(websocketEndpoint, clientLabel = "") {
+        constructor(websocketEndpoint, clientLabel = "", apiKey = "") {
             super();
-            this.connectionManager = new ConnectionManager(websocketEndpoint, clientLabel);
+            this.connectionManager = new ConnectionManager(websocketEndpoint, clientLabel, apiKey);
             this.requestProcessor = new RequestProcessor();
             this._setupEventHandlers();
         }
@@ -1225,6 +1279,7 @@
 
     const endpointInput = document.getElementById("ws-endpoint");
     const clientLabelInput = document.getElementById("client-label");
+    const apiKeyInput = document.getElementById("api-key");
     const saveBtn = document.getElementById("save-btn");
     const connectBtn = document.getElementById("connect-btn");
     const saveTip = document.getElementById("save-tip");
@@ -1235,15 +1290,18 @@
     applyI18n();
     endpointInput.value = currentEndpoint;
     clientLabelInput.value = currentClientLabel;
-    const proxySystem = new ProxySystem(currentEndpoint, currentClientLabel);
+    apiKeyInput.value = currentApiKey;
+    const proxySystem = new ProxySystem(currentEndpoint, currentClientLabel, currentApiKey);
     setStatus(currentStatus);
 
     saveBtn.addEventListener("click", () => {
         const val = endpointInput.value.trim() || DEFAULT_ENDPOINT;
         const inputClientLabel = sanitizeClientLabel(clientLabelInput.value);
+        const inputApiKey = sanitizeApiKey(apiKeyInput.value);
         const activeAutoLabel = getAutoClientLabel();
 
         currentEndpoint = val;
+        currentApiKey = inputApiKey;
         currentClientLabel =
             !inputClientLabel || (currentClientLabelMode !== "manual" && inputClientLabel === activeAutoLabel)
                 ? activeAutoLabel
@@ -1251,6 +1309,7 @@
         currentClientLabelMode = currentClientLabel === activeAutoLabel ? "auto" : "manual";
 
         safeStorageSet(ENDPOINT_STORAGE_KEY, currentEndpoint);
+        safeStorageSet(API_KEY_STORAGE_KEY, currentApiKey);
         safeStorageSet(CLIENT_LABEL_MODE_STORAGE_KEY, currentClientLabelMode);
         if (currentClientLabelMode === "manual") {
             safeStorageSet(CLIENT_LABEL_STORAGE_KEY, currentClientLabel);
@@ -1259,9 +1318,11 @@
         }
 
         clientLabelInput.value = currentClientLabel;
+        apiKeyInput.value = currentApiKey;
 
         proxySystem.connectionManager.disconnect();
         proxySystem.connectionManager.updateEndpoint(val);
+        proxySystem.connectionManager.updateApiKey(currentApiKey);
         proxySystem.connectionManager.updateClientLabel(currentClientLabel);
         setStatus("disconnected");
 
