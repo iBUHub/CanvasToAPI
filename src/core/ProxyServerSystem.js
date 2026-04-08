@@ -1,6 +1,6 @@
 /**
  * File: src/core/ProxyServerSystem.js
- * Description: Main proxy server system that orchestrates all components including HTTP/WebSocket servers, authentication, and request handling
+ * Description: Main server system for protocol adaptation and browser WebSocket forwarding
  *
  * Author: iBUHUB
  */
@@ -11,21 +11,13 @@ const WebSocket = require("ws");
 const http = require("http");
 const https = require("https");
 const fs = require("fs");
-const net = require("net");
-const { URL } = require("url");
 
 const LoggingService = require("../utils/LoggingService");
-const AuthSource = require("../auth/AuthSource");
-const BrowserManager = require("./BrowserManager");
-const ConnectionRegistry = require("./ConnectionRegistry");
 const RequestHandler = require("./RequestHandler");
+const SessionRegistry = require("./SessionRegistry");
 const ConfigLoader = require("../utils/ConfigLoader");
 const WebRoutes = require("../routes/WebRoutes");
 
-/**
- * Proxy Server System
- * Main server system class that integrates all modules
- */
 class ProxyServerSystem extends EventEmitter {
     constructor() {
         super();
@@ -38,164 +30,33 @@ class ProxyServerSystem extends EventEmitter {
         this.forceWebSearch = this.config.forceWebSearch;
         this.forceUrlContext = this.config.forceUrlContext;
 
-        this.authSource = new AuthSource(this.logger);
-        this.browserManager = new BrowserManager(this.logger, this.config, this.authSource);
-
-        // Create ConnectionRegistry with lightweight reconnect callback
-        // When WebSocket connection is lost but browser is still running,
-        // this callback attempts to refresh the page and re-inject the script
-        this.connectionRegistry = new ConnectionRegistry(
-            this.logger,
-            async authIndex => {
-                // Skip if browser is being intentionally closed (not an unexpected disconnect)
-                if (this.browserManager.isClosingIntentionally) {
-                    this.logger.info("[System] Browser is closing intentionally, skipping reconnect attempt.");
-                    return;
-                }
-
-                // Check if this is the current account
-                const currentAuthIndex = this.browserManager.currentAuthIndex;
-                const isCurrentAccount = authIndex === currentAuthIndex;
-
-                // Only check isSystemBusy if this is the current account
-                if (isCurrentAccount && this.requestHandler?.isSystemBusy) {
-                    this.logger.info(
-                        `[System] Current account #${authIndex} is busy (switching/recovering), skipping lightweight reconnect attempt.`
-                    );
-                    return;
-                }
-
-                // Get the context and page for this specific account
-                const contextData = this.browserManager.contexts.get(authIndex);
-                if (!contextData || !contextData.page || contextData.page.isClosed()) {
-                    this.logger.info(
-                        `[System] Account #${authIndex} page not available or closed, skipping lightweight reconnect.`
-                    );
-                    return;
-                }
-
-                if (this.browserManager.browser) {
-                    this.logger.error(
-                        `[System] WebSocket lost for account #${authIndex} but browser still running, attempting lightweight reconnect...`
-                    );
-                    const success = await this.browserManager.attemptLightweightReconnect(authIndex);
-                    if (!success) {
-                        this.logger.warn(
-                            `[System] Lightweight reconnect failed for account #${authIndex}. Will attempt full recovery on next request.`
-                        );
-                    }
-                } else {
-                    this.logger.info("[System] Browser not available, skipping lightweight reconnect.");
-                }
-            },
-            () => this.browserManager.currentAuthIndex,
-            this.browserManager
-        );
-
-        // Set ConnectionRegistry reference in BrowserManager to avoid circular dependency
-        this.browserManager.setConnectionRegistry(this.connectionRegistry);
-
-        this.requestHandler = new RequestHandler(
-            this,
-            this.connectionRegistry,
-            this.logger,
-            this.browserManager,
-            this.config,
-            this.authSource
-        );
+        this.sessionRegistry = new SessionRegistry(this.logger, this.config);
+        this.requestHandler = new RequestHandler(this, this.sessionRegistry, this.logger, null, this.config, null);
 
         this.httpServer = null;
         this.wsServer = null;
         this.webRoutes = new WebRoutes(this);
     }
 
-    async start(initialAuthIndex = null) {
-        this.logger.info("[System] Starting flexible startup process...");
+    async start() {
+        this.logger.info("[System] Starting protocol adapter server...");
         await this._startHttpServer();
         await this._startWebSocketServer();
-        this.logger.info(`[System] Proxy server system startup complete.`);
 
-        // Start periodic cleanup of stale message queues (every 5 minutes)
-        // This is a safety mechanism to prevent queue leaks from race conditions
         this.staleQueueCleanupInterval = setInterval(() => {
             try {
-                this.connectionRegistry.cleanupStaleQueues(600000); // 10 minutes
+                this.sessionRegistry.cleanupStaleQueues(600000);
             } catch (error) {
                 this.logger.error(`[System] Error during stale queue cleanup: ${error.message}`);
             }
-        }, 300000); // Run every 5 minutes
+        }, 300000);
 
-        const allAvailableIndices = this.authSource.availableIndices;
-        const allRotationIndices = this.authSource.getRotationIndices();
-
-        if (allAvailableIndices.length === 0) {
-            this.logger.warn("[System] No available authentication source. Starting in account binding mode.");
-            this.emit("started");
-            return; // Exit early
-        }
-
-        // Determine startup order
-        let startupOrder = allRotationIndices.length > 0 ? [...allRotationIndices] : [...allAvailableIndices];
-        const hasInitialAuthIndex = Number.isInteger(initialAuthIndex);
-        if (hasInitialAuthIndex) {
-            const canonicalInitialIndex = this.authSource.getCanonicalIndex(initialAuthIndex);
-            if (canonicalInitialIndex !== null && startupOrder.includes(canonicalInitialIndex)) {
-                if (canonicalInitialIndex !== initialAuthIndex) {
-                    this.logger.warn(
-                        `[System] Specified startup index #${initialAuthIndex} is a duplicate, using latest auth index #${canonicalInitialIndex} instead.`
-                    );
-                } else {
-                    this.logger.info(
-                        `[System] Detected specified startup index #${initialAuthIndex}, will try it first.`
-                    );
-                }
-                startupOrder = [canonicalInitialIndex, ...startupOrder.filter(i => i !== canonicalInitialIndex)];
-            } else {
-                this.logger.warn(
-                    `[System] Specified startup index #${initialAuthIndex} is invalid or unavailable, will start in default order.`
-                );
-            }
-        } else {
-            this.logger.info(
-                `[System] No valid startup index specified, will activate first available context [${startupOrder[0]}].`
-            );
-        }
-
-        // Context pool startup
-        const maxContexts = this.config.maxContexts;
-        this.logger.info(`[System] Starting context pool (maxContexts=${maxContexts})...`);
-
-        try {
-            this.requestHandler.authSwitcher.isSystemBusy = true;
-            const { firstReady } = await this.browserManager.preloadContextPool(startupOrder, maxContexts);
-
-            if (firstReady === null) {
-                this.logger.error("[System] Failed to initialize any context!");
-                this.emit("started");
-                return;
-            }
-
-            // Activate first ready context (fast switch since already preloaded)
-            await this.browserManager.launchOrSwitchContext(firstReady);
-            this.logger.info(`[System] ✅ Successfully activated account #${firstReady}!`);
-        } catch (error) {
-            this.logger.error(`[System] ❌ Startup failed: ${error.message}`);
-        } finally {
-            this.requestHandler.authSwitcher.isSystemBusy = false;
-        }
-
+        this.logger.info("[System] Server startup complete.");
         this.emit("started");
     }
 
     _createAuthMiddleware() {
         return (req, res, next) => {
-            // Allow access if session is authenticated (e.g. browser accessing /vnc or API from UI)
-            if (req.session && req.session.isAuthenticated) {
-                if (req.path === "/vnc") {
-                    return next();
-                }
-            }
-
             const serverApiKeys = this.config.apiKeys;
             if (!serverApiKeys || serverApiKeys.length === 0) {
                 return next();
@@ -214,7 +75,7 @@ class ProxyServerSystem extends EventEmitter {
 
             if (clientKey && serverApiKeys.includes(clientKey)) {
                 this.logger.info(
-                    `[Auth] API Key verification passed (from: ${this.webRoutes.authRoutes.getClientIP(req)})`
+                    `[Auth] API key verification passed (from: ${this.webRoutes.authRoutes.getClientIP(req)})`
                 );
                 if (req.query.key) {
                     delete req.query.key;
@@ -224,9 +85,7 @@ class ProxyServerSystem extends EventEmitter {
 
             if (req.path !== "/favicon.ico") {
                 const clientIp = this.webRoutes.authRoutes.getClientIP(req);
-                this.logger.warn(
-                    `[Auth] Access password incorrect or missing, request denied. IP: ${clientIp}, Path: ${req.path}`
-                );
+                this.logger.warn(`[Auth] Access password incorrect or missing. IP: ${clientIp}, Path: ${req.path}`);
             }
 
             return res.status(401).json({
@@ -250,7 +109,7 @@ class ProxyServerSystem extends EventEmitter {
                     this.httpServer = https.createServer(options, app);
                     this.logger.info("[System] Starting in HTTPS mode...");
                 } else {
-                    this.logger.warn("[System] SSL file paths provided but files not found. Falling back to HTTP.");
+                    this.logger.warn("[System] SSL files not found, falling back to HTTP.");
                     this.httpServer = http.createServer(app);
                 }
             } catch (error) {
@@ -261,72 +120,6 @@ class ProxyServerSystem extends EventEmitter {
             this.httpServer = http.createServer(app);
         }
 
-        this.httpServer.on("upgrade", (req, socket) => {
-            const pathname = new URL(req.url, `http://${req.headers.host}`).pathname;
-
-            if (pathname === "/vnc") {
-                this.logger.info("[VNC Proxy] Detected VNC WebSocket upgrade request. Verifying session...");
-
-                // Use the session parser from WebRoutes to verify authentication
-                this.webRoutes.sessionParser(req, {}, () => {
-                    if (!req.session || !req.session.isAuthenticated) {
-                        const clientIp = this.webRoutes.authRoutes.getClientIP(req);
-                        this.logger.warn(`[VNC Proxy] Unauthorized WebSocket connection attempt from ${clientIp}`);
-                        socket.write("HTTP/1.1 401 Unauthorized\r\n\r\n");
-                        socket.destroy();
-                        return;
-                    }
-
-                    this.logger.info("[VNC Proxy] Session verified. Proxying...");
-                    const target = net.createConnection({ host: "localhost", port: 6080 });
-
-                    target.on("connect", () => {
-                        this.logger.info("[VNC Proxy] Successfully connected to internal websockify (port 6080).");
-
-                        // Forward the WebSocket handshake headers to the backend
-                        const headers = [
-                            `GET ${req.url} HTTP/1.1`,
-                            "Host: localhost:6080",
-                            "Upgrade: websocket",
-                            "Connection: Upgrade",
-                            `Sec-WebSocket-Key: ${req.headers["sec-websocket-key"]}`,
-                            `Sec-WebSocket-Version: ${req.headers["sec-websocket-version"]}`,
-                        ];
-
-                        if (req.headers["sec-websocket-protocol"]) {
-                            headers.push(`Sec-WebSocket-Protocol: ${req.headers["sec-websocket-protocol"]}`);
-                        }
-
-                        if (req.headers["sec-websocket-extensions"]) {
-                            headers.push(`Sec-WebSocket-Extensions: ${req.headers["sec-websocket-extensions"]}`);
-                        }
-
-                        // Write the handshake to the backend
-                        target.write(headers.join("\r\n") + "\r\n\r\n");
-
-                        // Pipe the sockets together. The backend will respond with 101, which goes to the client.
-                        target.pipe(socket).pipe(target);
-                    });
-
-                    target.on("error", err => {
-                        this.logger.error(`[VNC Proxy] Error connecting to internal websockify: ${err.message}`);
-                        socket.destroy();
-                    });
-
-                    socket.on("error", err => {
-                        this.logger.error(`[VNC Proxy] Client socket error: ${err.message}`);
-                        target.destroy();
-                    });
-                });
-            } else {
-                // If it's not for VNC, destroy the socket to prevent hanging connections
-                this.logger.warn(
-                    `[System] Received an upgrade request for an unknown path: ${pathname}. Connection terminated.`
-                );
-                socket.destroy();
-            }
-        });
-
         this.httpServer.keepAliveTimeout = 120000;
         this.httpServer.headersTimeout = 125000;
         this.httpServer.requestTimeout = 120000;
@@ -336,9 +129,6 @@ class ProxyServerSystem extends EventEmitter {
                 this.logger.info(
                     `[System] HTTP server is listening on http://${this.config.host}:${this.config.httpPort}`
                 );
-                this.logger.info(
-                    `[System] Keep-Alive timeout set to ${this.httpServer.keepAliveTimeout / 1000} seconds.`
-                );
                 resolve();
             });
         });
@@ -347,7 +137,6 @@ class ProxyServerSystem extends EventEmitter {
     _createExpressApp() {
         const app = express();
 
-        // Request logging
         app.use((req, res, next) => {
             if (
                 req.path !== "/api/status" &&
@@ -361,12 +150,11 @@ class ProxyServerSystem extends EventEmitter {
                 req.path !== "/AIStudio_icon.svg" &&
                 req.path !== "/AIStudio_logo_dark.svg"
             ) {
-                this.logger.info(`[Entrypoint] Received a request: ${req.method} ${req.path}`);
+                this.logger.info(`[Entrypoint] Received request: ${req.method} ${req.path}`);
             }
             next();
         });
 
-        // CORS middleware
         app.use((req, res, next) => {
             res.header("Access-Control-Allow-Origin", "*");
             res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, PATCH, OPTIONS");
@@ -381,26 +169,15 @@ class ProxyServerSystem extends EventEmitter {
                     "x-goog-upload-protocol, x-goog-upload-command, x-goog-upload-header-content-length, " +
                     "x-goog-upload-header-content-type, x-goog-upload-url, x-goog-upload-offset, x-goog-upload-status"
             );
-
-            // Expose all common Headers, including upload related ones (matched from BuildProxy)
             res.header("Access-Control-Expose-Headers", "*");
-            res.header(
-                "Access-Control-Expose-Headers",
-                "x-goog-upload-url, x-goog-upload-status, x-goog-upload-chunk-granularity, " +
-                    "x-goog-upload-control-url, x-goog-upload-command, x-goog-upload-content-type, " +
-                    "x-goog-upload-protocol, x-goog-upload-file-name, x-goog-upload-offset, " +
-                    "date, content-type, content-length, location"
-            );
 
             if (req.method === "OPTIONS") {
                 return res.sendStatus(204);
             }
+
             next();
         });
 
-        // Manual body collection middleware (BuildProxy style)
-        // Collects the entire raw body into req.rawBody as a Buffer
-        // Also attempts to parse JSON into req.body for compatibility
         app.use((req, res, next) => {
             if (req.method === "GET" || req.method === "OPTIONS" || req.method === "HEAD") {
                 return next();
@@ -411,19 +188,17 @@ class ProxyServerSystem extends EventEmitter {
             req.on("end", () => {
                 req.rawBody = Buffer.concat(chunks);
 
-                // Try to parse JSON for req.body compatibility
                 if (req.headers["content-type"]?.includes("application/json")) {
                     try {
                         req.body = JSON.parse(req.rawBody.toString());
-                    } catch (e) {
-                        // Not valid JSON, keep req.body undefined or empty
+                    } catch {
                         req.body = {};
                     }
                 } else if (req.headers["content-type"]?.includes("application/x-www-form-urlencoded")) {
                     try {
                         const qs = require("querystring");
                         req.body = qs.parse(req.rawBody.toString());
-                    } catch (e) {
+                    } catch {
                         req.body = {};
                     }
                 } else {
@@ -439,25 +214,15 @@ class ProxyServerSystem extends EventEmitter {
             });
         });
 
-        // Serve static files from ui/dist (Vite build output)
         const path = require("path");
         app.use(express.static(path.join(__dirname, "..", "..", "ui", "dist")));
-
-        // Serve additional public assets under ui/public
         app.use(express.static(path.join(__dirname, "..", "..", "ui", "public")));
-
-        // Serve locales for front-end only translations
         app.use("/locales", express.static(path.join(__dirname, "..", "..", "ui", "locales")));
 
-        // Setup session and all routes (auth, status, and auth creation)
         this.webRoutes.setupSession(app);
-
-        // API authentication middleware
         app.use(this._createAuthMiddleware());
 
-        // API routes
-        app.get(["/v1/models"], (req, res) => {
-            // OpenAI format
+        app.get("/v1/models", (req, res) => {
             const models = this.config.modelList.map(model => ({
                 context_window: model.inputTokenLimit,
                 created: Math.floor(Date.now() / 1000),
@@ -473,7 +238,7 @@ class ProxyServerSystem extends EventEmitter {
             });
         });
 
-        app.get(["/v1beta/models"], (req, res) => {
+        app.get("/v1beta/models", (req, res) => {
             res.status(200).json({ models: this.config.modelList });
         });
 
@@ -481,44 +246,24 @@ class ProxyServerSystem extends EventEmitter {
             this.requestHandler.processOpenAIRequest(req, res);
         });
 
-        // OpenAI Response API compatible endpoint
         app.post("/v1/responses", (req, res) => {
             this.requestHandler.processOpenAIResponseRequest(req, res);
         });
 
-        // OpenAI Response API count input tokens endpoint
         app.post("/v1/responses/input_tokens", (req, res) => {
             this.requestHandler.processOpenAIResponseInputTokens(req, res);
         });
-        // Compatibility alias (some clients omit the /v1 prefix)
+
         app.post("/responses/input_tokens", (req, res) => {
             this.requestHandler.processOpenAIResponseInputTokens(req, res);
         });
 
-        // Claude API compatible endpoint
         app.post("/v1/messages", (req, res) => {
             this.requestHandler.processClaudeRequest(req, res);
         });
 
-        // Claude API count tokens endpoint
         app.post("/v1/messages/count_tokens", (req, res) => {
             this.requestHandler.processClaudeCountTokens(req, res);
-        });
-
-        // VNC WebSocket downgrade / missing headers handler
-        // If Nginx or another proxy strips "Upgrade: websocket" headers, the request appears as a normal GET.
-        // We intercept it here to prevent it from falling through to the Gemini proxy.
-        app.get("/vnc", (req, res) => {
-            res.status(400).send(
-                "Error: WebSocket connection failed. " +
-                    "If you are using a proxy (like Nginx), ensure it is configured to forward 'Upgrade' and 'Connection' headers."
-            );
-        });
-
-        // File Upload Routes
-        // Intercept upload requests to use specialized handler
-        app.all(/\/upload\/.*/, (req, res) => {
-            this.requestHandler.processUploadRequest(req, res);
         });
 
         app.all(/(.*)/, (req, res) => {
@@ -545,93 +290,62 @@ class ProxyServerSystem extends EventEmitter {
                 resolve();
             });
 
-            this.wsServer.on("error", err => {
+            this.wsServer.on("error", error => {
                 if (!isListening) {
-                    this.logger.error(`[System] WebSocket server failed to start: ${err.message}`);
-                    reject(err);
-                } else {
-                    this.logger.error(`[System] WebSocket server runtime error: ${err.message}`);
-                }
-            });
-            this.wsServer.on("connection", (ws, req) => {
-                // Parse authIndex from query parameter
-                const url = new URL(req.url, `http://${req.headers.host}`);
-                const authIndexParam = url.searchParams.get("authIndex");
-                const authIndex = authIndexParam !== null ? parseInt(authIndexParam, 10) : -1;
-
-                // Validate authIndex: must be a valid non-negative integer
-                if (Number.isNaN(authIndex) || authIndex < 0) {
-                    this.logger.error(
-                        `[System] Rejecting WebSocket connection with invalid authIndex: ${authIndexParam} (parsed as ${authIndex})`
-                    );
-                    this._safeCloseWebSocket(ws, 1008, "Invalid authIndex: must be a non-negative integer");
+                    reject(error);
                     return;
                 }
 
-                this.connectionRegistry.addConnection(ws, {
-                    address: req.socket.remoteAddress,
-                    authIndex,
-                });
+                this.logger.error(`[System] WebSocket server runtime error: ${error.message}`);
+            });
+
+            this.wsServer.on("connection", (ws, req) => {
+                this.sessionRegistry.addConnection(ws, this._buildBrowserSessionMeta(req));
             });
         });
     }
 
-    /**
-     * Safely close a WebSocket connection with readyState check
-     * @param {WebSocket} ws - The WebSocket to close
-     * @param {number} code - Close code (e.g., 1000, 1008)
-     * @param {string} reason - Close reason
-     */
-    _safeCloseWebSocket(ws, code, reason) {
-        if (!ws) {
-            return;
+    _buildBrowserSessionMeta(req) {
+        let clientLabel = "";
+
+        try {
+            const requestUrl = new URL(req.url || "/", `ws://${req.headers.host || "localhost"}`);
+            clientLabel = this._sanitizeBrowserClientLabel(requestUrl.searchParams.get("client_label"));
+        } catch (error) {
+            this.logger.debug(`[System] Failed to parse browser WebSocket URL: ${error.message}`);
         }
 
-        // WebSocket readyState: 0=CONNECTING, 1=OPEN, 2=CLOSING, 3=CLOSED
-        // Only attempt to close if not already closing or closed
-        if (ws.readyState === 0 || ws.readyState === 1) {
-            try {
-                ws.close(code, reason);
-            } catch (error) {
-                this.logger.warn(
-                    `[System] Failed to close WebSocket (code=${code}, reason="${reason}"): ${error.message}`
-                );
-            }
-        } else {
-            this.logger.debug(
-                `[System] WebSocket already closing/closed (readyState=${ws.readyState}), skipping close()`
-            );
-        }
+        return {
+            address: this.webRoutes.authRoutes.getClientIP(req),
+            clientLabel,
+            userAgent: req.headers["user-agent"] || "",
+        };
     }
 
-    /**
-     * Gracefully shutdown the server system
-     */
+    _sanitizeBrowserClientLabel(value) {
+        if (!value) {
+            return "";
+        }
+
+        return String(value).trim().replace(/\s+/g, " ").slice(0, 64);
+    }
+
     async shutdown() {
         this.logger.info("[System] Shutting down server system...");
 
-        // Clear stale queue cleanup interval
         if (this.staleQueueCleanupInterval) {
             clearInterval(this.staleQueueCleanupInterval);
             this.staleQueueCleanupInterval = null;
-            this.logger.info("[System] Stopped stale queue cleanup interval");
         }
 
-        // Close all message queues
-        if (this.connectionRegistry) {
-            this.connectionRegistry.closeAllMessageQueues();
-        }
+        this.sessionRegistry.closeAllMessageQueues();
+        this.sessionRegistry.closeAllConnections();
 
-        // Close browser
-        if (this.browserManager) {
-            await this.browserManager.closeBrowser();
-        }
-
-        // Close servers and wait for them to finish closing
         const closeServer = (server, name) =>
             new Promise(resolve => {
                 if (!server) {
-                    return resolve();
+                    resolve();
+                    return;
                 }
 
                 try {
@@ -649,6 +363,7 @@ class ProxyServerSystem extends EventEmitter {
             closeServer(this.wsServer, "WebSocket server"),
             closeServer(this.httpServer, "HTTP server"),
         ]);
+
         this.logger.info("[System] Shutdown complete");
     }
 }

@@ -1,100 +1,212 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="zh-CN">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Browser API Proxy Client v0.0.1</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CanvasToAPI Browser Client v0.0.2</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        // 【环境初始化部分 - 提取自 index.html】
-        (function () {
-            // Create promise for build.js to await
-            var resolveAuthIndex;
-            window.__authIndexReady = new Promise(function(resolve) { resolveAuthIndex = resolve; });
-
-            window.addEventListener("message", function (event) {
-                if (event.data && event.data.type === "authIndexResponse") {
-                    var authIndex = parseInt(event.data.authIndex, 10);
-                    if (!isNaN(authIndex) && authIndex >= 0) {
-                        if (!window.chrome) window.chrome = {};
-                        window.chrome._contextId = authIndex;
-                        console.log("[Init] ✅ Got authIndex:", authIndex);
-                        resolveAuthIndex(authIndex);
-                    }
-                }
-            });
-
-            // Immediately request authIndex from parent
-            if (window.parent && window.parent !== window) {
-                window.parent.postMessage({ type: "requestAuthIndex" }, "*");
-            }
-        })();
-    </script>
+    <style>
+        #logs::-webkit-scrollbar {
+            width: 6px;
+        }
+        #logs::-webkit-scrollbar-track {
+            background: rgba(15, 23, 42, 0.1);
+        }
+        #logs::-webkit-scrollbar-thumb {
+            background: rgba(51, 65, 85, 0.5);
+            border-radius: 10px;
+        }
+        #logs::-webkit-scrollbar-thumb:hover {
+            background: rgba(51, 65, 85, 0.8);
+        }
+    </style>
 </head>
-<body class="bg-gray-900 min-h-screen text-gray-200 font-sans flex flex-col">
-
-<!-- 顶部导航和状态栏 -->
-<header class="bg-gray-800 border-b border-gray-700 p-4 flex justify-between items-center shadow-md">
-    <div>
-        <h1 class="text-xl font-bold text-white flex items-center gap-2">
-            <svg class="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-            Browser Proxy Client
-        </h1>
-        <p class="text-xs text-gray-400 mt-1">Routing Google API requests via WebSocket</p>
-    </div>
-    <div class="flex items-center gap-3">
-        <div class="flex flex-col text-right">
-            <span class="text-xs text-gray-400">WebSocket Endpoint</span>
-            <span class="text-sm font-mono font-medium text-gray-300">ws://127.0.0.1:9998</span>
-        </div>
-        <div id="status-indicator" class="flex items-center gap-2 px-3 py-1.5 rounded-full bg-yellow-500/20 text-yellow-400 border border-yellow-500/30">
-                <span class="relative flex h-3 w-3">
-                  <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-yellow-400 opacity-75"></span>
-                  <span class="relative inline-flex rounded-full h-3 w-3 bg-yellow-500"></span>
+<body class="h-screen bg-slate-950 text-slate-100 font-sans selection:bg-cyan-500/30 overflow-hidden">
+<div class="mx-auto flex h-screen max-w-6xl flex-col p-4 md:p-6 overflow-hidden">
+    <header
+        class="flex-none mb-4 flex flex-col gap-6 rounded-3xl border border-slate-800 bg-slate-900/80 p-6 md:p-8 shadow-2xl shadow-slate-950/30 md:flex-row md:items-end md:justify-between"
+    >
+        <div class="flex-1">
+            <div class="flex items-center gap-2">
+                <span class="relative flex h-2 w-2">
+                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span>
+                    <span class="relative inline-flex rounded-full h-2 w-2 bg-cyan-500"></span>
                 </span>
-            <span id="status-text" class="text-sm font-semibold tracking-wide">Connecting...</span>
+                <p class="text-xs uppercase font-bold tracking-[0.3em] text-cyan-400/90">CanvasToAPI</p>
+            </div>
+            <h1 class="mt-2 text-2xl md:text-3xl font-bold tracking-tight text-white text-nowrap">Browser Session Client</h1>
+            <p class="mt-2 max-w-xl text-xs md:text-sm leading-relaxed text-slate-400">
+                Proxy Gemini API requests. Save the endpoint, then connect and keep the page open.
+            </p>
         </div>
-    </div>
-</header>
 
-<!-- 日志终端区域 -->
-<main class="flex-1 p-4 flex flex-col h-[calc(100vh-80px)]">
-    <div class="bg-black border border-gray-700 rounded-lg shadow-inner flex-1 overflow-hidden flex flex-col relative">
-        <div class="bg-gray-800 px-4 py-2 border-b border-gray-700 flex justify-between items-center sticky top-0 z-10">
-            <span class="text-sm font-mono text-gray-400">System Logs Output</span>
-            <button id="clearLogsBtn" class="text-xs text-gray-400 hover:text-white transition">清除日志</button>
+        <div class="flex flex-col gap-3 md:min-w-[400px]">
+            <div class="space-y-1.5">
+                <div class="flex justify-between items-center px-1">
+                    <label class="text-[10px] uppercase font-bold tracking-wider text-slate-500" for="ws-endpoint">Server WS Endpoint</label>
+                    <span id="save-tip" class="text-[10px] text-emerald-400 font-bold opacity-0 transition-opacity">SAVED!</span>
+                </div>
+                <div class="flex gap-2">
+                    <input
+                        id="ws-endpoint"
+                        placeholder="ws://127.0.0.1:9997"
+                        class="flex-1 rounded-xl border border-slate-700 bg-slate-950 px-4 py-2 font-mono text-sm text-slate-100 outline-none transition focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500/50"
+                    />
+                    <button
+                        id="save-btn"
+                        class="rounded-xl bg-slate-800 px-4 py-2 text-sm font-bold text-slate-300 transition hover:bg-slate-700 active:scale-95"
+                    >
+                        Save
+                    </button>
+                </div>
+                <div class="space-y-1.5">
+                    <div class="flex justify-between items-center px-1">
+                        <label class="text-[10px] uppercase font-bold tracking-wider text-slate-500" for="client-label">Browser Identifier</label>
+                        <span class="text-[10px] text-slate-600">Blank = auto daily</span>
+                    </div>
+                    <input
+                        id="client-label"
+                        placeholder="Auto-generate a daily browser tag"
+                        class="w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-2 font-mono text-sm text-slate-100 outline-none transition focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500/50"
+                    />
+                </div>
+                <button
+                    id="connect-btn"
+                    class="w-full mt-1 rounded-xl bg-cyan-500 px-6 py-2.5 text-sm font-bold text-slate-950 transition hover:bg-cyan-400 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                    Connect
+                </button>
+            </div>
+            <div class="flex items-center justify-between px-1">
+                <div class="flex items-center gap-2">
+                    <span id="status-indicator" class="h-2 w-2 rounded-full bg-amber-500"></span>
+                    <span id="status-text" class="text-[10px] font-bold uppercase tracking-wide text-amber-500">Disconnected</span>
+                </div>
+                <span class="text-[10px] font-mono text-slate-600">v0.0.2-stable</span>
+            </div>
         </div>
-        <div id="logs" class="p-4 overflow-y-auto flex-1 font-mono text-sm leading-relaxed whitespace-pre-wrap space-y-1">
-            <!-- 日志条目将动态插入到这里 -->
+    </header>
+
+    <main class="flex-1 min-h-0 overflow-hidden flex flex-col rounded-3xl border border-slate-800 bg-black/40 backdrop-blur-sm shadow-2xl shadow-slate-950/30">
+        <div class="flex-none flex items-center justify-between border-b border-slate-800 px-6 py-3 bg-slate-900/40">
+            <div class="flex items-center gap-3">
+                <div class="flex gap-1">
+                    <div class="w-2.5 h-2.5 rounded-full bg-slate-700"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-slate-700"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-slate-700"></div>
+                </div>
+                <span class="font-mono text-xs font-semibold text-slate-400">Console Logs Output</span>
+            </div>
+            <button id="clear-logs" class="text-xs font-bold text-slate-500 uppercase tracking-widest hover:text-white transition">Clear</button>
         </div>
-    </div>
-</main>
+        <div id="logs" class="flex-1 overflow-y-auto p-6 font-mono text-xs leading-relaxed space-y-1 bg-slate-950/20">
+            <div class="text-slate-500 italic">Initializing system... awaiting connection input.</div>
+        </div>
+    </main>
+
+    <footer class="flex-none mt-3 px-2 flex justify-between items-center text-[10px] text-slate-600 uppercase tracking-widest">
+        <span>Target: generativelanguage.googleapis.com</span>
+        <span>Security: Browser-Bound Session</span>
+    </footer>
+</div>
 
 <script>
-    // 【核心代理逻辑部分 - 提取自 build.js 并做了 UI 适配】
+    const DEFAULT_ENDPOINT = "ws://127.0.0.1:9997";
+    const ENDPOINT_STORAGE_KEY = "canvasToApi.wsEndpoint";
+    const CLIENT_LABEL_MODE_STORAGE_KEY = "canvasToApi.clientLabelMode";
+    const CLIENT_LABEL_STORAGE_KEY = "canvasToApi.clientLabel";
+    const DAILY_CLIENT_LABEL_DATE_STORAGE_KEY = "canvasToApi.dailyClientLabelDate";
+    const DAILY_CLIENT_LABEL_STORAGE_KEY = "canvasToApi.dailyClientLabel";
 
-    const updateConnectionStatus = (status) => {
-        const indicator = document.getElementById('status-indicator');
-        const text = document.getElementById('status-text');
-        const pingDot = indicator.querySelector('.animate-ping');
-        const staticDot = indicator.querySelector('.relative.inline-flex.rounded-full');
+    const safeStorageGet = key => {
+        try {
+            return localStorage.getItem(key);
+        } catch {
+            return null;
+        }
+    };
 
-        indicator.className = 'flex items-center gap-2 px-3 py-1.5 rounded-full border';
-        if (status === 'connected') {
-            indicator.classList.add('bg-green-500/20', 'text-green-400', 'border-green-500/30');
-            text.textContent = 'Connected';
-            if(pingDot) pingDot.classList.replace('bg-yellow-400', 'bg-green-400');
-            if(staticDot) staticDot.classList.replace('bg-yellow-500', 'bg-green-500');
-            if(pingDot) pingDot.classList.remove('animate-ping'); // 连接成功后停止闪烁
-        } else if (status === 'disconnected' || status === 'error') {
-            indicator.classList.add('bg-red-500/20', 'text-red-400', 'border-red-500/30');
-            text.textContent = 'Disconnected';
-            if(pingDot) pingDot.classList.replace('bg-green-400', 'bg-red-400');
-            if(staticDot) staticDot.classList.replace('bg-green-500', 'bg-red-500');
+    const safeStorageSet = (key, value) => {
+        try {
+            localStorage.setItem(key, value);
+        } catch {}
+    };
+
+    const safeStorageRemove = key => {
+        try {
+            localStorage.removeItem(key);
+        } catch {}
+    };
+
+    const getTodayStamp = () => new Date().toISOString().slice(0, 10);
+    const generateRandomSuffix = (length = 4) =>
+        Array.from(crypto.getRandomValues(new Uint8Array(length)))
+            .map(value => (value % 36).toString(36))
+            .join("")
+            .toUpperCase();
+    const generateDailyClientLabel = (dateStamp = getTodayStamp()) =>
+        `browser-${dateStamp.replace(/-/g, "")}-${generateRandomSuffix(4)}`;
+    const sanitizeClientLabel = value => String(value || "").trim().replace(/\s+/g, " ").slice(0, 64);
+
+    const getDailyClientLabel = () => {
+        const today = getTodayStamp();
+        const savedDate = safeStorageGet(DAILY_CLIENT_LABEL_DATE_STORAGE_KEY);
+        const savedLabel = sanitizeClientLabel(safeStorageGet(DAILY_CLIENT_LABEL_STORAGE_KEY));
+
+        if (savedDate === today && savedLabel) {
+            return savedLabel;
+        }
+
+        const newLabel = generateDailyClientLabel(today);
+        safeStorageSet(DAILY_CLIENT_LABEL_DATE_STORAGE_KEY, today);
+        safeStorageSet(DAILY_CLIENT_LABEL_STORAGE_KEY, newLabel);
+        return newLabel;
+    };
+
+    let currentEndpoint = safeStorageGet(ENDPOINT_STORAGE_KEY) || DEFAULT_ENDPOINT;
+    let currentClientLabelMode = safeStorageGet(CLIENT_LABEL_MODE_STORAGE_KEY) || "daily";
+    let currentClientLabel =
+        currentClientLabelMode === "manual"
+            ? sanitizeClientLabel(safeStorageGet(CLIENT_LABEL_STORAGE_KEY)) || getDailyClientLabel()
+            : getDailyClientLabel();
+
+    if (currentClientLabelMode === "manual" && !safeStorageGet(CLIENT_LABEL_STORAGE_KEY)) {
+        currentClientLabelMode = "daily";
+    }
+
+    const setStatus = status => {
+        const textEl = document.getElementById("status-text");
+        const indicatorEl = document.getElementById("status-indicator");
+        const connectBtn = document.getElementById("connect-btn");
+
+        textEl.textContent = status;
+        connectBtn.disabled = false;
+
+        if (status === "connected") {
+            textEl.className = "text-[10px] font-bold uppercase tracking-wide text-emerald-400";
+            indicatorEl.className = "h-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.6)]";
+            connectBtn.textContent = "Disconnect From Server";
+            connectBtn.className = "w-full mt-1 rounded-xl bg-rose-500 px-6 py-2.5 text-sm font-bold text-white transition hover:bg-rose-400 active:scale-95";
+        } else if (status === "reconnecting") {
+            textEl.className = "text-[10px] font-bold uppercase tracking-wide text-amber-500";
+            indicatorEl.className = "h-2 w-2 rounded-full bg-amber-500 animate-pulse";
+            connectBtn.textContent = "Stop Reconnecting";
+            connectBtn.className = "w-full mt-1 rounded-xl bg-rose-500/80 px-6 py-2.5 text-sm font-bold text-white transition hover:bg-rose-500 active:scale-95";
+        } else if (status === "connecting") {
+            textEl.className = "text-[10px] font-bold uppercase tracking-wide text-amber-500";
+            indicatorEl.className = "h-2 w-2 rounded-full bg-amber-500 animate-pulse";
+            connectBtn.textContent = "Connecting...";
+            connectBtn.disabled = true;
+        } else if (status === "error") {
+            textEl.className = "text-[10px] font-bold uppercase tracking-wide text-rose-500";
+            indicatorEl.className = "h-2 w-2 rounded-full bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.6)]";
+            connectBtn.textContent = "Retry Connect Now";
+            connectBtn.className = "w-full mt-1 rounded-xl bg-cyan-500 px-6 py-2.5 text-sm font-bold text-slate-950 transition hover:bg-cyan-400 active:scale-95";
         } else {
-            indicator.classList.add('bg-yellow-500/20', 'text-yellow-400', 'border-yellow-500/30');
-            text.textContent = 'Connecting...';
-            if(pingDot) pingDot.classList.add('animate-ping');
+            textEl.className = "text-[10px] font-bold uppercase tracking-wide text-amber-500";
+            indicatorEl.className = "h-2 w-2 rounded-full bg-amber-500";
+            connectBtn.textContent = "Connect to Server";
+            connectBtn.className = "w-full mt-1 rounded-xl bg-cyan-500 px-6 py-2.5 text-sm font-bold text-slate-950 transition hover:bg-cyan-400 active:scale-95";
         }
     };
 
@@ -119,7 +231,7 @@
 
             let consolePrefix;
             if (level === this.LEVELS.INFO) {
-                consolePrefix = `[ProxyClient]`;
+                consolePrefix = "[ProxyClient]";
             } else {
                 const levelLabel = levelName.charAt(0) + levelName.slice(1).toLowerCase();
                 consolePrefix = `[ProxyClient] ${levelLabel}:`;
@@ -139,126 +251,127 @@
                     console.log(consolePrefix, ...messages);
             }
 
-            // 【UI 适配】：将日志输出到特定的 DOM 容器，并添加颜色区分
-            const logContainer = document.getElementById('logs');
+            const logContainer = document.getElementById("logs");
             if (!logContainer) return;
 
             const logElement = document.createElement("div");
-            const timeStr = new Date().toLocaleTimeString('en-US', { hour12: false, hour: "numeric", minute: "numeric", second: "numeric" });
+            const timeStr = new Date().toLocaleTimeString("en-US", { hour: "numeric", hour12: false, minute: "numeric", second: "numeric" });
 
-            let textColorClass = "text-gray-300";
-            if (level === this.LEVELS.ERROR) textColorClass = "text-red-400";
-            else if (level === this.LEVELS.WARN) textColorClass = "text-yellow-400";
-            else if (level === this.LEVELS.DEBUG) textColorClass = "text-gray-500";
-            else if (messages.join(" ").includes("✅")) textColorClass = "text-green-400";
+            let textColorClass = "text-slate-300";
+            if (level === this.LEVELS.ERROR) textColorClass = "text-rose-400";
+            else if (level === this.LEVELS.WARN) textColorClass = "text-amber-300";
+            else if (level === this.LEVELS.DEBUG) textColorClass = "text-slate-500";
+            else if (messages.join(" ").includes("?")) textColorClass = "text-emerald-400";
 
-            let prefix = level === this.LEVELS.INFO ? "" : `[${levelName}] `;
+            const prefix = level === this.LEVELS.INFO ? "" : `[${levelName}] `;
 
-            logElement.className = `${textColorClass} break-all hover:bg-gray-800 px-1 rounded transition-colors duration-150`;
-            logElement.innerHTML = `<span class="text-gray-600 mr-2">[${timeStr}]</span>${prefix}${messages.join(" ")}`;
+            logElement.className = `${textColorClass} break-all rounded px-1 py-0.5 transition-colors duration-150 hover:bg-slate-900/50`;
+            logElement.innerHTML = `<span class="mr-2 text-slate-600">[${timeStr}]</span>${prefix}${messages.join(" ")}`;
 
             logContainer.appendChild(logElement);
-
-            // 自动滚动到底部
             logContainer.scrollTop = logContainer.scrollHeight;
         },
 
         currentLevel: 1,
-
+        enabled: true,
+        LEVELS: { DEBUG: 0, ERROR: 3, INFO: 1, WARN: 2 },
         debug(...messages) {
             this._log(this.LEVELS.DEBUG, "DEBUG", ...messages);
         },
-
-        enabled: true,
-
         error(...messages) {
             this._log(this.LEVELS.ERROR, "ERROR", ...messages);
         },
-
         info(...messages) {
             this._log(this.LEVELS.INFO, "INFO", ...messages);
         },
-
-        LEVELS: { DEBUG: 0, ERROR: 3, INFO: 1, WARN: 2 },
-
         output(...messages) {
             this.info(...messages);
         },
-
         warn(...messages) {
             this._log(this.LEVELS.WARN, "WARN", ...messages);
         },
     };
 
-    // 绑定清理日志按钮
-    document.getElementById('clearLogsBtn').addEventListener('click', () => {
-        document.getElementById('logs').innerHTML = '';
+    document.getElementById("clear-logs").addEventListener("click", () => {
+        document.getElementById("logs").innerHTML = "";
         Logger.info("Logs cleared.");
     });
-
     class ConnectionManager extends EventTarget {
-        constructor(endpoint = "ws://127.0.0.1:9998") {
+        constructor(endpoint = DEFAULT_ENDPOINT, clientLabel = "") {
             super();
-            this.authIndex = null;
             this.endpoint = endpoint;
+            this.clientLabel = sanitizeClientLabel(clientLabel);
             this.socket = null;
             this.isConnected = false;
             this.reconnectDelay = 5000;
             this.reconnectAttempts = 0;
+            this.reconnectTimer = null;
+            this.manualDisconnect = false;
         }
 
-        _readAuthIndex() {
-            const contextId = window.chrome?._contextId;
-            const authIndex = contextId !== undefined ? contextId : -1;
+        updateEndpoint(newEndpoint) {
+            Logger.output("Endpoint updated to:", newEndpoint);
+            this.endpoint = newEndpoint;
+            this.reset();
+        }
 
-            if (Number.isNaN(authIndex) || !Number.isInteger(authIndex) || authIndex < 0) {
-                const errorMsg = `❌ FATAL: Invalid authIndex (${authIndex}). window.chrome._contextId not set.`;
-                Logger.error(errorMsg);
-                throw new Error(errorMsg);
-            }
+        updateClientLabel(newClientLabel) {
+            Logger.output("Browser identifier updated to:", newClientLabel);
+            this.clientLabel = sanitizeClientLabel(newClientLabel);
+            this.reset();
+        }
 
-            Logger.debug(`✅ Read authIndex from window.chrome._contextId: ${authIndex}`);
-            return authIndex;
+        reset() {
+            this._clearReconnectTimer();
+            this.reconnectAttempts = 0;
         }
 
         async establish() {
             if (this.isConnected) return Promise.resolve();
 
-            if (this.authIndex === null) {
-                this.authIndex = this._readAuthIndex();
-                Logger.debug(`Detected authIndex: ${this.authIndex}`);
-            }
-
-            const wsUrl = this.authIndex >= 0 ? `${this.endpoint}?authIndex=${this.authIndex}` : this.endpoint;
-            Logger.output("Connecting to server:", wsUrl);
-            updateConnectionStatus('connecting');
+            const wsUrl = this._buildConnectionUrl();
+            Logger.output(
+                "Connecting to server:",
+                wsUrl,
+                this.clientLabel ? `(browser identifier: ${this.clientLabel})` : ""
+            );
+            setStatus("connecting");
 
             return new Promise((resolve, reject) => {
                 try {
+                    this.manualDisconnect = false;
                     this.socket = new WebSocket(wsUrl);
+
                     this.socket.addEventListener("open", () => {
                         this.isConnected = true;
                         this.reconnectAttempts = 0;
                         Logger.output("✅ Connection successful!");
-                        updateConnectionStatus('connected');
+                        setStatus("connected");
                         this.dispatchEvent(new CustomEvent("connected"));
-
                         resolve();
                     });
+
                     this.socket.addEventListener("close", () => {
                         this.isConnected = false;
-
-                        Logger.output("❌ Connection disconnected, preparing to reconnect...");
-                        updateConnectionStatus('disconnected');
+                        Logger.output(
+                            this.manualDisconnect
+                                ? "Connection closed by user."
+                                : "❌ Connection disconnected, preparing to reconnect..."
+                        );
+                        setStatus(this.manualDisconnect ? "disconnected" : "reconnecting");
                         this.dispatchEvent(new CustomEvent("disconnected"));
-                        this._scheduleReconnect();
+                        if (!this.manualDisconnect) {
+                            this._scheduleReconnect();
+                        }
                     });
+
                     this.socket.addEventListener("error", error => {
-                        Logger.output(" WebSocket connection error. Please check if local server is running at ws://127.0.0.1:9998");
-                        updateConnectionStatus('error');
+                        Logger.output(`WebSocket connection error. Please check if local server is running at ${this.endpoint}`);
+                        setStatus("error");
                         this.dispatchEvent(new CustomEvent("error", { detail: error }));
                         if (!this.isConnected) reject(error);
                     });
+
                     this.socket.addEventListener("message", event => {
                         this.dispatchEvent(new CustomEvent("message", { detail: event.data }));
                     });
@@ -267,10 +380,18 @@
                         "WebSocket initialization failed. Please check address or browser security policy.",
                         e.message
                     );
-                    updateConnectionStatus('error');
+                    setStatus("error");
                     reject(e);
                 }
             });
+        }
+
+        disconnect() {
+            this.manualDisconnect = true;
+            this.reset();
+            if (this.socket) {
+                this.socket.close();
+            }
         }
 
         transmit(data) {
@@ -282,12 +403,32 @@
             return true;
         }
 
+        _clearReconnectTimer() {
+            if (this.reconnectTimer) {
+                clearTimeout(this.reconnectTimer);
+                this.reconnectTimer = null;
+            }
+        }
+
         _scheduleReconnect() {
             this.reconnectAttempts++;
-            setTimeout(() => {
+            this._clearReconnectTimer();
+            this.reconnectTimer = setTimeout(() => {
                 Logger.output(`Attempting reconnection ${this.reconnectAttempts} attempt...`);
                 this.establish().catch(() => {});
             }, this.reconnectDelay);
+        }
+
+        _buildConnectionUrl() {
+            const wsUrl = new URL(this.endpoint, window.location.href);
+
+            if (this.clientLabel) {
+                wsUrl.searchParams.set("client_label", this.clientLabel);
+            } else {
+                wsUrl.searchParams.delete("client_label");
+            }
+
+            return wsUrl.toString();
         }
     }
 
@@ -331,9 +472,7 @@
             const startIdleTimeout = () =>
                 new Promise((_, reject) => {
                     timeoutId = setTimeout(() => {
-                        const error = new Error(
-                            `Timeout: ${IDLE_TIMEOUT_DURATION / 1000} seconds without receiving any data`
-                        );
+                        const error = new Error(`Timeout: ${IDLE_TIMEOUT_DURATION / 1000} seconds without receiving any data`);
                         abortController.abort();
                         reject(error);
                     }, IDLE_TIMEOUT_DURATION);
@@ -348,7 +487,7 @@
 
             const attemptPromise = (async () => {
                 try {
-                    Logger.debug(`Executing request:`, requestSpec.method, requestSpec.path);
+                    Logger.debug("Executing request:", requestSpec.method, requestSpec.path);
 
                     const requestUrl = this._constructUrl(requestSpec);
                     const requestConfig = this._buildRequestConfig(requestSpec, abortController.signal);
@@ -357,9 +496,7 @@
 
                     if (!response.ok) {
                         const errorBody = await response.text();
-                        const error = new Error(
-                            `Google API returned error: ${response.status} ${response.statusText} ${errorBody}`
-                        );
+                        const error = new Error(`Google API returned error: ${response.status} ${response.statusText} ${errorBody}`);
                         error.status = response.status;
                         throw error;
                     }
@@ -385,20 +522,14 @@
 
         _constructUrl(requestSpec) {
             let pathAndQuery = requestSpec.url;
-            const apiKey = ""; // [新增] 定义空 Key，利用平台拦截机制自动注入
 
             if (!pathAndQuery) {
                 const pathSegment = requestSpec.path || "";
                 const queryParams = new URLSearchParams(requestSpec.query_params);
 
-                if (requestSpec.streaming_mode === "fake") {
-                    if (queryParams.has("alt") && queryParams.get("alt") === "sse") {
-                        queryParams.delete("alt");
-                    }
+                if (requestSpec.streaming_mode === "fake" && queryParams.has("alt") && queryParams.get("alt") === "sse") {
+                    queryParams.delete("alt");
                 }
-
-                // [新增] 强制将 key 设为空字符串。无论本地发来的请求带了什么无效的 key，都会被置空
-                queryParams.set("key", apiKey);
 
                 let finalPath = pathSegment;
                 if (requestSpec.streaming_mode === "fake" && finalPath.includes(":streamGenerateContent")) {
@@ -412,10 +543,6 @@
             if (pathAndQuery.match(/^https?:\/\//)) {
                 try {
                     const urlObj = new URL(pathAndQuery);
-
-                    // [新增] 拦截包含域名的绝对路径，同样强制替换 key 为空
-                    urlObj.searchParams.set("key", apiKey);
-
                     const originalUrl = pathAndQuery;
                     pathAndQuery = urlObj.pathname + urlObj.search;
                     Logger.output(`Rewriting absolute URL: ${originalUrl} -> ${pathAndQuery}`);
@@ -440,34 +567,11 @@
                 }
             }
 
-            let cleanPath = pathAndQuery.replace(/^\/+/, "");
-            const method = requestSpec.method ? requestSpec.method.toUpperCase() : "GET";
-
-            if (this.targetDomain.includes("generativelanguage")) {
-                const versionRegex = /v1[a-z0-9]*\/files/;
-                const uploadMatch = cleanPath.match(new RegExp(`upload/${versionRegex.source}`));
-
-                if (uploadMatch) {
-                    const index = cleanPath.indexOf("upload/");
-                    if (index > 0) {
-                        const fixedPath = cleanPath.substring(index);
-                        Logger.output(`Corrected path: ${cleanPath} -> ${fixedPath}`);
-                        cleanPath = fixedPath;
-                    }
-                } else if (method === "POST") {
-                    const filesPathMatch = cleanPath.match(new RegExp(`^${versionRegex.source}`));
-                    if (filesPathMatch) {
-                        cleanPath = "upload/" + cleanPath;
-                        Logger.output("Auto-completing upload path:", cleanPath);
-                    }
-                }
-            }
-
+            const cleanPath = pathAndQuery.replace(/^\/+/, "");
             const finalUrl = `https://${targetHost}/${cleanPath}`;
             Logger.debug(`Constructed URL: ${pathAndQuery} -> ${finalUrl}`);
             return finalUrl;
         }
-
         _buildRequestConfig(requestSpec, signal) {
             const config = {
                 headers: this._sanitizeHeaders(requestSpec.headers),
@@ -526,7 +630,9 @@
                         }
 
                         const isGemini2 = requestSpec.path.match(/\/models\/gemini-2/);
-                        const isJsonMode = bodyObj.generationConfig?.responseMimeType === "application/json" || bodyObj.generationConfig?.response_mime_type === "application/json";
+                        const isJsonMode =
+                            bodyObj.generationConfig?.responseMimeType === "application/json" ||
+                            bodyObj.generationConfig?.response_mime_type === "application/json";
 
                         if (isGemini2 && isJsonMode) {
                             const incompatibleKeys = ["toolConfig", "tool_config", "toolChoice", "tools"];
@@ -538,17 +644,21 @@
                                 }
                             });
                             if (keysRemoved > 0) {
-                                Logger.output(`Gemini 2/2.5 + JSON mode detected, automatically filtering tool parameter to prevent API error`);
+                                Logger.output("Gemini 2/2.5 + JSON mode detected, automatically filtering tool parameter to prevent API error");
                             }
                         }
 
                         if (bodyObj.generationConfig?.thinkingConfig?.thinkingLevel) {
-                            bodyObj.generationConfig.thinkingConfig.thinkingLevel = String(bodyObj.generationConfig.thinkingConfig.thinkingLevel).toUpperCase();
+                            bodyObj.generationConfig.thinkingConfig.thinkingLevel = String(
+                                bodyObj.generationConfig.thinkingConfig.thinkingLevel
+                            ).toUpperCase();
                         }
 
                         if (bodyObj.generationConfig?.responseModalities) {
                             if (Array.isArray(bodyObj.generationConfig.responseModalities)) {
-                                bodyObj.generationConfig.responseModalities = bodyObj.generationConfig.responseModalities.map(m => typeof m === "string" ? m.toUpperCase() : m);
+                                bodyObj.generationConfig.responseModalities = bodyObj.generationConfig.responseModalities.map(m =>
+                                    typeof m === "string" ? m.toUpperCase() : m
+                                );
                             } else if (typeof bodyObj.generationConfig.responseModalities === "string") {
                                 bodyObj.generationConfig.responseModalities = [bodyObj.generationConfig.responseModalities.toUpperCase()];
                             }
@@ -566,7 +676,7 @@
         }
 
         _sanitizeHeaders(headers) {
-            const sanitized = { ...headers };
+            const sanitized = { ...(headers || {}) };
             const forbiddenHeaders = [
                 "host", "connection", "content-length", "origin", "referer",
                 "user-agent", "sec-fetch-mode", "sec-fetch-site", "sec-fetch-dest"
@@ -590,9 +700,9 @@
     }
 
     class ProxySystem extends EventTarget {
-        constructor(websocketEndpoint) {
+        constructor(websocketEndpoint, clientLabel = "") {
             super();
-            this.connectionManager = new ConnectionManager(websocketEndpoint);
+            this.connectionManager = new ConnectionManager(websocketEndpoint, clientLabel);
             this.requestProcessor = new RequestProcessor();
             this._setupEventHandlers();
         }
@@ -645,13 +755,12 @@
                 }
             }
         }
-
         async _processProxyRequest(requestSpec) {
             const operationId = requestSpec.request_id;
             const requestAttemptId = this.requestProcessor._normalizeAttemptId(operationId, requestSpec.request_attempt_id);
             const attemptKey = this.requestProcessor._getAttemptKey(operationId, requestAttemptId);
             const mode = requestSpec.streaming_mode || "fake";
-            Logger.debug(`Browser received request`);
+            Logger.debug("Browser received request");
             let cancelTimeout;
             let reader;
             let abortController;
@@ -786,7 +895,7 @@
             const headerMap = {};
             response.headers.forEach((v, k) => {
                 const lowerKey = k.toLowerCase();
-                if ((lowerKey === "location" || lowerKey === "x-goog-upload-url") && v.includes("googleapis.com")) {
+                if (lowerKey === "location" && v.includes("googleapis.com")) {
                     try {
                         const urlObj = new URL(v);
                         const host = proxyHost || location.host;
@@ -847,35 +956,68 @@
         }
     }
 
-    const initializeProxySystem = async () => {
-        // 清理原有直接附加到 body 的逻辑已经不需要，因为使用了固定的 logs 容器
+    const endpointInput = document.getElementById("ws-endpoint");
+    const clientLabelInput = document.getElementById("client-label");
+    const saveBtn = document.getElementById("save-btn");
+    const connectBtn = document.getElementById("connect-btn");
+    const saveTip = document.getElementById("save-tip");
+    const statusTextEl = document.getElementById("status-text");
 
-        if (window.__authIndexReady) {
-            const timeout = new Promise((_, reject) =>
-                setTimeout(() => reject(new Error("authIndex postMessage timeout (10s)")), 10000)
-            );
-            window.__authIndexReady.catch(() => {});
+    endpointInput.value = currentEndpoint;
+    clientLabelInput.value = currentClientLabel;
+    const proxySystem = new ProxySystem(currentEndpoint, currentClientLabel);
+
+    saveBtn.addEventListener("click", () => {
+        const val = endpointInput.value.trim() || DEFAULT_ENDPOINT;
+        const inputClientLabel = sanitizeClientLabel(clientLabelInput.value);
+        const activeDailyLabel = getDailyClientLabel();
+
+        currentEndpoint = val;
+        currentClientLabel =
+            !inputClientLabel || (currentClientLabelMode !== "manual" && inputClientLabel === activeDailyLabel)
+                ? activeDailyLabel
+                : inputClientLabel;
+        currentClientLabelMode = currentClientLabel === activeDailyLabel ? "daily" : "manual";
+
+        safeStorageSet(ENDPOINT_STORAGE_KEY, currentEndpoint);
+        safeStorageSet(CLIENT_LABEL_MODE_STORAGE_KEY, currentClientLabelMode);
+        if (currentClientLabelMode === "manual") {
+            safeStorageSet(CLIENT_LABEL_STORAGE_KEY, currentClientLabel);
+        } else {
+            safeStorageRemove(CLIENT_LABEL_STORAGE_KEY);
+        }
+
+        clientLabelInput.value = currentClientLabel;
+
+        proxySystem.connectionManager.disconnect();
+        proxySystem.connectionManager.updateEndpoint(val);
+        proxySystem.connectionManager.updateClientLabel(currentClientLabel);
+        setStatus("disconnected");
+
+        saveTip.classList.remove("opacity-0");
+        setTimeout(() => saveTip.classList.add("opacity-0"), 2000);
+        Logger.info(`Configuration saved. Active browser identifier: ${currentClientLabel}`);
+    });
+
+    connectBtn.addEventListener("click", async () => {
+        const isStopping = proxySystem.connectionManager.isConnected || statusTextEl.textContent === "reconnecting";
+
+        if (isStopping) {
+            Logger.info("Stopping connection/reconnection...");
+            proxySystem.connectionManager.disconnect();
+            setStatus("disconnected");
+        } else {
             try {
-                const authIndex = await Promise.race([window.__authIndexReady, timeout]);
-                Logger.output(`✅ authIndex setup complete: ${authIndex}`);
+                await proxySystem.initialize();
             } catch (error) {
-                Logger.error(`❌ Failed to get authIndex: ${error.message}`);
-                throw error;
+                Logger.error("Proxy system startup failed: " + error.message);
             }
         }
+    });
 
-        try {
-            const proxySystem = new ProxySystem();
-            await proxySystem.initialize();
-        } catch (error) {
-            console.error("Proxy system startup failed:", error);
-            Logger.error("Proxy system startup failed: " + error.message);
-        }
+    window.onload = () => {
+        Logger.info(`Client ready. Active browser identifier: ${currentClientLabel}`);
     };
-
-    // 页面加载完成后启动系统
-    document.addEventListener('DOMContentLoaded', initializeProxySystem);
-
 </script>
 </body>
 </html>

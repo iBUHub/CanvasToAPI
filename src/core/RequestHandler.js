@@ -9,7 +9,6 @@
  * Request Handler Module (Refactored)
  * Main request handler that coordinates between other modules
  */
-const AuthSwitcher = require("../auth/AuthSwitcher");
 const FormatConverter = require("./FormatConverter");
 const { isUserAbortedError } = require("../utils/CustomErrors");
 const { QueueClosedError, QueueTimeoutError } = require("../utils/MessageQueue");
@@ -25,29 +24,45 @@ class RequestHandler {
         this.serverSystem = serverSystem;
         this.connectionRegistry = connectionRegistry;
         this.logger = logger;
-        this.browserManager = browserManager;
-        this.config = config;
-        this.authSource = authSource;
+        this.browserManager = browserManager || null;
+        this.config = config || browserManager || {};
+        this.authSource = authSource || null;
 
-        // Initialize sub-modules
-        this.authSwitcher = new AuthSwitcher(logger, config, authSource, browserManager);
+        this.authSwitcher = {
+            currentAuthIndex: null,
+            failureCount: 0,
+            handleRequestFailureAndSwitch: async errorDetails => this._handleRequestFailureAndSwitch(errorDetails),
+            incrementUsageCount: connectionId => this._incrementSessionUsageCount(connectionId),
+            isSystemBusy: false,
+            shouldSwitchByUsage: connectionId => this._shouldSwitchByUsage(connectionId),
+            switchToNextAuth: async excludedConnectionIds => this._switchToNextSession(excludedConnectionIds),
+            switchToSpecificAuth: async () => false,
+            usageCount: 0,
+        };
         this.formatConverter = new FormatConverter(logger, serverSystem);
 
         this.maxRetries = this.config.maxRetries;
         this.retryDelay = this.config.retryDelay;
         this.needsSwitchingAfterRequest = false;
 
-        // Timeout settings
         this.timeouts = TIMEOUTS;
     }
 
-    // Delegate properties to AuthSwitcher
     get currentAuthIndex() {
         return this.authSwitcher.currentAuthIndex;
     }
 
+    set currentAuthIndex(value) {
+        this.authSwitcher.currentAuthIndex = value;
+        this._syncCurrentSessionUsageCount();
+    }
+
     get failureCount() {
         return this.authSwitcher.failureCount;
+    }
+
+    set failureCount(value) {
+        this.authSwitcher.failureCount = value;
     }
 
     get usageCount() {
@@ -55,28 +70,110 @@ class RequestHandler {
     }
 
     get isSystemBusy() {
-        return this.authSwitcher.isSystemBusy;
+        return false;
     }
 
-    // Delegate methods to AuthSwitcher
-    async _switchToNextAuth() {
-        return this.authSwitcher.switchToNextAuth();
+    _selectConnection(excludedConnectionIds = new Set()) {
+        return this.connectionRegistry.pickConnection(this.config.sessionSelectionStrategy, excludedConnectionIds);
     }
 
-    async _switchToSpecificAuth(targetIndex) {
-        return this.authSwitcher.switchToSpecificAuth(targetIndex);
+    _syncCurrentSessionUsageCount() {
+        if (!this.authSwitcher.currentAuthIndex) {
+            this.authSwitcher.usageCount = 0;
+            return;
+        }
+
+        const stats = this.connectionRegistry.getConnectionStats(this.authSwitcher.currentAuthIndex);
+        this.authSwitcher.usageCount = stats?.usageCount || 0;
+    }
+
+    _incrementSessionUsageCount(connectionId = this.currentAuthIndex) {
+        if (!connectionId) {
+            return 0;
+        }
+
+        const usageCount = this.connectionRegistry.recordConnectionUsage(connectionId);
+        if (connectionId === this.currentAuthIndex) {
+            this.authSwitcher.usageCount = usageCount;
+        }
+        return usageCount;
+    }
+
+    _peekNextSessionUsageCount(connectionId = this.currentAuthIndex) {
+        if (!connectionId) {
+            return 0;
+        }
+
+        const currentUsageCount = this.connectionRegistry.getConnectionStats(connectionId)?.usageCount || 0;
+        return currentUsageCount + 1;
+    }
+
+    _shouldSwitchByUsage(connectionId = this.currentAuthIndex) {
+        const usageCount = connectionId
+            ? (this.connectionRegistry.getConnectionStats(connectionId)?.usageCount ?? 0)
+            : 0;
+        if (connectionId === this.currentAuthIndex) {
+            this.authSwitcher.usageCount = usageCount;
+        }
+        return (
+            Number.isFinite(this.config.switchOnUses) &&
+            this.config.switchOnUses > 0 &&
+            usageCount >= this.config.switchOnUses
+        );
+    }
+
+    async _switchToNextSession(excludedConnectionIds = new Set()) {
+        const nextConnection = this.connectionRegistry.switchToNextConnection(
+            this.currentAuthIndex,
+            this.config.sessionSelectionStrategy,
+            excludedConnectionIds
+        );
+        if (!nextConnection) {
+            return false;
+        }
+
+        const previousConnectionId = this.currentAuthIndex;
+        this.currentAuthIndex = nextConnection.connectionId;
+        this.logger.info(
+            `[Session] Switched session from ${previousConnectionId || "(unassigned)"} to ${this.currentAuthIndex} via ${this.config.sessionSelectionStrategy}.`
+        );
+        return true;
+    }
+
+    async _handleRequestFailureAndSwitch(errorDetails) {
+        const status = Number(errorDetails?.status);
+        this.authSwitcher.failureCount += 1;
+
+        const immediateSwitch = Number.isFinite(status) && this.config?.immediateSwitchStatusCodes?.includes(status);
+        const thresholdReached =
+            Number.isFinite(this.config.failureThreshold) &&
+            this.config.failureThreshold > 0 &&
+            this.authSwitcher.failureCount >= this.config.failureThreshold;
+
+        if (!immediateSwitch && !thresholdReached) {
+            this.logger.warn(
+                `[Session] Failure recorded on session ${this.currentAuthIndex || "(unassigned)"} (${this.authSwitcher.failureCount}/${this.config.failureThreshold || "disabled"}).`
+            );
+            return false;
+        }
+
+        const switched = await this._switchToNextSession();
+        if (switched) {
+            this.logger.warn(
+                `[Session] Switched away from failed session after status ${Number.isFinite(status) ? status : "unknown"}; failure counter reset.`
+            );
+            this.authSwitcher.failureCount = 0;
+        } else {
+            this.logger.warn(
+                "[Session] Failure-triggered switch requested, but no alternate browser session is available."
+            );
+        }
+
+        return switched;
     }
 
     async _waitForGraceReconnect(timeoutMs = 60000) {
-        const start = Date.now();
-        while (Date.now() - start < timeoutMs) {
-            if (!this.connectionRegistry.isInGracePeriod() && !this.connectionRegistry.isReconnectingInProgress()) {
-                const connectionReady = await this._waitForConnection(10000);
-                return connectionReady;
-            }
-            await new Promise(resolve => setTimeout(resolve, 100));
-        }
-        return !!this.connectionRegistry.getConnectionByAuth(this.currentAuthIndex);
+        return this._waitForConnection(timeoutMs);
     }
 
     _isConnectionResetError(error) {
@@ -114,26 +211,16 @@ class RequestHandler {
         }
     }
 
-    /**
-     * Handle queue closed error in real streaming mode with proper SSE error response
-     * @param {Error} error - The error object (QueueClosedError)
-     * @param {Object} res - Express response object
-     * @param {string} format - Response format ('openai', 'response_api', 'claude', or 'gemini')
-     * @returns {boolean} true if error was handled, false otherwise
-     */
     _handleRealStreamQueueClosedError(error, res, format) {
         const isClientDisconnect = error.reason === "client_disconnect" || !this._isResponseWritable(res);
 
         if (isClientDisconnect) {
-            // Client disconnected or queue closed due to client disconnect - no error needed
             this.logger.debug(
                 `[Request] ${format} stream interrupted by client disconnect (reason: ${error.reason || "connection_lost"})`
             );
             return true;
         }
 
-        // Queue was closed for other reasons (account switch, page_closed, etc.)
-        // but client is still connected - send proper error SSE
         this.logger.warn(
             `[Request] ${format} stream interrupted: Queue closed (reason: ${error.reason || "unknown"}), sending error SSE`
         );
@@ -146,7 +233,6 @@ class RequestHandler {
             const errorMessage = `Stream interrupted: ${error.reason === "page_closed" ? "Account context closed" : error.reason || "Connection lost"}`;
 
             if (format === "claude") {
-                // Claude format: event: error\ndata: {...}
                 res.write(
                     `event: error\ndata: ${JSON.stringify({
                         error: {
@@ -157,7 +243,6 @@ class RequestHandler {
                     })}\n\n`
                 );
             } else if (format === "openai") {
-                // OpenAI format: data: {"error": {...}}
                 res.write(
                     `data: ${JSON.stringify({
                         error: {
@@ -168,7 +253,6 @@ class RequestHandler {
                     })}\n\n`
                 );
             } else if (format === "response_api") {
-                // OpenAI Response API format: event: error\ndata: {...}
                 if (res.__responseApiSeq == null) res.__responseApiSeq = 0;
                 res.__responseApiSeq += 1;
                 res.write(
@@ -181,7 +265,6 @@ class RequestHandler {
                     })}\n\n`
                 );
             } else if (format === "gemini") {
-                // Gemini format: data: {"error": {...}}
                 res.write(
                     `data: ${JSON.stringify({
                         error: {
@@ -199,23 +282,15 @@ class RequestHandler {
         return true;
     }
 
-    /**
-     * Classify and handle fake stream errors
-     * @param {Error} error - The error object
-     * @param {Object} res - Express response object
-     * @param {string} format - Response format ('openai', 'response_api', 'claude', or 'gemini')
-     * @throws {Error} Rethrows unexpected errors for outer handler
-     */
     _handleFakeStreamError(error, res, format) {
         if (!this._isResponseWritable(res)) {
-            return; // Client disconnected, no need to send error
+            return;
         }
 
         try {
             let errorPayload;
 
             if (error.code === "QUEUE_TIMEOUT" || error instanceof QueueTimeoutError) {
-                // True timeout error - 504
                 if (format === "openai") {
                     errorPayload = {
                         error: {
@@ -239,7 +314,6 @@ class RequestHandler {
                         res.write(`event: error\ndata: ${JSON.stringify(errorPayload)}\n\n`);
                     }
                 } else if (format === "response_api") {
-                    // OpenAI Response API format
                     errorPayload = {
                         code: "timeout_error",
                         message: `Stream timeout: ${error.message}`,
@@ -254,7 +328,6 @@ class RequestHandler {
                         res.write(`event: error\ndata: ${JSON.stringify(errorPayload)}\n\n`);
                     }
                 } else {
-                    // gemini
                     errorPayload = {
                         error: {
                             code: 504,
@@ -267,7 +340,6 @@ class RequestHandler {
                     }
                 }
             } else if (error.code === "QUEUE_CLOSED" || error instanceof QueueClosedError) {
-                // Queue closed (account switch, system reset, etc.) - 503
                 if (format === "openai") {
                     errorPayload = {
                         error: {
@@ -291,7 +363,6 @@ class RequestHandler {
                         res.write(`event: error\ndata: ${JSON.stringify(errorPayload)}\n\n`);
                     }
                 } else if (format === "response_api") {
-                    // OpenAI Response API format
                     errorPayload = {
                         code: "service_unavailable",
                         message: `Service unavailable: ${error.message}`,
@@ -306,7 +377,6 @@ class RequestHandler {
                         res.write(`event: error\ndata: ${JSON.stringify(errorPayload)}\n\n`);
                     }
                 } else {
-                    // gemini
                     errorPayload = {
                         error: {
                             code: 503,
@@ -319,152 +389,12 @@ class RequestHandler {
                     }
                 }
             } else {
-                // Other unexpected errors - rethrow to outer handler
                 throw error;
             }
         } catch (writeError) {
             this.logger.debug(`[Request] Failed to write fake stream error to client: ${writeError.message}`);
-            // If write failed or unexpected error, rethrow original error
             throw error;
         }
-    }
-
-    /**
-     * Wait for WebSocket connection to be established for current account
-     * @param {number} timeoutMs - Maximum time to wait in milliseconds
-     * @returns {Promise<boolean>} true if connection established, false if timeout
-     */
-    async _waitForConnection(timeoutMs = 10000) {
-        const startTime = Date.now();
-        const checkInterval = 200; // Check every 200ms
-
-        while (Date.now() - startTime < timeoutMs) {
-            const connection = this.connectionRegistry.getConnectionByAuth(this.currentAuthIndex);
-            // Check both existence and readyState (1 = OPEN)
-            if (connection && connection.readyState === 1) {
-                return true;
-            }
-            await new Promise(resolve => setTimeout(resolve, checkInterval));
-        }
-
-        this.logger.warn(
-            `[Request] Timeout waiting for WebSocket connection for account #${this.currentAuthIndex}. Closing unresponsive context...`
-        );
-        // Proactively close the unresponsive context so subsequent attempts re-initialize it
-        if (this.browserManager) {
-            try {
-                await this.browserManager.closeContext(this.currentAuthIndex);
-            } catch (e) {
-                this.logger.warn(
-                    `[System] Failed to close unresponsive context for account #${this.currentAuthIndex}: ${e.message}`
-                );
-            }
-        }
-        return false;
-    }
-
-    /**
-     * Wait for system to become ready (not busy with switching/recovery)
-     * @param {number} timeoutMs - Maximum time to wait in milliseconds (default 120s, same as browser launch timeout)
-     * @returns {Promise<boolean>} true if system becomes ready, false if timeout
-     */
-    async _waitForSystemReady(timeoutMs = 120000) {
-        if (!this.authSwitcher.isSystemBusy) {
-            return true;
-        }
-
-        this.logger.info(`[System] System is busy (switching/recovering), waiting up to ${timeoutMs / 1000}s...`);
-
-        const startTime = Date.now();
-        const checkInterval = 200; // Check every 200ms
-
-        while (Date.now() - startTime < timeoutMs) {
-            if (!this.authSwitcher.isSystemBusy) {
-                this.logger.info(`[System] System ready after ${Date.now() - startTime}ms.`);
-                return true;
-            }
-            await new Promise(resolve => setTimeout(resolve, checkInterval));
-        }
-
-        this.logger.warn(`[System] Timeout waiting for system after ${timeoutMs}ms.`);
-        return false;
-    }
-
-    async _waitForSystemAndConnectionIfBusy(res = null, options = {}) {
-        if (!this.authSwitcher.isSystemBusy) {
-            return true;
-        }
-
-        const {
-            busyMessage = "Server undergoing internal maintenance (account switching/recovery), please try again later.",
-            connectionMessage = "Service temporarily unavailable: Connection not established after switching.",
-            connectionTimeoutMs = 10000,
-            onConnectionTimeout,
-            sendError = res ? (status, message) => this._sendErrorResponse(res, status, message) : () => {},
-        } = options;
-
-        const ready = await this._waitForSystemReady();
-        if (!ready) {
-            sendError(503, busyMessage);
-            return false;
-        }
-
-        if (!this.connectionRegistry.getConnectionByAuth(this.currentAuthIndex)) {
-            const connectionReady = await this._waitForConnection(connectionTimeoutMs);
-            if (!connectionReady) {
-                if (typeof onConnectionTimeout === "function") {
-                    try {
-                        onConnectionTimeout();
-                    } catch (e) {
-                        this.logger.debug(`[System] onConnectionTimeout handler failed: ${e.message}`);
-                    }
-                }
-                sendError(503, connectionMessage);
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    _createImmediateSwitchTracker() {
-        const attemptedAuthIndices = new Set();
-        if (Number.isInteger(this.currentAuthIndex) && this.currentAuthIndex >= 0) {
-            attemptedAuthIndices.add(this.currentAuthIndex);
-        }
-        return { attemptedAuthIndices };
-    }
-
-    async _performImmediateSwitchRetry(errorDetails, requestId, tracker) {
-        await this.authSwitcher.handleRequestFailureAndSwitch(
-            { message: errorDetails.message, status: Number(errorDetails.status) },
-            null
-        );
-
-        const ready = await this._waitForSystemAndConnectionIfBusy(null, {
-            sendError: () => {},
-        });
-        if (!ready) {
-            throw new Error("System not ready after immediate-switch retry.");
-        }
-
-        const newAuthIndex = this.currentAuthIndex;
-        if (!Number.isInteger(newAuthIndex) || newAuthIndex < 0) {
-            this.logger.warn(
-                `[Request] Immediate switch for request #${requestId} did not produce a valid target account.`
-            );
-            return false;
-        }
-
-        if (tracker.attemptedAuthIndices.has(newAuthIndex)) {
-            this.logger.warn(
-                `[Request] Immediate switch for request #${requestId} returned to already-attempted account #${newAuthIndex}, stopping account-switch retries.`
-            );
-            return false;
-        }
-
-        tracker.attemptedAuthIndices.add(newAuthIndex);
-        return true;
     }
 
     _logFinalRequestFailure(errorDetails, contextLabel = "Request") {
@@ -474,156 +404,96 @@ class RequestHandler {
     }
 
     /**
-     * Handle browser recovery when connection is lost
-     *
-     * Important: isSystemBusy flag management strategy:
-     * - Direct recovery (recoveryAuthIndex >= 0): We manually set and reset isSystemBusy
-     * - Switch to next account (recoveryAuthIndex = -1): Let switchToNextAuth() manage isSystemBusy internally
-     * - This prevents the bug where isSystemBusy is set here, then switchToNextAuth() checks it and returns "already in progress"
-     *
-     * @returns {boolean} true if recovery successful, false otherwise
+     * Handle missing browser sessions in the browser-owned architecture.
+     * @returns {boolean} true if a usable session is available, false otherwise
      */
     async _handleBrowserRecovery(res) {
-        // If within grace period or lightweight reconnect is running, wait up to 60s for WebSocket reconnection
-        if (this.connectionRegistry.isInGracePeriod() || this.connectionRegistry.isReconnectingInProgress()) {
-            this.logger.info(
-                "[System] Waiting up to 60s for WebSocket reconnection (grace/reconnect in progress) before full recovery..."
-            );
-            const reconnected = await this._waitForGraceReconnect(60000);
-            if (reconnected) {
-                this.logger.info("[System] Connection restored, skipping recovery.");
+        if (this.currentAuthIndex && this.connectionRegistry.getConnectionByAuth(this.currentAuthIndex)) {
+            return true;
+        }
+
+        this._sendErrorResponse(res, 503, "No browser session is currently connected.");
+        return false;
+    }
+
+    async _waitForConnection(timeoutMs = 10000) {
+        const startTime = Date.now();
+        const checkInterval = 200;
+
+        while (Date.now() - startTime < timeoutMs) {
+            const connection = this.connectionRegistry.getConnectionByAuth(this.currentAuthIndex);
+            if (connection && connection.readyState === 1) {
                 return true;
             }
-            this.logger.warn("[System] Reconnection wait expired, proceeding to recovery workflow.");
+            await new Promise(resolve => setTimeout(resolve, checkInterval));
         }
 
-        // Wait for system to become ready if it's busy (someone else is starting/switching browser)
-        if (this.authSwitcher.isSystemBusy) {
-            return await this._waitForSystemAndConnectionIfBusy(res, {
-                connectionMessage: "Service temporarily unavailable: Browser failed to start. Please try again.",
-                onConnectionTimeout: () => {
-                    this.logger.error(
-                        `[System] WebSocket connection not established for account #${this.currentAuthIndex} after system ready, browser startup may have failed.`
-                    );
-                },
-            });
-        }
+        this.logger.warn(
+            `[Request] Timeout waiting for WebSocket connection for browser session ${this.currentAuthIndex || "(unassigned)"}.`
+        );
+        return false;
+    }
 
-        // Determine if this is first-time startup or actual crash recovery
-        const recoveryAuthIndex = this.currentAuthIndex;
-        const isFirstTimeStartup = recoveryAuthIndex < 0 && !this.browserManager.browser;
+    async _waitForSystemReady() {
+        return true;
+    }
 
-        if (isFirstTimeStartup) {
-            this.logger.info(
-                "🚀 [System] Browser not yet started. Initializing browser with first available account..."
-            );
-        } else {
-            this.logger.error(
-                "❌ [System] Browser WebSocket connection disconnected! Possible process crash. Attempting recovery..."
-            );
-        }
+    async _waitForSystemAndConnectionIfBusy(res = null, options = {}) {
+        const {
+            connectionMessage = "Service temporarily unavailable: No browser session connected.",
+            connectionTimeoutMs = 1000,
+            onConnectionTimeout,
+            sendError = res ? (status, message) => this._sendErrorResponse(res, status, message) : () => {},
+        } = options;
 
-        let wasDirectRecovery = false;
-        let recoverySuccess = false;
-
-        try {
-            if (recoveryAuthIndex >= 0) {
-                // Direct recovery: we manage isSystemBusy ourselves
-                wasDirectRecovery = true;
-                this.authSwitcher.isSystemBusy = true;
-                this.logger.info(`[System] Set isSystemBusy=true for direct recovery to account #${recoveryAuthIndex}`);
-
-                await this.browserManager.launchOrSwitchContext(recoveryAuthIndex);
-                this.logger.info(`✅ [System] Browser successfully recovered to account #${recoveryAuthIndex}!`);
-
-                // Wait for WebSocket connection to be established
-                this.logger.info("[System] Waiting for WebSocket connection to be ready...");
-                const connectionReady = await this._waitForConnection(10000); // 10 seconds timeout
-                if (!connectionReady) {
-                    throw new Error("WebSocket connection not established within timeout period");
-                }
-                this.logger.info("✅ [System] WebSocket connection is ready!");
-                recoverySuccess = true;
-            } else if (this.authSource.getRotationIndices().length > 0) {
-                // Don't set isSystemBusy here - let switchToNextAuth manage it
-                const result = await this.authSwitcher.switchToNextAuth();
-                if (!result.success) {
-                    this.logger.error(`❌ [System] Failed to switch to available account: ${result.reason}`);
-                    await this._sendErrorResponse(res, 503, `Service temporarily unavailable: ${result.reason}`);
-                    recoverySuccess = false;
-                } else {
-                    this.logger.info(`✅ [System] Successfully recovered to account #${result.newIndex}!`);
-
-                    // Wait for WebSocket connection to be established
-                    this.logger.info("[System] Waiting for WebSocket connection to be ready...");
-                    const connectionReady = await this._waitForConnection(10000); // 10 seconds timeout
-                    if (!connectionReady) {
-                        throw new Error("WebSocket connection not established within timeout period");
-                    }
-                    this.logger.info("✅ [System] WebSocket connection is ready!");
-                    recoverySuccess = true;
-                }
-            } else {
-                this.logger.error("❌ [System] No available accounts for recovery.");
-                await this._sendErrorResponse(res, 503, "Service temporarily unavailable: No available accounts.");
-                recoverySuccess = false;
-            }
-        } catch (error) {
-            this.logger.error(`❌ [System] Recovery failed: ${error.message}`);
-
-            if (wasDirectRecovery && this.authSource.getRotationIndices().length > 1) {
-                this.logger.warn("⚠️ [System] Attempting to switch to alternative account...");
-                // Reset isSystemBusy before calling switchToNextAuth to avoid "already in progress" rejection
-                this.authSwitcher.isSystemBusy = false;
-                wasDirectRecovery = false; // Prevent finally block from resetting again
+        const connectionReady = await this._waitForConnection(connectionTimeoutMs);
+        if (!connectionReady) {
+            if (typeof onConnectionTimeout === "function") {
                 try {
-                    const result = await this.authSwitcher.switchToNextAuth();
-                    if (!result.success) {
-                        this.logger.error(`❌ [System] Failed to switch to alternative account: ${result.reason}`);
-                        await this._sendErrorResponse(res, 503, `Service temporarily unavailable: ${result.reason}`);
-                        recoverySuccess = false;
-                    } else {
-                        this.logger.info(
-                            `✅ [System] Successfully switched to alternative account #${result.newIndex}!`
-                        );
-
-                        // Wait for WebSocket connection to be established
-                        this.logger.info("[System] Waiting for WebSocket connection to be ready...");
-                        const connectionReady = await this._waitForConnection(10000);
-                        if (!connectionReady) {
-                            throw new Error("WebSocket connection not established within timeout period");
-                        }
-                        this.logger.info("✅ [System] WebSocket connection is ready!");
-                        recoverySuccess = true;
-                    }
-                } catch (switchError) {
-                    this.logger.error(`❌ [System] All accounts failed: ${switchError.message}`);
-                    await this._sendErrorResponse(res, 503, "Service temporarily unavailable: All accounts failed.");
-                    recoverySuccess = false;
+                    onConnectionTimeout();
+                } catch (e) {
+                    this.logger.debug(`[System] onConnectionTimeout handler failed: ${e.message}`);
                 }
-            } else {
-                await this._sendErrorResponse(
-                    res,
-                    503,
-                    "Service temporarily unavailable: Browser crashed and cannot auto-recover."
-                );
-                recoverySuccess = false;
             }
-        } finally {
-            // Only reset if we set it (for direct recovery attempt)
-            if (wasDirectRecovery) {
-                this.logger.info("[System] Resetting isSystemBusy=false in recovery finally block");
-                this.authSwitcher.isSystemBusy = false;
-            }
+            sendError(503, connectionMessage);
+            return false;
         }
 
-        return recoverySuccess;
+        return true;
+    }
+
+    _createImmediateSwitchTracker() {
+        const attemptedAuthIndices = new Set();
+        if (this.currentAuthIndex) {
+            attemptedAuthIndices.add(this.currentAuthIndex);
+        }
+        return { attemptedAuthIndices };
+    }
+
+    async _performImmediateSwitchRetry(errorDetails, requestId, tracker) {
+        const switched = await this.authSwitcher.switchToNextAuth(tracker.attemptedAuthIndices);
+        if (!switched) {
+            this.logger.warn(
+                `[Request] Immediate switch for request #${requestId} did not find another available browser session.`
+            );
+            return false;
+        }
+
+        tracker.attemptedAuthIndices.add(this.currentAuthIndex);
+        return true;
     }
 
     // Process standard Google API requests
     async processRequest(req, res) {
         const requestId = this._generateRequestId();
         res.__proxyResponseStreamMode = null;
+
+        const selectedConnection = this._selectConnection();
+        if (!selectedConnection) {
+            this._sendErrorResponse(res, 503, "No browser session is currently connected.");
+            return;
+        }
+        this.currentAuthIndex = selectedConnection.connectionId;
 
         // Check current account's browser connection
         if (!this.connectionRegistry.getConnectionByAuth(this.currentAuthIndex)) {
@@ -646,14 +516,18 @@ class RequestHandler {
             (req.path.includes("generateContent") || req.path.includes("streamGenerateContent"));
 
         if (isGenerativeRequest) {
-            const usageCount = this.authSwitcher.incrementUsageCount();
+            const usageCount = this._peekNextSessionUsageCount();
             if (usageCount > 0) {
                 const rotationCountText =
                     this.config.switchOnUses > 0 ? `${usageCount}/${this.config.switchOnUses}` : `${usageCount}`;
                 this.logger.info(
                     `[Request] Generation request - account rotation count: ${rotationCountText} (Current account: ${this.currentAuthIndex})`
                 );
-                if (this.authSwitcher.shouldSwitchByUsage()) {
+                if (
+                    Number.isFinite(this.config.switchOnUses) &&
+                    this.config.switchOnUses > 0 &&
+                    usageCount >= this.config.switchOnUses
+                ) {
                     this.needsSwitchingAfterRequest = true;
                 }
             }
@@ -708,62 +582,17 @@ class RequestHandler {
         }
     }
 
-    // Process File Upload requests
-    async processUploadRequest(req, res) {
-        const requestId = this._generateRequestId();
-        this.logger.info(`[Upload] Processing upload request ${req.method} ${req.path} (ID: ${requestId})`);
-
-        // Check current account's browser connection
-        if (!this.connectionRegistry.getConnectionByAuth(this.currentAuthIndex)) {
-            this.logger.warn(`[Upload] No WebSocket connection for current account #${this.currentAuthIndex}`);
-            const recovered = await this._handleBrowserRecovery(res);
-            if (!recovered) return;
-        }
-
-        // Wait for system to become ready if it's busy
-        {
-            const ready = await this._waitForSystemAndConnectionIfBusy(res);
-            if (!ready) return;
-        }
-
-        if (this.browserManager) {
-            this.browserManager.notifyUserActivity();
-        }
-
-        const proxyRequest = {
-            body_b64: req.rawBody ? req.rawBody.toString("base64") : undefined,
-            headers: req.headers,
-            is_generative: false, // Uploads are never generative
-            method: req.method,
-            path: req.path.replace(/^\/proxy/, ""),
-            query_params: req.query || {},
-            request_id: requestId,
-            streaming_mode: "fake", // Uploads always return a single JSON response
-        };
-        this._initializeProxyRequestAttempt(proxyRequest);
-
-        try {
-            // Create message queue inside try-catch to handle invalid authIndex
-            const messageQueue = this.connectionRegistry.createMessageQueue(
-                requestId,
-                this.currentAuthIndex,
-                proxyRequest.request_attempt_id
-            );
-            this._setupClientDisconnectHandler(res, requestId);
-
-            await this._handleNonStreamResponse(proxyRequest, messageQueue, req, res);
-        } catch (error) {
-            this._handleRequestError(error, res);
-        } finally {
-            this.connectionRegistry.removeMessageQueue(requestId, "request_complete");
-            if (!res.writableEnded) res.end();
-        }
-    }
-
     // Process OpenAI format requests
     async processOpenAIRequest(req, res) {
         const requestId = this._generateRequestId();
         res.__proxyResponseStreamMode = null;
+
+        const selectedConnection = this._selectConnection();
+        if (!selectedConnection) {
+            this._sendErrorResponse(res, 503, "No browser session is currently connected.");
+            return;
+        }
+        this.currentAuthIndex = selectedConnection.connectionId;
 
         // Check current account's browser connection
         if (!this.connectionRegistry.getConnectionByAuth(this.currentAuthIndex)) {
@@ -785,14 +614,18 @@ class RequestHandler {
         const systemStreamMode = this.serverSystem.streamingMode;
 
         // Handle usage counting
-        const usageCount = this.authSwitcher.incrementUsageCount();
+        const usageCount = this._peekNextSessionUsageCount();
         if (usageCount > 0) {
             const rotationCountText =
                 this.config.switchOnUses > 0 ? `${usageCount}/${this.config.switchOnUses}` : `${usageCount}`;
             this.logger.info(
                 `[Request] OpenAI generation request - account rotation count: ${rotationCountText} (Current account: ${this.currentAuthIndex})`
             );
-            if (this.authSwitcher.shouldSwitchByUsage()) {
+            if (
+                Number.isFinite(this.config.switchOnUses) &&
+                this.config.switchOnUses > 0 &&
+                usageCount >= this.config.switchOnUses
+            ) {
                 this.needsSwitchingAfterRequest = true;
             }
         }
@@ -1088,6 +921,13 @@ class RequestHandler {
         const requestId = this._generateRequestId();
         res.__proxyResponseStreamMode = null;
 
+        const selectedConnection = this._selectConnection();
+        if (!selectedConnection) {
+            this._sendErrorResponse(res, 503, "No browser session is currently connected.");
+            return;
+        }
+        this.currentAuthIndex = selectedConnection.connectionId;
+
         // Check current account's browser connection
         if (!this.connectionRegistry.getConnectionByAuth(this.currentAuthIndex)) {
             this.logger.warn(`[Request] No WebSocket connection for current account #${this.currentAuthIndex}`);
@@ -1157,14 +997,18 @@ class RequestHandler {
         const systemStreamMode = this.serverSystem.streamingMode;
 
         // Handle usage counting
-        const usageCount = this.authSwitcher.incrementUsageCount();
+        const usageCount = this._peekNextSessionUsageCount();
         if (usageCount > 0) {
             const rotationCountText =
                 this.config.switchOnUses > 0 ? `${usageCount}/${this.config.switchOnUses}` : `${usageCount}`;
             this.logger.info(
                 `[Request] OpenAI Response generation request - account rotation count: ${rotationCountText} (Current account: ${this.currentAuthIndex})`
             );
-            if (this.authSwitcher.shouldSwitchByUsage()) {
+            if (
+                Number.isFinite(this.config.switchOnUses) &&
+                this.config.switchOnUses > 0 &&
+                usageCount >= this.config.switchOnUses
+            ) {
                 this.needsSwitchingAfterRequest = true;
             }
         }
@@ -1474,6 +1318,13 @@ class RequestHandler {
         const requestId = this._generateRequestId();
         res.__proxyResponseStreamMode = null;
 
+        const selectedConnection = this._selectConnection();
+        if (!selectedConnection) {
+            this._sendClaudeErrorResponse(res, 503, "overloaded_error", "No browser session is currently connected.");
+            return;
+        }
+        this.currentAuthIndex = selectedConnection.connectionId;
+
         // Check current account's browser connection
         if (!this.connectionRegistry.getConnectionByAuth(this.currentAuthIndex)) {
             this.logger.warn(`[Request] No WebSocket connection for current account #${this.currentAuthIndex}`);
@@ -1497,14 +1348,18 @@ class RequestHandler {
         const systemStreamMode = this.serverSystem.streamingMode;
 
         // Handle usage counting
-        const usageCount = this.authSwitcher.incrementUsageCount();
+        const usageCount = this._peekNextSessionUsageCount();
         if (usageCount > 0) {
             const rotationCountText =
                 this.config.switchOnUses > 0 ? `${usageCount}/${this.config.switchOnUses}` : `${usageCount}`;
             this.logger.info(
                 `[Request] Claude generation request - account rotation count: ${rotationCountText} (Current account: ${this.currentAuthIndex})`
             );
-            if (this.authSwitcher.shouldSwitchByUsage()) {
+            if (
+                Number.isFinite(this.config.switchOnUses) &&
+                this.config.switchOnUses > 0 &&
+                usageCount >= this.config.switchOnUses
+            ) {
                 this.needsSwitchingAfterRequest = true;
             }
         }
@@ -1795,6 +1650,13 @@ class RequestHandler {
     async processClaudeCountTokens(req, res) {
         const requestId = this._generateRequestId();
 
+        const selectedConnection = this._selectConnection();
+        if (!selectedConnection) {
+            this._sendClaudeErrorResponse(res, 503, "overloaded_error", "No browser session is currently connected.");
+            return;
+        }
+        this.currentAuthIndex = selectedConnection.connectionId;
+
         // Check current account's browser connection
         if (!this.connectionRegistry.getConnectionByAuth(this.currentAuthIndex)) {
             this.logger.warn(`[Request] No WebSocket connection for current account #${this.currentAuthIndex}`);
@@ -1918,6 +1780,13 @@ class RequestHandler {
     // Mirrors OpenAI's /v1/responses/input_tokens by returning only the request-side token count.
     async processOpenAIResponseInputTokens(req, res) {
         const requestId = this._generateRequestId();
+
+        const selectedConnection = this._selectConnection();
+        if (!selectedConnection) {
+            this._sendErrorResponse(res, 503, "No browser session is currently connected.");
+            return;
+        }
+        this.currentAuthIndex = selectedConnection.connectionId;
 
         // Check current account's browser connection
         if (!this.connectionRegistry.getConnectionByAuth(this.currentAuthIndex)) {
@@ -3592,7 +3461,7 @@ class RequestHandler {
                 !bodyObj.generationConfig.thinkingConfig ||
                 bodyObj.generationConfig.thinkingConfig.includeThoughts === undefined
             ) {
-                this.logger.info(`[Proxy] ⚠️ Force thinking enabled, setting includeThoughts=true. (Google Native)`);
+                this.logger.info(`[Proxy] ?? Force thinking enabled, setting includeThoughts=true. (Google Native)`);
                 bodyObj.generationConfig.thinkingConfig = {
                     ...(bodyObj.generationConfig.thinkingConfig || {}),
                     includeThoughts: true,
@@ -3724,9 +3593,10 @@ class RequestHandler {
     _forwardRequest(proxyRequest) {
         const connection = this.connectionRegistry.getConnectionByAuth(this.currentAuthIndex);
         if (connection) {
+            const usageCount = this.authSwitcher.incrementUsageCount(this.currentAuthIndex);
             this.logger.debug(
                 `[Request] Forwarding request #${proxyRequest.request_id} via connection for authIndex=${this.currentAuthIndex}` +
-                    ` (attempt=${proxyRequest.request_attempt_id})`
+                    ` (attempt=${proxyRequest.request_attempt_id}, usage=${usageCount})`
             );
             connection.send(
                 JSON.stringify({

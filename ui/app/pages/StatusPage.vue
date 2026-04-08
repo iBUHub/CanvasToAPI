@@ -7,14 +7,13 @@
 
 <template>
     <div class="main-layout">
-        <!-- Sidebar Navigation -->
         <aside class="sidebar">
             <div class="sidebar-menu">
                 <button
                     class="menu-item"
                     :class="{ active: activeTab === 'home' }"
                     :title="t('statusHeading')"
-                    @click="switchTab('home')"
+                    @click="activeTab = 'home'"
                 >
                     <svg
                         xmlns="http://www.w3.org/2000/svg"
@@ -24,18 +23,16 @@
                         fill="none"
                         stroke="currentColor"
                         stroke-width="2"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
                     >
-                        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
-                        <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+                        <polyline points="9 22 9 12 15 12 15 22" />
                     </svg>
                 </button>
                 <button
                     class="menu-item"
                     :class="{ active: activeTab === 'settings' }"
                     :title="t('actionsPanel')"
-                    @click="switchTab('settings')"
+                    @click="activeTab = 'settings'"
                 >
                     <svg
                         xmlns="http://www.w3.org/2000/svg"
@@ -45,20 +42,18 @@
                         fill="none"
                         stroke="currentColor"
                         stroke-width="2"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
                     >
-                        <circle cx="12" cy="12" r="3"></circle>
+                        <circle cx="12" cy="12" r="3" />
                         <path
                             d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"
-                        ></path>
+                        />
                     </svg>
                 </button>
                 <button
                     class="menu-item"
                     :class="{ active: activeTab === 'logs' }"
                     :title="t('realtimeLogs')"
-                    @click="switchTab('logs')"
+                    @click="activeTab = 'logs'"
                 >
                     <svg
                         xmlns="http://www.w3.org/2000/svg"
@@ -68,26 +63,17 @@
                         fill="none"
                         stroke="currentColor"
                         stroke-width="2"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
                     >
-                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                        <polyline points="14 2 14 8 20 8"></polyline>
-                        <line x1="16" y1="13" x2="8" y2="13"></line>
-                        <line x1="16" y1="17" x2="8" y2="17"></line>
-                        <polyline points="10 9 9 9 8 9"></polyline>
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                        <polyline points="14 2 14 8 20 8" />
+                        <line x1="16" y1="13" x2="8" y2="13" />
+                        <line x1="16" y1="17" x2="8" y2="17" />
                     </svg>
                 </button>
             </div>
-
             <div class="sidebar-footer">
-                <button
-                    class="menu-item"
-                    :title="t('switchLanguage')"
-                    @click="handleLanguageChange(state.currentLang === 'en' ? 'zh' : 'en')"
-                >
+                <button class="menu-item" :title="t('switchLanguage')" @click="toggleLanguage">
                     <svg
-                        data-v-3ee666f0=""
                         xmlns="http://www.w3.org/2000/svg"
                         width="24"
                         height="24"
@@ -95,15 +81,13 @@
                         fill="none"
                         stroke="currentColor"
                         stroke-width="2"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
                     >
-                        <path data-v-3ee666f0="" d="m5 8 6 6"></path>
-                        <path data-v-3ee666f0="" d="m4 14 6-6 2-3"></path>
-                        <path data-v-3ee666f0="" d="M2 5h12"></path>
-                        <path data-v-3ee666f0="" d="M7 2h1"></path>
-                        <path data-v-3ee666f0="" d="m22 22-5-10-5 10"></path>
-                        <path data-v-3ee666f0="" d="M14 18h6"></path>
+                        <path d="m5 8 6 6" />
+                        <path d="m4 14 6-6 2-3" />
+                        <path d="M2 5h12" />
+                        <path d="M7 2h1" />
+                        <path d="m22 22-5-10-5 10" />
+                        <path d="M14 18h6" />
                     </svg>
                 </button>
                 <button class="menu-item logout-button" :title="t('logout')" @click="handleLogout">
@@ -115,28 +99,22 @@
                         fill="none"
                         stroke="currentColor"
                         stroke-width="2"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
                     >
-                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
-                        <polyline points="16 17 21 12 16 7"></polyline>
-                        <line x1="21" y1="12" x2="9" y2="12"></line>
+                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                        <polyline points="16 17 21 12 16 7" />
+                        <line x1="21" y1="12" x2="9" y2="12" />
                     </svg>
                 </button>
             </div>
         </aside>
 
-        <!-- Main Content Area -->
         <main class="content-area">
-            <!-- HOME VIEW -->
             <div v-if="activeTab === 'home'" class="view-container">
                 <header class="page-header">
                     <h1>{{ t("statusHeading") }}</h1>
                 </header>
-
                 <div class="dashboard-grid">
-                    <!-- Service Status Card -->
-                    <div class="status-card">
+                    <section class="status-card">
                         <h3 class="card-title">
                             <svg
                                 xmlns="http://www.w3.org/2000/svg"
@@ -153,67 +131,27 @@
                                 <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
                             </svg>
                             {{ t("serviceStatus") }}
-                            <span
-                                class="dot"
-                                :class="state.serviceConnected ? 'status-running' : 'status-error'"
-                                style="display: inline-block; vertical-align: middle; margin-left: 8px"
-                            ></span>
                         </h3>
                         <div class="status-list">
                             <div class="status-item">
-                                <span class="label">
-                                    <svg
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        width="14"
-                                        height="14"
-                                        viewBox="0 0 24 24"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        stroke-width="2"
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        style="margin-right: 6px"
-                                    >
-                                        <path d="M20 8h-2"></path>
-                                        <path d="M20 18h-2"></path>
-                                        <rect x="2" y="4" width="20" height="8" rx="2" ry="2"></rect>
-                                        <rect x="2" y="14" width="20" height="8" rx="2" ry="2"></rect>
-                                        <line x1="6" y1="8" x2="6.01" y2="8"></line>
-                                        <line x1="6" y1="18" x2="6.01" y2="18"></line>
-                                    </svg>
-                                    {{ t("serviceConnection") }}
-                                </span>
-                                <span class="value status-text-bold" :class="serviceConnectedClass">{{
-                                    serviceConnectedText
-                                }}</span>
+                                <span class="label">{{ t("serviceConnection") }}</span
+                                ><span class="value" :class="serviceConnectedClass">{{ serviceConnectedText }}</span>
                             </div>
-                            <div v-if="state.serviceConnected" class="status-item">
-                                <span class="label">
-                                    <svg
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        width="14"
-                                        height="14"
-                                        viewBox="0 0 24 24"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        stroke-width="2"
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        style="margin-right: 6px"
-                                    >
-                                        <path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"></path>
-                                    </svg>
-                                    {{ t("browserConnection") }}
-                                </span>
-                                <span class="value status-text-bold" :class="browserConnectedClass">{{
-                                    browserConnectedText
-                                }}</span>
+                            <div class="status-item">
+                                <span class="label">{{ t("browserConnection") }}</span
+                                ><span class="value" :class="browserConnectedClass">{{ browserConnectedText }}</span>
+                            </div>
+                            <div class="status-item">
+                                <span class="label">{{ t("wsPortLabel") }}</span
+                                ><span class="value mono">{{ state.wsPort }}</span>
+                            </div>
+                            <div class="status-item">
+                                <span class="label">{{ tf("selectionStrategyLabel", "Selection Strategy") }}</span
+                                ><span class="value mono">{{ state.selectionStrategy }}</span>
                             </div>
                         </div>
-                    </div>
-
-                    <!-- Account Status Card -->
-                    <div v-if="state.serviceConnected" class="status-card">
+                    </section>
+                    <section class="status-card">
                         <h3 class="card-title">
                             <svg
                                 xmlns="http://www.w3.org/2000/svg"
@@ -230,158 +168,28 @@
                                 <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
                                 <circle cx="12" cy="7" r="4"></circle>
                             </svg>
-                            {{ t("accountStatus") }}
+                            {{ tf("sessionPoolHeading", "Session Pool") }}
                         </h3>
                         <div class="status-list">
                             <div class="status-item">
-                                <span class="label">
-                                    <svg
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        width="14"
-                                        height="14"
-                                        viewBox="0 0 24 24"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        stroke-width="2"
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        style="margin-right: 6px"
-                                    >
-                                        <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-                                        <circle cx="8.5" cy="7" r="4"></circle>
-                                        <polyline points="17 11 19 13 23 9"></polyline>
-                                    </svg>
-                                    {{ t("currentAccount") }}
-                                </span>
-                                <span class="value account-value">
-                                    <span class="account-name" :class="currentAccountNameClass">
-                                        #{{ state.currentAuthIndex }} {{ currentAccountName }}
-                                    </span>
-                                </span>
+                                <span class="label">{{ tf("activeSessionsLabel", "Active Sessions") }}</span
+                                ><span class="value">{{ activeSessionCount }}</span>
                             </div>
                             <div class="status-item">
-                                <span class="label">
-                                    <svg
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        width="14"
-                                        height="14"
-                                        viewBox="0 0 24 24"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        stroke-width="2"
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        style="margin-right: 6px"
-                                    >
-                                        <line x1="18" y1="20" x2="18" y2="10"></line>
-                                        <line x1="12" y1="20" x2="12" y2="4"></line>
-                                        <line x1="6" y1="20" x2="6" y2="14"></line>
-                                    </svg>
-                                    <span>
-                                        {{ t("usageCount") }}
-                                        <EnvVarTooltip env-var="SWITCH_ON_USES" doc-section="proxy-config" />
-                                    </span>
-                                </span>
-                                <span class="value">{{ state.usageCount }}</span>
+                                <span class="label">{{ tf("totalSessionsLabel", "Total Sessions") }}</span
+                                ><span class="value">{{ sessions.length }}</span>
                             </div>
                             <div class="status-item">
-                                <span class="label">
-                                    <svg
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        width="14"
-                                        height="14"
-                                        viewBox="0 0 24 24"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        stroke-width="2"
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        style="margin-right: 6px"
-                                    >
-                                        <path
-                                            d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"
-                                        ></path>
-                                        <line x1="12" y1="9" x2="12" y2="13"></line>
-                                        <line x1="12" y1="17" x2="12.01" y2="17"></line>
-                                    </svg>
-                                    <span>
-                                        {{ t("consecutiveFailures") }}
-                                        <EnvVarTooltip env-var="FAILURE_THRESHOLD" doc-section="proxy-config" />
-                                    </span>
-                                </span>
-                                <span class="value">{{ state.failureCount }}</span>
+                                <span class="label">{{ tf("errorThresholdLabel", "Error Threshold") }}</span
+                                ><span class="value">{{ state.browserWsErrorThreshold }}</span>
                             </div>
                             <div class="status-item">
-                                <span class="label">
-                                    <svg
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        width="14"
-                                        height="14"
-                                        viewBox="0 0 24 24"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        stroke-width="2"
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        style="margin-right: 6px"
-                                    >
-                                        <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
-                                        <polyline points="2 17 12 22 22 17"></polyline>
-                                        <polyline points="2 12 12 17 22 12"></polyline>
-                                    </svg>
-                                    {{ t("totalScanned") }}
-                                </span>
-                                <span class="value">{{ totalScannedCount }}</span>
-                            </div>
-                            <div class="status-item">
-                                <span class="label">
-                                    <svg
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        width="14"
-                                        height="14"
-                                        viewBox="0 0 24 24"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        stroke-width="2"
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        style="margin-right: 6px"
-                                    >
-                                        <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
-                                    </svg>
-                                    {{ t("dedupedAvailable") }}
-                                </span>
-                                <span class="value">{{ dedupedAvailableCount }}</span>
-                            </div>
-                            <div class="status-item">
-                                <span class="label">
-                                    <svg
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        width="14"
-                                        height="14"
-                                        viewBox="0 0 24 24"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        stroke-width="2"
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        style="margin-right: 6px"
-                                    >
-                                        <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
-                                        <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
-                                    </svg>
-                                    <span>
-                                        {{ t("activeContexts") }}
-                                        <EnvVarTooltip env-var="MAX_CONTEXTS" doc-section="proxy-config" />
-                                    </span>
-                                </span>
-                                <span class="value">{{ activeContextsDisplay }}</span>
+                                <span class="label">{{ t("streamingMode") }}</span
+                                ><span class="value mono">{{ state.streamingMode }}</span>
                             </div>
                         </div>
-                    </div>
-
-                    <!-- Proxy Settings Status Card -->
-                    <div v-if="state.serviceConnected" class="status-card">
+                    </section>
+                    <section class="status-card">
                         <h3 class="card-title">
                             <svg
                                 xmlns="http://www.w3.org/2000/svg"
@@ -397,499 +205,118 @@
                             >
                                 <path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6"></path>
                             </svg>
-                            {{ t("proxySettingsStatus") }}
+                            {{ t("settings") }}
                         </h3>
                         <div class="status-list">
                             <div class="status-item">
-                                <span class="label">
-                                    <svg
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        width="14"
-                                        height="14"
-                                        viewBox="0 0 24 24"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        stroke-width="2"
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        style="margin-right: 6px; vertical-align: middle"
-                                    >
-                                        <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
-                                    </svg>
-                                    <span>
-                                        {{ t("streamingMode") }}
-                                        <span
-                                            style="
-                                                font-size: 0.8em;
-                                                color: var(--text-secondary);
-                                                font-weight: normal;
-                                                margin-left: 4px;
-                                            "
-                                            >({{ t("onlyAppliesWhenStreamingEnabled") }})</span
-                                        >
-                                        <EnvVarTooltip env-var="STREAMING_MODE" doc-section="other-config" />
-                                    </span>
-                                </span>
-                                <span
-                                    class="value status-text-bold"
-                                    :class="state.streamingModeReal ? 'status-ok' : 'status-error'"
-                                    >{{ state.streamingModeReal ? t("real") : t("fake") }}</span
-                                >
+                                <span class="label">{{ t("forceThinking") }}</span
+                                ><span class="value" :class="state.forceThinking ? 'status-ok' : 'status-warning'">{{
+                                    state.forceThinking ? t("enabled") : t("disabled")
+                                }}</span>
                             </div>
                             <div class="status-item">
-                                <span class="label">
-                                    <svg
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        width="14"
-                                        height="14"
-                                        viewBox="0 0 24 24"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        stroke-width="2"
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        style="margin-right: 6px; vertical-align: middle"
-                                    >
-                                        <path d="M15.5 13a3.5 3.5 0 0 0 -3.5 3.5v1a3.5 3.5 0 0 0 7 0v-1.8"></path>
-                                        <path d="M8.5 13a3.5 3.5 0 0 1 3.5 3.5v1a3.5 3.5 0 0 1 -7 0v-1.8"></path>
-                                        <path d="M17.5 16a3.5 3.5 0 0 0 0 -7h-.5"></path>
-                                        <path d="M19 9.3v-2.8a3.5 3.5 0 0 0 -7 0"></path>
-                                        <path d="M6.5 16a3.5 3.5 0 0 1 0 -7h.5"></path>
-                                        <path d="M5 9.3v-2.8a3.5 3.5 0 0 1 7 0v10"></path>
-                                    </svg>
-                                    <span>
-                                        {{ t("forceThinking") }}
-                                        <EnvVarTooltip env-var="FORCE_THINKING" doc-section="other-config" />
-                                    </span>
-                                </span>
-                                <span
-                                    class="value status-text-bold"
-                                    :class="state.forceThinkingEnabled ? 'status-ok' : 'status-error'"
-                                    >{{ state.forceThinkingEnabled ? t("enabled") : t("disabled") }}</span
-                                >
+                                <span class="label">{{ t("forceWebSearch") }}</span
+                                ><span class="value" :class="state.forceWebSearch ? 'status-ok' : 'status-warning'">{{
+                                    state.forceWebSearch ? t("enabled") : t("disabled")
+                                }}</span>
                             </div>
                             <div class="status-item">
-                                <span class="label">
-                                    <svg
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        width="14"
-                                        height="14"
-                                        viewBox="0 0 24 24"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        stroke-width="2"
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        style="margin-right: 6px; vertical-align: middle"
-                                    >
-                                        <circle cx="12" cy="12" r="10"></circle>
-                                        <line x1="2" y1="12" x2="22" y2="12"></line>
-                                        <path
-                                            d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"
-                                        ></path>
-                                    </svg>
-                                    <span>
-                                        {{ t("forceWebSearch") }}
-                                        <EnvVarTooltip env-var="FORCE_WEB_SEARCH" doc-section="other-config" />
-                                    </span>
-                                </span>
-                                <span
-                                    class="value status-text-bold"
-                                    :class="state.forceWebSearchEnabled ? 'status-ok' : 'status-error'"
-                                    >{{ state.forceWebSearchEnabled ? t("enabled") : t("disabled") }}</span
-                                >
+                                <span class="label">{{ t("forceUrlContext") }}</span
+                                ><span class="value" :class="state.forceUrlContext ? 'status-ok' : 'status-warning'">{{
+                                    state.forceUrlContext ? t("enabled") : t("disabled")
+                                }}</span>
                             </div>
                             <div class="status-item">
-                                <span class="label">
-                                    <svg
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        width="14"
-                                        height="14"
-                                        viewBox="0 0 24 24"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        stroke-width="2"
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        style="margin-right: 6px; vertical-align: middle"
-                                    >
-                                        <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
-                                        <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
-                                    </svg>
-                                    <span>
-                                        {{ t("forceUrlContext") }}
-                                        <EnvVarTooltip env-var="FORCE_URL_CONTEXT" doc-section="other-config" />
-                                    </span>
-                                </span>
-                                <span
-                                    class="value status-text-bold"
-                                    :class="state.forceUrlContextEnabled ? 'status-ok' : 'status-error'"
-                                    >{{ state.forceUrlContextEnabled ? t("enabled") : t("disabled") }}</span
-                                >
-                            </div>
-                            <div class="status-item">
-                                <span class="label">
-                                    <svg
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        width="14"
-                                        height="14"
-                                        viewBox="0 0 24 24"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        stroke-width="2"
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        style="margin-right: 6px; vertical-align: middle"
-                                    >
-                                        <path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"></path>
-                                        <path d="M21 3v5h-5"></path>
-                                    </svg>
-                                    <span>
-                                        {{ t("maxRetries") }}
-                                        <span
-                                            style="
-                                                font-size: 0.8em;
-                                                color: var(--text-secondary);
-                                                font-weight: normal;
-                                                margin-left: 4px;
-                                            "
-                                            >({{ t("onlyAppliesWhenFakeStreaming") }})</span
-                                        >
-                                        <EnvVarTooltip env-var="MAX_RETRIES" doc-section="proxy-config" />
-                                    </span>
-                                </span>
-                                <span class="value">{{ state.maxRetries }}</span>
-                            </div>
-                            <div class="status-item">
-                                <span class="label">
-                                    <svg
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        width="14"
-                                        height="14"
-                                        viewBox="0 0 24 24"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        stroke-width="2"
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        style="margin-right: 6px; vertical-align: middle"
-                                    >
-                                        <path
-                                            d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"
-                                        ></path>
-                                    </svg>
-                                    <span>
-                                        {{ t("apiKey") }}
-                                        <EnvVarTooltip env-var="API_KEYS" doc-section="app-config" />
-                                    </span>
-                                </span>
-                                <span class="value status-text-bold">{{ apiKeySourceText }}</span>
+                                <span class="label">{{ t("logLevel") }}</span
+                                ><span class="value">{{ state.debugMode ? t("debug") : t("normal") }}</span>
                             </div>
                         </div>
-                    </div>
+                    </section>
                 </div>
-
-                <!-- Account Management Section (Full Width) -->
-                <div v-if="state.serviceConnected" class="full-width-section">
+                <section class="full-width-section">
                     <div class="status-card">
-                        <h3 class="card-title">
-                            <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                width="18"
-                                height="18"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                stroke-width="2"
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                style="margin-right: 8px; vertical-align: text-bottom"
-                            >
-                                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-                                <circle cx="9" cy="7" r="4"></circle>
-                                <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-                                <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-                            </svg>
-                            {{ t("accountManagement") }}
-                        </h3>
-                        <!-- Top action buttons: Add and Deduplicate -->
-                        <div class="action-group account-top-actions">
-                            <input
-                                ref="fileInput"
-                                type="file"
-                                style="display: none"
-                                accept=".json,.zip"
-                                multiple
-                                @change="handleFileUpload"
-                            />
-                            <!-- Left: Select all and batch delete -->
-                            <div class="batch-actions">
-                                <el-checkbox
-                                    :model-value="isAllSelected"
-                                    :indeterminate="hasSelection && !isAllSelected"
-                                    :disabled="state.accountDetails.length === 0"
-                                    @change="toggleSelectAll"
+                        <div class="section-header">
+                            <h3 class="card-title card-title-tight">
+                                <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    width="18"
+                                    height="18"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    stroke-width="2"
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    style="margin-right: 8px; vertical-align: text-bottom"
                                 >
-                                    {{ t("selectAll") }}
-                                </el-checkbox>
-                                <span v-if="hasSelection" class="selected-count">
-                                    {{ t("selectedCount", { count: selectedCount }) }}
-                                </span>
-                                <button
-                                    v-if="hasSelection"
-                                    class="btn-batch-delete"
-                                    :disabled="isBusy"
-                                    :title="t('batchDelete')"
-                                    @click="batchDeleteAccounts"
-                                >
-                                    <svg
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        width="20"
-                                        height="20"
-                                        viewBox="0 0 24 24"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        stroke-width="2"
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                    >
-                                        <path
-                                            d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"
-                                        />
-                                        <path d="m9.5 10 5 5" />
-                                        <path d="m14.5 10-5 5" />
-                                    </svg>
-                                </button>
-                                <button
-                                    v-if="hasSelection"
-                                    class="btn-batch-download"
-                                    :title="t('batchDownload')"
-                                    @click="batchDownloadAccounts"
-                                >
-                                    <svg
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        width="20"
-                                        height="20"
-                                        viewBox="0 0 24 24"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        stroke-width="2"
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                    >
-                                        <path
-                                            d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"
-                                        />
-                                        <path d="M12 10v6" />
-                                        <path d="m9 13 3 3 3-3" />
-                                    </svg>
-                                </button>
-                            </div>
-                            <!-- Right: Add, upload, and deduplicate -->
-                            <div class="icon-buttons">
-                                <button :disabled="isBusy" :title="t('btnAddUser')" @click="addUser">
-                                    <svg
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        width="20"
-                                        height="20"
-                                        viewBox="0 0 24 24"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        stroke-width="2"
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                    >
-                                        <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-                                        <circle cx="8.5" cy="7" r="4"></circle>
-                                        <line x1="20" y1="8" x2="20" y2="14"></line>
-                                        <line x1="23" y1="11" x2="17" y2="11"></line>
-                                    </svg>
-                                </button>
-                                <button :disabled="isBusy" :title="t('uploadFile')" @click="triggerFileUpload">
-                                    <svg
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        width="20"
-                                        height="20"
-                                        viewBox="0 0 24 24"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        stroke-width="2"
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                    >
-                                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                                        <polyline points="17 8 12 3 7 8"></polyline>
-                                        <line x1="12" y1="3" x2="12" y2="15"></line>
-                                    </svg>
-                                </button>
-                                <button
-                                    class="btn-warning"
-                                    :disabled="isBusy"
-                                    :title="t('btnDeduplicateAuth')"
-                                    @click="deduplicateAuth"
-                                >
-                                    <svg
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        width="20"
-                                        height="20"
-                                        viewBox="0 0 24 24"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        stroke-width="2"
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                    >
-                                        <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
-                                    </svg>
-                                </button>
-                            </div>
+                                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                                    <circle cx="9" cy="7" r="4"></circle>
+                                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                                    <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                                </svg>
+                                {{ tf("browserSessionsHeading", "Browser Sessions") }}
+                            </h3>
+                            <button class="action-btn" @click="refresh">{{ tf("refreshLabel", "Refresh") }}</button>
                         </div>
-                        <!-- Account list -->
-                        <div class="account-list">
-                            <div
-                                v-for="item in state.accountDetails"
-                                :key="item.index"
-                                class="account-list-item"
-                                style="cursor: pointer"
-                                :class="{
-                                    'is-current': item.index === state.currentAuthIndex,
-                                    'is-selected': isAccountSelected(item.index),
-                                }"
-                                @click="toggleSelectAccount(item.index)"
-                            >
-                                <el-checkbox
-                                    :model-value="isAccountSelected(item.index)"
-                                    class="account-checkbox"
-                                    :aria-label="`Select account #${item.index}`"
-                                    @change="toggleSelectAccount(item.index)"
-                                    @click.stop
-                                />
-                                <el-tooltip
-                                    :content="getAccountDisplayName(item)"
-                                    placement="top"
-                                    effect="dark"
-                                    :hide-after="0"
-                                >
-                                    <div class="account-info">
-                                        <span class="account-index">#{{ item.index }}</span>
-                                        <span
-                                            class="account-email"
-                                            :class="{ 'is-error': item.isInvalid, 'is-duplicate': item.isDuplicate }"
-                                        >
-                                            {{ getAccountDisplayName(item) }}
-                                        </span>
-                                        <span v-if="item.index === state.currentAuthIndex" class="current-badge">
-                                            {{ t("tagCurrent") }}
-                                        </span>
-                                        <span v-if="item.isExpired" class="expired-badge">
-                                            {{ t("tagExpired") }}
-                                        </span>
+                        <div v-if="sessions.length === 0" class="empty-state">
+                            {{ tf("noBrowserSessions", "No browser sessions are currently connected.") }}
+                        </div>
+                        <div v-else class="session-list">
+                            <div v-for="session in sessions" :key="session.connectionId" class="session-row">
+                                <div class="session-main">
+                                    <div
+                                        class="session-id"
+                                        :title="`${tf('browserIdentifierLabel', 'Browser Tag')}: ${sessionClientLabel(session) || session.connectionId}`"
+                                    >
+                                        {{ sessionClientLabel(session) || session.connectionId }}
                                     </div>
-                                </el-tooltip>
-                                <div class="account-actions">
-                                    <button
-                                        class="btn-switch"
-                                        :class="{
-                                            'is-active': item.index === state.currentAuthIndex,
-                                            'is-fast': item.hasContext && item.index !== state.currentAuthIndex,
-                                        }"
-                                        :disabled="isBusy || item.index === state.currentAuthIndex"
-                                        :title="
-                                            item.index === state.currentAuthIndex
-                                                ? t('currentAccount')
-                                                : item.hasContext
-                                                  ? t('fastSwitch')
-                                                  : t('btnSwitchAccount')
-                                        "
-                                        @click.stop="switchAccountByIndex(item.index)"
+                                    <div class="session-meta">
+                                        <span
+                                            >{{ tf("connectedAtLabel", "Connected At") }}:
+                                            {{ formatTime(session.connectedAt) }}</span
+                                        >
+                                        <span class="mono">
+                                            {{ tf("ipAddressLabel", "IP") }}:
+                                            {{ sessionAddress(session) }}
+                                        </span>
+                                        <span :title="sessionUserAgent(session)">
+                                            {{ tf("browserModelLabel", "Browser / OS") }}:
+                                            {{ sessionBrowser(session) }}
+                                        </span>
+                                        <span v-if="sessionLastErrorText(session)" class="status-error"
+                                            >{{ tf("lastErrorLabel", "Last Error") }}:
+                                            {{ sessionLastErrorText(session) }}</span
+                                        >
+                                    </div>
+                                </div>
+                                <div class="session-side">
+                                    <span
+                                        class="session-badge"
+                                        :class="session.disabledAt ? 'status-error' : 'status-ok'"
+                                        >{{
+                                            session.disabledAt
+                                                ? tf("disabledLabel", "Disabled")
+                                                : tf("onlineLabel", "Online")
+                                        }}</span
                                     >
-                                        <svg
-                                            v-if="item.index !== state.currentAuthIndex"
-                                            xmlns="http://www.w3.org/2000/svg"
-                                            width="16"
-                                            height="16"
-                                            viewBox="0 0 1024 1024"
-                                            fill="currentColor"
-                                        >
-                                            <path
-                                                d="M886.2 604.8H137.8c-22.1 0-40 17.9-40 40 0 8.4 2.6 16.2 7 22.6 1.9 4.5 4.8 8.7 8.4 12.4L289.5 856c7.8 7.8 18 11.7 28.3 11.7s20.5-3.9 28.3-11.7c15.6-15.6 15.6-40.9 0-56.6L231.3 684.8h654.8c22.1 0 40-17.9 40-40s-17.8-40-39.9-40zM137.8 419.2h748.4c22.1 0 40-17.9 40-40 0-8.4-2.6-16.2-7-22.6-1.4-3.3-3.4-6.5-5.8-9.5L769.2 170.9c-14-17.1-39.2-19.6-56.3-5.6-17.1 14-19.6 39.2-5.6 56.3l96.3 117.6H137.8c-22.1 0-40 17.9-40 40s17.9 40 40 40z"
-                                            ></path>
-                                        </svg>
-                                        <svg
-                                            v-else
-                                            xmlns="http://www.w3.org/2000/svg"
-                                            width="16"
-                                            height="16"
-                                            viewBox="0 0 24 24"
-                                            fill="none"
-                                            stroke="currentColor"
-                                            stroke-width="2"
-                                            stroke-linecap="round"
-                                            stroke-linejoin="round"
-                                        >
-                                            <polyline points="20 6 9 17 4 12"></polyline>
-                                        </svg>
-                                    </button>
-                                    <button
-                                        class="btn-danger"
-                                        :disabled="isBusy"
-                                        :title="t('btnDeleteUser')"
-                                        @click.stop="deleteAccountByIndex(item.index)"
+                                    <span class="mono"
+                                        >{{ tf("usageCount", "Usage Count") }} {{ session.usageCount || 0 }}</span
                                     >
-                                        <svg
-                                            xmlns="http://www.w3.org/2000/svg"
-                                            width="16"
-                                            height="16"
-                                            viewBox="0 0 24 24"
-                                            fill="none"
-                                            stroke="currentColor"
-                                            stroke-width="2"
-                                            stroke-linecap="round"
-                                            stroke-linejoin="round"
-                                        >
-                                            <polyline points="3 6 5 6 21 6"></polyline>
-                                            <path
-                                                d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"
-                                            ></path>
-                                            <line x1="10" y1="11" x2="10" y2="17"></line>
-                                            <line x1="14" y1="11" x2="14" y2="17"></line>
-                                        </svg>
-                                    </button>
-                                    <button :title="t('download')" @click.stop="downloadAccountByIndex(item.index)">
-                                        <svg
-                                            xmlns="http://www.w3.org/2000/svg"
-                                            width="16"
-                                            height="16"
-                                            viewBox="0 0 24 24"
-                                            fill="none"
-                                            stroke="currentColor"
-                                            stroke-width="2"
-                                            stroke-linecap="round"
-                                            stroke-linejoin="round"
-                                        >
-                                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                                            <polyline points="7 10 12 15 17 10"></polyline>
-                                            <line x1="12" y1="15" x2="12" y2="3"></line>
-                                        </svg>
-                                    </button>
+                                    <span class="mono"
+                                        >{{ tf("errorsLabel", "Errors") }} {{ session.failureCount || 0 }}</span
+                                    >
                                 </div>
                             </div>
-                            <div v-if="state.accountDetails.length === 0" class="account-list-empty">
-                                {{ t("noActiveAccount") }}
-                            </div>
                         </div>
                     </div>
-                </div>
+                </section>
             </div>
 
-            <!-- SETTINGS VIEW -->
-            <div v-if="activeTab === 'settings'" class="view-container">
+            <div v-else-if="activeTab === 'settings'" class="view-container">
                 <header class="page-header">
                     <h1>{{ t("settings") }}</h1>
                 </header>
-
                 <div class="dashboard-grid settings-grid">
-                    <!-- Version Information Card -->
                     <div class="status-card">
                         <h3 class="card-title">
                             <svg
@@ -992,10 +419,7 @@
                                         <path d="m5 3 2 2"></path>
                                         <path d="m19 3-2 2"></path>
                                     </svg>
-                                    <span>
-                                        {{ t("latestVersion") }}
-                                        <EnvVarTooltip env-var="CHECK_UPDATE" doc-section="app-config" />
-                                    </span>
+                                    {{ t("latestVersion") }}
                                 </span>
                                 <span class="value">
                                     <span
@@ -1004,9 +428,7 @@
                                         :title="t('newVersionAvailable')"
                                     >
                                         <a
-                                            :href="
-                                                state.releaseUrl || 'https://github.com/iBUHub/CanvasToAPI/releases'
-                                            "
+                                            :href="state.releaseUrl || 'https://github.com/iBUHub/CanvasToAPI/releases'"
                                             target="_blank"
                                             class="update-link"
                                         >
@@ -1014,9 +436,7 @@
                                         </a>
                                         <a
                                             class="copy-icon"
-                                            :href="
-                                                state.releaseUrl || 'https://github.com/iBUHub/CanvasToAPI/releases'
-                                            "
+                                            :href="state.releaseUrl || 'https://github.com/iBUHub/CanvasToAPI/releases'"
                                             target="_blank"
                                             style="color: inherit; display: inline-flex"
                                         >
@@ -1077,7 +497,6 @@
                         </div>
                     </div>
 
-                    <!-- Log Settings Card -->
                     <div class="status-card">
                         <h3 class="card-title">
                             <svg
@@ -1122,15 +541,12 @@
                                         <line x1="3" y1="12" x2="3.01" y2="12"></line>
                                         <line x1="3" y1="18" x2="3.01" y2="18"></line>
                                     </svg>
-                                    <span>
-                                        {{ t("logLevel") }}
-                                        <EnvVarTooltip env-var="LOG_LEVEL" doc-section="app-config" />
-                                    </span>
+                                    {{ t("logLevel") }}
                                 </span>
                                 <el-select
-                                    v-model="state.debugModeEnabled"
+                                    :model-value="state.debugMode"
                                     style="width: 120px"
-                                    @change="handleStatsDebugChange"
+                                    @change="handleDebugModeChange"
                                 >
                                     <el-option :label="t('normal')" :value="false" />
                                     <el-option :label="t('debug')" :value="true" />
@@ -1157,7 +573,7 @@
                                     {{ t("logMaxCount") }}
                                 </span>
                                 <el-input-number
-                                    v-model="state.logMaxCount"
+                                    :model-value="state.logMaxCount"
                                     :min="1"
                                     :max="1000"
                                     style="width: 120px"
@@ -1167,7 +583,6 @@
                         </div>
                     </div>
 
-                    <!-- Appearance Card -->
                     <div class="status-card">
                         <h3 class="card-title">
                             <svg
@@ -1195,7 +610,7 @@
                             {{ t("appearance") }}
                         </h3>
                         <div class="status-list">
-                            <div class="status-item">
+                            <div class="switch-container">
                                 <span class="label">
                                     <svg
                                         xmlns="http://www.w3.org/2000/svg"
@@ -1227,7 +642,7 @@
                                     <el-option :label="t('dark')" value="dark" />
                                 </el-select>
                             </div>
-                            <div class="status-item">
+                            <div class="switch-container">
                                 <span class="label">
                                     <svg
                                         xmlns="http://www.w3.org/2000/svg"
@@ -1250,7 +665,7 @@
                                     {{ t("language") }}
                                 </span>
                                 <el-select
-                                    v-model="state.currentLang"
+                                    :model-value="state.currentLang"
                                     style="width: 150px"
                                     @change="handleLanguageChange"
                                 >
@@ -1261,7 +676,6 @@
                         </div>
                     </div>
 
-                    <!-- Proxy Settings Card -->
                     <div class="status-card">
                         <h3 class="card-title">
                             <svg
@@ -1282,139 +696,74 @@
                         </h3>
                         <div class="settings-switches">
                             <div class="switch-container">
-                                <span class="label">
-                                    <svg
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        width="14"
-                                        height="14"
-                                        viewBox="0 0 24 24"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        stroke-width="2"
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        style="margin-right: 6px; vertical-align: middle"
-                                    >
-                                        <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
-                                    </svg>
-                                    {{ t("streamingMode") }}
-                                </span>
+                                <span class="label">{{ t("streamingMode") }}</span>
                                 <el-switch
-                                    v-model="state.streamingModeReal"
+                                    :model-value="state.streamingMode === 'real'"
                                     inline-prompt
                                     :width="50"
                                     :active-text="t('real')"
                                     :inactive-text="t('fake')"
-                                    :before-change="handleStreamingModeBeforeChange"
+                                    @change="handleStreamingModeChange"
                                 />
                             </div>
                             <div class="switch-container">
-                                <span class="label">
-                                    <svg
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        width="14"
-                                        height="14"
-                                        viewBox="0 0 24 24"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        stroke-width="2"
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        style="margin-right: 6px; vertical-align: middle"
-                                    >
-                                        <path d="M15.5 13a3.5 3.5 0 0 0 -3.5 3.5v1a3.5 3.5 0 0 0 7 0v-1.8"></path>
-                                        <path d="M8.5 13a3.5 3.5 0 0 1 3.5 3.5v1a3.5 3.5 0 0 1 -7 0v-1.8"></path>
-                                        <path d="M17.5 16a3.5 3.5 0 0 0 0 -7h-.5"></path>
-                                        <path d="M19 9.3v-2.8a3.5 3.5 0 0 0 -7 0"></path>
-                                        <path d="M6.5 16a3.5 3.5 0 0 1 0 -7h.5"></path>
-                                        <path d="M5 9.3v-2.8a3.5 3.5 0 0 1 7 0v10"></path>
-                                    </svg>
-                                    {{ t("forceThinking") }}
-                                </span>
+                                <span class="label">{{ t("forceThinking") }}</span>
                                 <el-switch
-                                    v-model="state.forceThinkingEnabled"
+                                    :model-value="state.forceThinking"
                                     :width="50"
-                                    :before-change="handleForceThinkingBeforeChange"
+                                    @change="
+                                        value =>
+                                            handleBooleanSettingChange('force-thinking', value, state.forceThinking)
+                                    "
                                 />
                             </div>
                             <div class="switch-container">
-                                <span class="label">
-                                    <svg
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        width="14"
-                                        height="14"
-                                        viewBox="0 0 24 24"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        stroke-width="2"
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        style="margin-right: 6px; vertical-align: middle"
-                                    >
-                                        <circle cx="12" cy="12" r="10"></circle>
-                                        <line x1="2" y1="12" x2="22" y2="12"></line>
-                                        <path
-                                            d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"
-                                        ></path>
-                                    </svg>
-                                    {{ t("forceWebSearch") }}
-                                </span>
+                                <span class="label">{{ t("forceWebSearch") }}</span>
                                 <el-switch
-                                    v-model="state.forceWebSearchEnabled"
+                                    :model-value="state.forceWebSearch"
                                     :width="50"
-                                    :before-change="handleForceWebSearchBeforeChange"
+                                    @change="
+                                        value =>
+                                            handleBooleanSettingChange('force-web-search', value, state.forceWebSearch)
+                                    "
                                 />
                             </div>
                             <div class="switch-container">
-                                <span class="label">
-                                    <svg
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        width="14"
-                                        height="14"
-                                        viewBox="0 0 24 24"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        stroke-width="2"
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        style="margin-right: 6px; vertical-align: middle"
-                                    >
-                                        <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
-                                        <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
-                                    </svg>
-                                    {{ t("forceUrlContext") }}
-                                </span>
+                                <span class="label">{{ t("forceUrlContext") }}</span>
                                 <el-switch
-                                    v-model="state.forceUrlContextEnabled"
+                                    :model-value="state.forceUrlContext"
                                     :width="50"
-                                    :before-change="handleForceUrlContextBeforeChange"
+                                    @change="
+                                        value =>
+                                            handleBooleanSettingChange(
+                                                'force-url-context',
+                                                value,
+                                                state.forceUrlContext
+                                            )
+                                    "
                                 />
+                            </div>
+                            <div class="switch-container readonly-row">
+                                <span>{{ t("wsPortLabel") }}</span>
+                                <span class="value mono">{{ state.wsPort }}</span>
+                            </div>
+                            <div class="switch-container readonly-row">
+                                <span>{{ tf("selectionStrategyLabel", "Selection Strategy") }}</span>
+                                <span class="value mono">{{ state.selectionStrategy }}</span>
+                            </div>
+                            <div class="switch-container readonly-row">
+                                <span>{{ tf("errorThresholdLabel", "Error Threshold") }}</span>
+                                <span class="value mono">{{ state.browserWsErrorThreshold }}</span>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- LOGS VIEW -->
-            <div v-if="activeTab === 'logs'" class="view-container logs-view-container">
-                <header class="page-header" style="display: flex; justify-content: space-between; align-items: center">
+            <div v-else class="view-container logs-view-container">
+                <header class="page-header page-header-split">
                     <h1>{{ t("realtimeLogs") }} ({{ state.logCount }})</h1>
-                    <button
-                        class="btn-icon"
-                        :title="t('downloadLogs')"
-                        style="
-                            padding: 8px;
-                            border-radius: 8px;
-                            background: var(--bg-card);
-                            border: 1px solid var(--border-light);
-                            cursor: pointer;
-                            display: flex;
-                            align-items: center;
-                            gap: 6px;
-                            color: var(--text-primary);
-                        "
-                        @click="downloadCurrentLogs"
-                    >
+                    <button class="btn-icon" :title="t('downloadLogs')" @click="downloadLogs">
                         <svg
                             xmlns="http://www.w3.org/2000/svg"
                             width="18"
@@ -1430,7 +779,7 @@
                             <polyline points="7 10 12 15 17 10"></polyline>
                             <line x1="12" y1="15" x2="12" y2="3"></line>
                         </svg>
-                        <span style="font-size: 0.9rem; font-weight: 500">{{ t("downloadLogs") }}</span>
+                        <span>{{ t("downloadLogs") }}</span>
                     </button>
                 </header>
                 <div class="status-card logs-card">
@@ -1438,1269 +787,330 @@
                 </div>
             </div>
         </main>
-
-        <!-- Mobile Floating Action Buttons -->
-        <el-affix
-            :offset="90"
-            position="bottom"
-            class="mobile-only"
-            style="position: fixed; right: 0; bottom: calc(90px + env(safe-area-inset-bottom, 0px)); z-index: 999"
-        >
-            <div class="floating-actions" :class="{ 'is-expanded': state.floatingActionsExpanded }">
-                <button
-                    class="floating-btn toggle-btn primary-btn"
-                    :class="{ 'is-active': state.floatingActionsExpanded }"
-                    :title="state.floatingActionsExpanded ? t('collapse') : t('expand')"
-                    @click="state.floatingActionsExpanded = !state.floatingActionsExpanded"
-                >
-                    <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="24"
-                        height="24"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                    >
-                        <line x1="12" y1="5" x2="12" y2="19"></line>
-                        <line x1="5" y1="12" x2="19" y2="12"></line>
-                    </svg>
-                </button>
-                <button class="floating-btn logout-button secondary-btn" :title="t('logout')" @click="handleLogout">
-                    <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="24"
-                        height="24"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                    >
-                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
-                        <polyline points="16 17 21 12 16 7"></polyline>
-                        <line x1="21" y1="12" x2="9" y2="12"></line>
-                    </svg>
-                </button>
-                <button
-                    class="floating-btn lang-switcher secondary-btn"
-                    :title="t('switchLanguage')"
-                    @click="handleLanguageChange(state.currentLang === 'en' ? 'zh' : 'en')"
-                >
-                    <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="24"
-                        height="24"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                    >
-                        <path d="m5 8 6 6"></path>
-                        <path d="m4 14 6-6 2-3"></path>
-                        <path d="M2 5h12"></path>
-                        <path d="M7 2h1"></path>
-                        <path d="m22 22-5-10-5 10"></path>
-                        <path d="M14 18h6"></path>
-                    </svg>
-                </button>
-            </div>
-        </el-affix>
     </div>
 </template>
 
 <script setup>
-import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, watchEffect } from "vue";
+import { computed, onBeforeUnmount, onMounted, reactive, ref, watchEffect } from "vue";
 import { useRouter } from "vue-router";
-import { ElMessage, ElMessageBox, ElNotification } from "element-plus";
-import JSZip from "jszip";
-import escapeHtml from "../utils/escapeHtml";
+import { ElMessageBox } from "element-plus";
 import I18n from "../utils/i18n";
+import escapeHtml from "../utils/escapeHtml";
 import { useTheme } from "../utils/useTheme";
-import EnvVarTooltip from "../components/EnvVarTooltip.vue";
 
 const router = useRouter();
-const fileInput = ref(null);
 const activeTab = ref("home");
-
-// Create reactive version counter
-const langVersion = ref(0);
-
-// Translation function that tracks language changes
-const t = (key, options) => {
-    langVersion.value; // Access to track changes
-    return I18n.t(key, options);
-};
-
-const getApiErrorMessage = data => {
-    if (data?.message) {
-        return t(data.message, data);
-    }
-
-    if (data?.error) {
-        return typeof data.error === "string" ? data.error : data.error.message;
-    }
-
-    return t("unknownError");
-};
-
-const switchTab = tabName => {
-    if (activeTab.value === "logs") {
-        const logContainer = document.getElementById("log-container");
-        if (logContainer) {
-            state.logScrollTop = logContainer.scrollTop;
-        }
-    }
-
-    activeTab.value = tabName;
-
-    if (tabName === "logs") {
-        nextTick(() => {
-            const logContainer = document.getElementById("log-container");
-            if (logContainer) {
-                logContainer.scrollTop = state.logScrollTop || 0;
-            }
-        });
-    }
-};
-
+const sessions = ref([]);
+const updateTimer = ref(null);
+const langVersion = ref(I18n.state.version);
 const { theme, setTheme } = useTheme();
 
 const state = reactive({
-    accountDetails: [],
-    activeContextsCount: 0,
-    apiKeySource: "",
-    browserConnected: false,
-    currentAuthIndex: -1,
+    browserWsErrorThreshold: 3,
     currentLang: I18n.getLang(),
-    debugModeEnabled: false,
-    failureCount: 0,
-    floatingActionsExpanded: false,
-    forceThinkingEnabled: false,
-    forceUrlContextEnabled: false,
-    forceWebSearchEnabled: false,
+    currentVersion: "",
+    debugMode: false,
+    forceThinking: false,
+    forceUrlContext: false,
+    forceWebSearch: false,
     hasUpdate: false,
-    isSwitchingAccount: false,
-    isSystemBusy: false,
-    isUpdating: false,
-    latestVersion: null,
+    latestVersion: "",
     logCount: 0,
     logMaxCount: 100,
-    logs: t("loading"),
-    logScrollTop: 0,
-    maxContexts: 1,
-    maxRetries: 3,
-    releaseUrl: null,
-    selectedAccounts: new Set(), // Selected account indices
+    logs: "",
+    releaseUrl: "",
+    selectionStrategy: "round",
     serviceConnected: false,
-    streamingModeReal: false,
-    // theme: handled by useTheme
-    usageCount: 0,
+    streamingMode: "fake",
+    wsPort: 9997,
 });
-
-const browserConnectedClass = computed(() => {
-    if (state.isSystemBusy) {
-        return "status-warning";
-    }
-    return state.browserConnected ? "status-ok" : "status-error";
-});
-
-const browserConnectedText = computed(() => {
-    if (state.isSystemBusy) {
-        return t("connecting");
-    }
-    return state.browserConnected ? t("running") : t("disconnected");
-});
-
-// Total scanned accounts count
-const totalScannedCount = computed(() => state.accountDetails.length);
-
-// Deduped available accounts count (excluding duplicates and invalid)
-const dedupedAvailableCount = computed(() => {
-    return state.accountDetails.filter(acc => !acc.isDuplicate && !acc.isInvalid).length;
-});
-
-// Active contexts display (e.g., "1 / 3" or "1 / ∞")
-const activeContextsDisplay = computed(() => {
-    const active = state.activeContextsCount;
-    const max = state.maxContexts;
-    return max === 0 ? `${active} / ∞` : `${active} / ${max}`;
-});
-
-const isBusy = computed(() => state.isSwitchingAccount || state.isSystemBusy);
-
-const formattedLogs = computed(() => {
-    if (!state.logs) return "";
-    // Escape HTML first to prevent XSS (though logs should be safe, better safe than sorry)
-    let safeLogs = escapeHtml(state.logs);
-
-    // Highlight [DEBUG], [WARN], and [ERROR] at the start of lines with inline styles
-    safeLogs = safeLogs.replace(
-        /(^|\r?\n)(\[DEBUG\])(?=\s)/g,
-        '$1<span style="color: #3498db; font-weight: bold;">$2</span>'
-    );
-    safeLogs = safeLogs.replace(
-        /(^|\r?\n)(\[WARN\])(?=\s)/g,
-        '$1<span style="color: #f39c12; font-weight: bold;">$2</span>'
-    );
-    safeLogs = safeLogs.replace(
-        /(^|\r?\n)(\[ERROR\])(?=\s)/g,
-        '$1<span style="color: #e74c3c; font-weight: bold;">$2</span>'
-    );
-
-    return safeLogs;
-});
-
-// Computed properties for batch selection
-const selectedCount = computed(() => state.selectedAccounts.size);
-const hasSelection = computed(() => state.selectedAccounts.size > 0);
-const isAllSelected = computed(() => {
-    if (state.accountDetails.length === 0) return false;
-    return state.accountDetails.every(acc => state.selectedAccounts.has(acc.index));
-});
-const isAccountSelected = index => state.selectedAccounts.has(index);
-
-// Toggle selection for a single account
-const toggleSelectAccount = index => {
-    if (state.selectedAccounts.has(index)) {
-        state.selectedAccounts.delete(index);
-    } else {
-        state.selectedAccounts.add(index);
-    }
-};
-
-// Toggle selection for all accounts
-const toggleSelectAll = () => {
-    if (isAllSelected.value) {
-        state.selectedAccounts.clear();
-    } else {
-        state.accountDetails.forEach(acc => {
-            state.selectedAccounts.add(acc.index);
-        });
-    }
-};
-
-// Clear selection
-const clearSelection = () => {
-    state.selectedAccounts.clear();
-};
-
-// Batch delete accounts
-const batchDeleteAccounts = async () => {
-    if (state.selectedAccounts.size === 0) {
-        ElMessage.warning(t("noAccountSelected"));
-        return;
-    }
-
-    const indices = Array.from(state.selectedAccounts);
-    const count = indices.length;
-
-    // Helper to perform batch delete
-    const performBatchDelete = async (forceDelete = false) => {
-        const notification = ElNotification({
-            duration: 0,
-            message: t("operationInProgress"),
-            title: t("warningTitle"),
-            type: "warning",
-        });
-        state.isSwitchingAccount = true;
-        let shouldUpdate = true;
-        try {
-            const res = await fetch("/api/accounts/batch", {
-                body: JSON.stringify({ force: forceDelete, indices }),
-                headers: { "Content-Type": "application/json" },
-                method: "DELETE",
-            });
-            const data = await res.json();
-
-            if (res.status === 409 && data.requiresConfirmation) {
-                shouldUpdate = false;
-                state.isSwitchingAccount = false;
-                ElMessageBox.confirm(t("warningDeleteCurrentAccount"), t("warningTitle"), {
-                    cancelButtonText: t("cancel"),
-                    confirmButtonText: t("ok"),
-                    lockScroll: false,
-                    type: "error",
-                })
-                    .then(() => performBatchDelete(true))
-                    .catch(e => {
-                        if (e !== "cancel") {
-                            console.error(e);
-                        }
-                    });
-                return;
-            }
-
-            if (res.status === 207) {
-                // Handle partial success (Multi-Status) first, as res.ok is true for 2xx
-                ElMessage.warning(
-                    t("batchDeletePartial", {
-                        failedCount: data.failedIndices?.length || 0,
-                        successCount: data.successCount,
-                    })
-                );
-                // Remove deleted items from selection
-                data.successIndices?.forEach(idx => state.selectedAccounts.delete(idx));
-            } else if (res.ok) {
-                // Handle full success (200 OK)
-                ElMessage.success(t("batchDeleteSuccess", { count: data.successCount }));
-                clearSelection();
-            } else {
-                ElMessage.error(t(data.message, data));
-            }
-        } catch (err) {
-            ElMessage.error(t("batchDeleteFailed", { error: err.message || err }));
-        } finally {
-            notification.close();
-            if (shouldUpdate) {
-                state.isSwitchingAccount = false;
-                updateContent();
-            }
-        }
-    };
-
-    ElMessageBox.confirm(t("confirmBatchDelete", { count }), t("warningTitle"), {
-        cancelButtonText: t("cancel"),
-        confirmButtonText: t("ok"),
-        lockScroll: false,
-        type: "warning",
-    })
-        .then(() => performBatchDelete(false))
-        .catch(e => {
-            if (e !== "cancel") {
-                console.error(e);
-            }
-        });
-};
-
-// Batch download accounts as ZIP
-const batchDownloadAccounts = async () => {
-    if (state.selectedAccounts.size === 0) {
-        ElMessage.warning(t("noAccountSelected"));
-        return;
-    }
-
-    const indices = Array.from(state.selectedAccounts);
-
-    try {
-        const res = await fetch("/api/accounts/batch/download", {
-            body: JSON.stringify({ indices }),
-            headers: { "Content-Type": "application/json" },
-            method: "POST",
-        });
-
-        if (!res.ok) {
-            let errorKey = "batchDownloadFailed";
-            let errorParams = { error: res.statusText || `HTTP ${res.status}` };
-
-            try {
-                const contentType = res.headers.get("content-type");
-                if (contentType && contentType.includes("application/json")) {
-                    const data = await res.json();
-                    if (data.message) {
-                        errorKey = data.message;
-                        errorParams = data;
-                    } else if (data.error) {
-                        const errorDetail = typeof data.error === "string" ? data.error : data.error.message;
-                        errorParams = { error: errorDetail };
-                    }
-                } else {
-                    errorParams = { error: `HTTP Error ${res.status}: ${res.statusText}` };
-                }
-            } catch (e) {
-                // Parsing failed, keep default errorParams
-            }
-            ElMessage.error(t(errorKey, errorParams));
-            return;
-        }
-
-        // Get the blob and trigger download
-        const blob = await res.blob();
-        const contentDisposition = res.headers.get("Content-Disposition");
-        let filename = "auth_batch.zip";
-        if (contentDisposition) {
-            const match = contentDisposition.match(/filename="?([^"]+)"?/);
-            if (match) {
-                filename = match[1];
-            }
-        }
-
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = filename;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-
-        // Use actual file count from response header, fallback to indices length
-        const actualCount = parseInt(res.headers.get("X-File-Count"), 10);
-        const requestCount = indices.length;
-        const failedCount = requestCount - (isNaN(actualCount) ? requestCount : actualCount);
-
-        if (!isNaN(actualCount) && failedCount > 0) {
-            ElMessage.warning(
-                t("batchDownloadPartial", {
-                    failedCount,
-                    successCount: actualCount,
-                })
-            );
-        } else {
-            ElMessage.success(t("batchDownloadSuccess", { count: !isNaN(actualCount) ? actualCount : requestCount }));
-        }
-    } catch (err) {
-        ElMessage.error(t("batchDownloadFailed", { error: err.message || err }));
-    }
-};
-
-const currentAccountName = computed(() => {
-    if (state.currentAuthIndex < 0) {
-        return t("noActiveAccount");
-    }
-    const account = state.accountDetails.find(acc => acc.index === state.currentAuthIndex);
-    return account ? getAccountDisplayName(account) : t("noActiveAccount");
-});
-
-const currentAccountNameClass = computed(() => {
-    if (state.currentAuthIndex < 0) {
-        return "status-error";
-    }
-    const account = state.accountDetails.find(acc => acc.index === state.currentAuthIndex);
-    return account ? "" : "status-error";
-});
-
-const serviceConnectedClass = computed(() => (state.serviceConnected ? "status-ok" : "status-error"));
-
-const serviceConnectedText = computed(() => (state.serviceConnected ? t("running") : t("disconnected")));
-
-const apiKeySourceText = computed(() => {
-    const key = state.apiKeySource ? state.apiKeySource.toLowerCase() : "";
-    const translated = key ? t(key) : "";
-    return translated === key ? state.apiKeySource : translated || state.apiKeySource;
-});
-
-// App version from build-time injection
+const t = (key, options) => (langVersion.value, I18n.t(key, options));
+const tf = (key, fallback) => t(key, { fallback });
 const appVersion = computed(() => {
-    const version = typeof __APP_VERSION__ !== "undefined" ? __APP_VERSION__ : "dev";
-    // Add 'v' prefix only if version starts with a number (e.g. 1.0.0 -> v1.0.0)
+    const version = state.currentVersion || (typeof __APP_VERSION__ !== "undefined" ? __APP_VERSION__ : "dev");
     if (/^\d/.test(version)) {
         return `v${version}`;
     }
-    // Capitalize 'preview'
     if (version.startsWith("preview")) {
         return version.charAt(0).toUpperCase() + version.slice(1);
     }
-    // Keep raw string for others (e.g. main, dev)
     return version;
 });
-
 const latestVersionFormatted = computed(() => {
-    const v = state.latestVersion || (typeof __APP_VERSION__ !== "undefined" ? __APP_VERSION__ : "dev");
-    if (/^\d/.test(v)) {
-        return `v${v}`;
+    const version =
+        state.latestVersion ||
+        state.currentVersion ||
+        (typeof __APP_VERSION__ !== "undefined" ? __APP_VERSION__ : "dev");
+    if (/^\d/.test(version)) {
+        return `v${version}`;
     }
-    return v;
+    if (version.startsWith("preview")) {
+        return version.charAt(0).toUpperCase() + version.slice(1);
+    }
+    return version;
 });
+const LOG_SYMBOL_REPLACEMENTS = [
+    [/✅/g, "[OK]"],
+    [/❌/g, "[ERROR]"],
+    [/⚠️|⚠/g, "[WARN]"],
+    [/ℹ️|ℹ/g, "[INFO]"],
+    [/🔄/g, "[SYNC]"],
+    [/⚡/g, "[FAST]"],
+    [/🚀/g, "[RUN]"],
+    [/🛡️|🛡/g, "[SAFE]"],
+    [/🖱️|🖱/g, "[CLICK]"],
+    [/🔴/g, "[ERROR]"],
+];
+const normalizeLogSymbols = value => {
+    let normalized = String(value || "")
+        .replace(/\uFE0F/g, "")
+        .replace(/\u200D/g, "");
 
-// Get display name for account with i18n support
-const getAccountDisplayName = account => {
-    if (account.isInvalid) {
-        return t("jsonFormatError");
-    }
-    const name = account.name || t("unnamedAccount");
-    if (account.isDuplicate && account.canonicalIndex !== null && account.canonicalIndex !== undefined) {
-        return `${name} (${t("duplicateAuthHint", { index: account.canonicalIndex })})`;
-    }
-    return name;
-};
-
-const addUser = () => {
-    router.push("/auth");
-};
-
-// Delete account by index
-const deleteAccountByIndex = async targetIndex => {
-    if (targetIndex === null || targetIndex === undefined) {
-        ElMessage.warning(t("noAccountSelected"));
-        return;
-    }
-
-    const targetAccount = state.accountDetails.find(acc => acc.index === targetIndex);
-    const accountSuffix = targetAccount ? ` (${getAccountDisplayName(targetAccount)})` : "";
-
-    // Helper function to perform the actual deletion
-    const performDelete = async (forceDelete = false) => {
-        const notification = ElNotification({
-            duration: 0,
-            message: t("operationInProgress"),
-            title: t("warningTitle"),
-            type: "warning",
-        });
-        state.isSwitchingAccount = true;
-        let shouldUpdate = true;
-        try {
-            const url = forceDelete ? `/api/accounts/${targetIndex}?force=true` : `/api/accounts/${targetIndex}`;
-            const res = await fetch(url, {
-                method: "DELETE",
-            });
-            const data = await res.json();
-
-            if (res.status === 409 && data.requiresConfirmation) {
-                shouldUpdate = false;
-                state.isSwitchingAccount = false;
-                ElMessageBox.confirm(t("warningDeleteCurrentAccount"), t("warningTitle"), {
-                    cancelButtonText: t("cancel"),
-                    confirmButtonText: t("ok"),
-                    lockScroll: false,
-                    type: "error",
-                })
-                    .then(() => performDelete(true))
-                    .catch(e => {
-                        if (e !== "cancel") {
-                            console.error(e);
-                        }
-                    });
-                return;
-            }
-
-            const message = t(data.message, data);
-            if (res.ok) {
-                ElMessage.success(message);
-            } else {
-                ElMessage.error(message);
-            }
-        } catch (err) {
-            ElMessage.error(t("deleteFailed", { message: err.message || err }));
-        } finally {
-            notification.close();
-            if (shouldUpdate) {
-                state.isSwitchingAccount = false;
-                updateContent();
-            }
-        }
-    };
-
-    ElMessageBox.confirm(`${t("confirmDelete")} #${targetIndex}${accountSuffix}?`, t("warningTitle"), {
-        cancelButtonText: t("cancel"),
-        confirmButtonText: t("ok"),
-        lockScroll: false,
-        type: "warning",
-    })
-        .then(() => performDelete(false))
-        .catch(e => {
-            if (e !== "cancel") {
-                console.error(e);
-            }
-        });
-};
-
-const deduplicateAuth = () => {
-    ElMessageBox.confirm(t("accountDedupConfirm"), t("warningTitle"), {
-        cancelButtonText: t("cancel"),
-        confirmButtonText: t("ok"),
-        lockScroll: false,
-        type: "warning",
-    })
-        .then(async () => {
-            const notification = ElNotification({
-                duration: 0,
-                message: t("operationInProgress"),
-                title: t("warningTitle"),
-                type: "warning",
-            });
-            state.isSwitchingAccount = true;
-            try {
-                const res = await fetch("/api/accounts/deduplicate", { method: "POST" });
-                const data = await res.json();
-
-                const removedIndicesText = Array.isArray(data.removedIndices)
-                    ? `[${data.removedIndices.join(", ")}]`
-                    : "[]";
-                const failedText = Array.isArray(data.failed) ? JSON.stringify(data.failed) : "";
-
-                const message = t(data.message, {
-                    ...data,
-                    failed: failedText,
-                    removedIndices: removedIndicesText,
-                });
-
-                if (res.ok) {
-                    ElMessage.success(message);
-                } else {
-                    ElMessage.error(message);
-                }
-            } catch (err) {
-                ElMessage.error(t("accountDedupFailed", { error: err.message || err }));
-            } finally {
-                state.isSwitchingAccount = false;
-                notification.close();
-                updateContent();
-            }
-        })
-        .catch(e => {
-            if (e !== "cancel") {
-                console.error(e);
-            }
-        });
-};
-
-const handleForceThinkingBeforeChange = () => handleSettingChange("/api/settings/force-thinking", "forceThinking");
-
-const handleForceUrlContextBeforeChange = () =>
-    handleSettingChange("/api/settings/force-url-context", "forceUrlContext");
-
-const handleForceWebSearchBeforeChange = () => handleSettingChange("/api/settings/force-web-search", "forceWebSearch");
-
-// Handle change specifically for Select component which might trigger logic differently
-const handleStatsDebugChange = val => {
-    handleSettingChange("/api/settings/debug-mode", "logLevel").then(success => {
-        if (!success) {
-            // Revert if failed
-            state.debugModeEnabled = !val;
-        }
+    LOG_SYMBOL_REPLACEMENTS.forEach(([pattern, replacement]) => {
+        normalized = normalized.replace(pattern, replacement);
     });
-};
 
-const handleLogMaxCountChange = val => {
-    if (!val) return;
-    fetch("/api/settings/log-max-count", {
-        body: JSON.stringify({ count: val }),
-        headers: { "Content-Type": "application/json" },
-        method: "PUT",
-    })
-        .then(res => res.json())
-        .then(data => {
-            if (data.message === "settingUpdateSuccess") {
-                ElMessage.success(t(data.message, { setting: t("logMaxCount"), value: val }));
-                updateContent();
-            } else {
-                ElMessage.error(t(data.message || "settingFailed", { message: data.error || "" }));
-            }
-        })
-        .catch(err => {
-            ElMessage.error(t("settingFailed", { message: err.message || err }));
-        });
+    return normalized;
 };
+const highlightLogLevel = (content, level, color) =>
+    content.replace(
+        new RegExp(`(^|\\r?\\n)(\\[${level}\\])(?=\\s)`, "g"),
+        `$1<span style="color: ${color}; font-weight: bold;">$2</span>`
+    );
+const formattedLogs = computed(() => {
+    const source = normalizeLogSymbols(state.logs || t("loading"));
+    let safeLogs = escapeHtml(source);
 
-const handleLanguageChange = lang => {
-    I18n.setLang(lang);
-    state.currentLang = lang;
-    langVersion.value++;
-    localStorage.setItem("language", lang);
-};
+    safeLogs = highlightLogLevel(safeLogs, "DEBUG", "#3498db");
+    safeLogs = highlightLogLevel(safeLogs, "INFO", "#16a085");
+    safeLogs = highlightLogLevel(safeLogs, "OK", "#27ae60");
+    safeLogs = highlightLogLevel(safeLogs, "WARN", "#f39c12");
+    safeLogs = highlightLogLevel(safeLogs, "ERROR", "#e74c3c");
+    safeLogs = highlightLogLevel(safeLogs, "SYNC", "#8e44ad");
+    safeLogs = highlightLogLevel(safeLogs, "RUN", "#2980b9");
+    safeLogs = highlightLogLevel(safeLogs, "SAFE", "#2c3e50");
+    safeLogs = highlightLogLevel(safeLogs, "CLICK", "#7f8c8d");
 
-const handleLogout = () => {
-    ElMessageBox.confirm(t("logoutConfirm"), {
-        cancelButtonText: t("cancel"),
-        confirmButtonText: t("ok"),
-        lockScroll: false,
-        type: "warning",
-    })
-        .then(() => {
-            fetch("/logout", {
-                headers: { "Content-Type": "application/json" },
-                method: "POST",
-            })
-                .then(res => res.json())
-                .then(data => {
-                    const message = t(data.message);
-                    if (data.message === "logoutSuccess") {
-                        ElMessage.success(message);
-                        setTimeout(() => {
-                            window.location.href = "/login";
-                        }, 500);
-                    } else {
-                        ElMessage.error(message);
-                    }
-                })
-                .catch(err => {
-                    console.error("Logout error:", err);
-                    ElMessage.error(t("logoutError"));
-                });
-        })
-        .catch(() => {});
-};
-
-const handleSettingChange = async (apiUrl, settingName) => {
-    if (state.isUpdating) {
-        return false;
+    return safeLogs;
+});
+computed(() => [
+    { label: t("followSystem"), value: "auto" },
+    { label: t("light"), value: "light" },
+    { label: t("dark"), value: "dark" },
+]);
+const activeSessionCount = computed(() => sessions.value.filter(session => !session.disabledAt).length);
+const serviceConnectedText = computed(() => (state.serviceConnected ? t("running") : t("disconnected")));
+const serviceConnectedClass = computed(() => (state.serviceConnected ? "status-ok" : "status-error"));
+const browserConnectedText = computed(() =>
+    activeSessionCount.value > 0 ? t("connected", { fallback: "Connected" }) : t("disconnected")
+);
+const browserConnectedClass = computed(() => (activeSessionCount.value > 0 ? "status-ok" : "status-warning"));
+const formatTime = value => (value ? new Date(value).toLocaleString() : "-");
+const sessionAddress = session => session?.meta?.address || session?.meta?.ip || session?.meta?.host || "unknown";
+const sessionClientLabel = session => session?.meta?.clientLabel || "";
+const sessionUserAgent = session => session?.meta?.userAgent || "";
+const parseBrowserInfo = userAgent => {
+    if (!userAgent) {
+        return "unknown";
     }
 
-    try {
-        const res = await fetch(apiUrl, { method: "PUT" });
-        const data = await res.json();
-        if (res.ok) {
-            const message = t(data.message, {
-                setting: t(settingName),
-                value: t(String(data.value)),
-            });
-            ElMessage.success(message);
-            updateContent();
-            return true;
-        }
-        const message = t(data.message, data);
-        ElMessage.error(message);
-        return false;
-    } catch (err) {
-        ElMessage.error(t("settingFailed", { message: err.message || err }));
-        return false;
+    const browserMatchers = [
+        { name: "Edge", pattern: /Edg\/(\d+)/i },
+        { name: "Opera", pattern: /OPR\/(\d+)/i },
+        { name: "Firefox", pattern: /Firefox\/(\d+)/i },
+        { name: "Chrome", pattern: /Chrome\/(\d+)/i },
+        { name: "Safari", pattern: /Version\/(\d+).+Safari/i },
+    ];
+    const platformMatchers = [
+        { name: "Windows", pattern: /Windows/i },
+        { name: "macOS", pattern: /Mac OS X|Macintosh/i },
+        { name: "Linux", pattern: /Linux/i },
+        { name: "Android", pattern: /Android/i },
+        { name: "iPhone", pattern: /iPhone/i },
+        { name: "iPad", pattern: /iPad/i },
+    ];
+
+    const browserMatch = browserMatchers.find(({ pattern }) => pattern.test(userAgent));
+    const platformMatch = platformMatchers.find(({ pattern }) => pattern.test(userAgent));
+    const browserVersion = browserMatch ? userAgent.match(browserMatch.pattern)?.[1] : "";
+    const browserName = browserMatch ? `${browserMatch.name}${browserVersion ? ` ${browserVersion}` : ""}` : "";
+    const platformName = platformMatch?.name || "";
+
+    if (browserName && platformName) {
+        return `${browserName} / ${platformName}`;
     }
+    return browserName || platformName || "unknown";
 };
-
-const handleStreamingModeBeforeChange = async () => {
-    if (state.isUpdating) {
-        return false;
+const sessionBrowser = session => parseBrowserInfo(sessionUserAgent(session));
+const sessionLastErrorText = session => {
+    if (!session?.lastError) {
+        return "";
     }
-
-    const newMode = !state.streamingModeReal ? "real" : "fake";
-
-    try {
-        const res = await fetch("/api/settings/streaming-mode", {
-            body: JSON.stringify({ mode: newMode }),
-            headers: { "Content-Type": "application/json" },
-            method: "PUT",
-        });
-        const data = await res.json();
-        if (res.ok) {
-            const message = t(data.message, {
-                setting: t("streamingMode"),
-                value: t(data.value),
-            });
-            ElMessage.success(message);
-            updateContent();
-            return true;
-        }
-        const message = t(data.message, data);
-        ElMessage.error(message);
-        return false;
-    } catch (err) {
-        ElMessage.error(t("settingFailed", { message: err.message || err }));
-        return false;
+    if (typeof session.lastError === "string") {
+        return session.lastError;
     }
+    return session.lastError.message || session.lastError.type || "";
 };
-
-// Switch account by index
-const switchAccountByIndex = targetIndex => {
-    if (state.currentAuthIndex === targetIndex) {
-        ElMessage.warning(t("alreadyCurrentAccount"));
-        return;
-    }
-
-    const targetAccount = state.accountDetails.find(acc => acc.index === targetIndex);
-    const accountSuffix = targetAccount ? ` (${getAccountDisplayName(targetAccount)})` : "";
-
-    ElMessageBox.confirm(`${t("confirmSwitch")} #${targetIndex}${accountSuffix}?`, {
-        cancelButtonText: t("cancel"),
-        confirmButtonText: t("ok"),
-        lockScroll: false,
-        type: "warning",
-    })
-        .then(async () => {
-            const notification = ElNotification({
-                duration: 0,
-                message: t("switchingAccountNotice"),
-                title: t("warningTitle"),
-                type: "warning",
-            });
-            state.isSwitchingAccount = true;
-            try {
-                const res = await fetch("/api/accounts/current", {
-                    body: JSON.stringify({ targetIndex }),
-                    headers: { "Content-Type": "application/json" },
-                    method: "PUT",
-                });
-                const data = await res.json();
-                const message = t(data.message, data);
-                if (res.ok) {
-                    ElMessage.success(message);
-                } else {
-                    ElMessage.error(message);
-                }
-            } catch (err) {
-                ElMessage.error(t("settingFailed", { message: err.message || err }));
-            } finally {
-                state.isSwitchingAccount = false;
-                notification.close();
-                updateContent();
-            }
-        })
-        .catch(e => {
-            if (e !== "cancel") {
-                console.error(e);
-            }
-        });
-};
-
 const copyText = async text => {
     try {
         await navigator.clipboard.writeText(text);
-        ElMessage.success(t("copySuccess"));
-    } catch (err) {
-        ElMessage.error(t("copyFailed"));
-        console.error("Failed to copy:", err);
+    } catch (error) {
+        console.error("Failed to copy:", error);
     }
 };
-
 const copyAppVersion = () => copyText(appVersion.value);
 
-const updateStatus = data => {
-    state.serviceConnected = true;
-
-    const isEnabled = val => {
-        if (val === true) return true;
-        if (val === 1) return true;
-        if (String(val).toLowerCase() === "true") return true;
-        return false;
-    };
-
-    state.isUpdating = true;
-    state.streamingModeReal = data.status.streamingMode === "real";
-    state.forceThinkingEnabled = isEnabled(data.status.forceThinking);
-    state.forceWebSearchEnabled = isEnabled(data.status.forceWebSearch);
-    state.forceUrlContextEnabled = isEnabled(data.status.forceUrlContext);
-    state.debugModeEnabled = isEnabled(data.status.debugMode);
-    state.currentAuthIndex = data.status.currentAuthIndex;
-    state.accountDetails = data.status.accountDetails || [];
-    state.activeContextsCount = data.status.activeContextsCount || 0;
-    state.maxContexts = data.status.maxContexts ?? 1;
-    state.maxRetries = data.status.maxRetries ?? 3;
-
-    const validIndices = new Set(state.accountDetails.map(acc => acc.index));
-    for (const idx of state.selectedAccounts) {
-        if (!validIndices.has(idx)) {
-            state.selectedAccounts.delete(idx);
-        }
-    }
-    state.browserConnected = data.status.browserConnected;
-    state.apiKeySource = data.status.apiKeySource;
-    state.usageCount = data.status.usageCount;
-    state.failureCount = data.status.failureCount;
-    state.logCount = data.logCount || 0;
-    state.logMaxCount = data.status.logMaxCount || 100;
-    state.logs = data.logs || "";
-    state.isSystemBusy = data.status.isSystemBusy;
-
-    nextTick(() => {
-        state.isUpdating = false;
-    });
+const applyStatusPayload = payload => {
+    const status = payload?.status || {};
+    state.browserWsErrorThreshold = Number(status.browserWsErrorThreshold || 3);
+    state.debugMode = Boolean(status.debugMode);
+    state.forceThinking = Boolean(status.forceThinking);
+    state.forceUrlContext = Boolean(status.forceUrlContext);
+    state.forceWebSearch = Boolean(status.forceWebSearch);
+    state.logCount = Number(payload?.logCount || 0);
+    state.logMaxCount = Number(status.logMaxCount || 100);
+    state.logs = payload?.logs || "";
+    state.selectionStrategy = status.selectionStrategy || "round";
+    state.serviceConnected = Boolean(status.serviceConnected);
+    state.streamingMode = status.streamingMode || "fake";
+    state.wsPort = Number(status.wsPort || state.wsPort || 9997);
+    sessions.value = Array.isArray(status.browserSessions) ? status.browserSessions : [];
 };
 
-let updateTimer = null;
-let isActive = true;
-
-const updateContent = async () => {
-    const dot = document.querySelector(".dot");
+const fetchVersionInfo = async () => {
     try {
-        const res = await fetch("/api/status");
-        if (res.redirected) {
-            window.location.href = res.url;
+        const response = await fetch("/api/version/check");
+        if (!response.ok) {
             return;
         }
-        if (res.status === 401) {
+
+        const data = await response.json();
+        state.currentVersion = data.current || "";
+        state.hasUpdate = Boolean(data.hasUpdate);
+        state.latestVersion = data.latest || "";
+        state.releaseUrl = data.releaseUrl || "";
+    } catch {
+        state.hasUpdate = false;
+    }
+};
+
+const refresh = async () => {
+    try {
+        const response = await fetch("/api/status");
+        if (response.redirected) {
+            window.location.href = response.url;
+            return;
+        }
+        if (response.status === 401) {
             window.location.href = "/login";
             return;
         }
-        if (!res.ok) {
-            throw new Error(`HTTP error! status: ${res.status}`);
-        }
-        const data = await res.json();
-
-        if (dot) {
-            if (state.serviceConnected) dot.classList.add("status-running");
-            else dot.classList.remove("status-running");
-        }
-        updateStatus(data);
-    } catch (err) {
-        console.error("Error fetching status:", err.message || err);
+        if (!response.ok) throw new Error(`status ${response.status}`);
+        applyStatusPayload(await response.json());
+    } catch (error) {
+        state.logCount = 0;
         state.serviceConnected = false;
+        sessions.value = [];
+        state.logs = `${tf("statusFetchFailed", "Failed to fetch status")}: ${error.message}`;
     }
 };
 
-const scheduleNextUpdate = () => {
-    if (!isActive) {
+const postSetting = async (setting, body = {}) => {
+    const response = await fetch(`/api/settings/${setting}`, {
+        body: JSON.stringify(body),
+        headers: { "Content-Type": "application/json" },
+        method: "PUT",
+    });
+    if (!response.ok) throw new Error(`setting ${setting} failed`);
+    await refresh();
+};
+
+const toggleStreamingMode = () =>
+    postSetting("streaming-mode", { mode: state.streamingMode === "real" ? "fake" : "real" });
+const toggleFlag = setting => postSetting(setting);
+const handleStreamingModeChange = value => {
+    if ((state.streamingMode === "real") !== value) {
+        return toggleStreamingMode();
+    }
+    return true;
+};
+const handleBooleanSettingChange = (setting, value, currentValue) => {
+    if (value !== currentValue) {
+        return toggleFlag(setting);
+    }
+    return true;
+};
+const handleDebugModeChange = value => {
+    if (value !== state.debugMode) {
+        return toggleFlag("debug-mode");
+    }
+    return true;
+};
+const handleLogMaxCountChange = async value => {
+    if (!value || value === state.logMaxCount) {
         return;
     }
-    const randomInterval = 4000 + Math.floor(Math.random() * 3000);
-    updateTimer = setTimeout(() => {
-        updateContent().finally(scheduleNextUpdate);
-    }, randomInterval);
-};
 
-const triggerFileUpload = () => {
-    if (fileInput.value) {
-        fileInput.value.click();
-    }
-};
-
-const handleFileUpload = async event => {
-    const files = Array.from(event.target.files);
-    if (!files.length) return;
-
-    // Reset input so same files can be selected again
-    event.target.value = "";
-
-    // Show notification immediately
-    const notification = ElNotification({
-        duration: 0,
-        message: t("operationInProgress"),
-        title: t("warningTitle"),
-        type: "warning",
+    const response = await fetch("/api/settings/log-max-count", {
+        body: JSON.stringify({ count: value }),
+        headers: { "Content-Type": "application/json" },
+        method: "PUT",
     });
 
-    // Set busy flag to disable UI during upload and rebalance
-    state.isSwitchingAccount = true;
-
-    try {
-        // Helper function to read file as ArrayBuffer (for zip)
-        const readFileAsArrayBuffer = file =>
-            new Promise((resolve, reject) => {
-                const reader = new FileReader();
-                reader.onload = e => resolve(e.target.result);
-                reader.onerror = () => reject(new Error(t("fileReadFailed")));
-                reader.readAsArrayBuffer(file);
-            });
-
-        // Helper function to read file as text (for json)
-        const readFileAsText = file =>
-            new Promise((resolve, reject) => {
-                const reader = new FileReader();
-                reader.onload = e => resolve({ content: e.target.result, name: file.name });
-                reader.onerror = () => reject(new Error(t("fileReadFailed")));
-                reader.readAsText(file);
-            });
-
-        // Helper function to upload a single file
-        const uploadFile = async fileData => {
-            let parsed;
-            try {
-                parsed = JSON.parse(fileData.content);
-            } catch (err) {
-                return { error: t("invalidJson"), filename: fileData.name, success: false };
-            }
-
-            try {
-                const res = await fetch("/api/files", {
-                    body: JSON.stringify({ content: parsed }),
-                    headers: { "Content-Type": "application/json" },
-                    method: "POST",
-                });
-
-                if (res.ok) {
-                    const data = await res.json();
-                    return { filename: data.filename || fileData.name, success: true };
-                }
-
-                let errorMsg;
-                try {
-                    const data = await res.json();
-                    errorMsg = getApiErrorMessage(data);
-                } catch (e) {
-                    // Response is not JSON or cannot be parsed, fallback to status text or unknown error
-                    if (res.statusText) {
-                        errorMsg = `HTTP Error ${res.status}: ${res.statusText}`;
-                    } else {
-                        errorMsg = `HTTP Error ${res.status}`;
-                    }
-                }
-                return { error: errorMsg, filename: fileData.name, success: false };
-            } catch (err) {
-                // Network or other fetch errors
-                return { error: err.message || t("networkError"), filename: fileData.name, success: false };
-            }
-        };
-
-        // Collect all JSON files to upload (including extracted from zip)
-        const jsonFilesToUpload = [];
-        const extractErrors = [];
-
-        for (const file of files) {
-            const lowerName = file.name.toLowerCase();
-
-            if (lowerName.endsWith(".zip")) {
-                // Extract JSON files from zip
-                try {
-                    let arrayBuffer;
-                    try {
-                        arrayBuffer = await readFileAsArrayBuffer(file);
-                    } catch (readErr) {
-                        extractErrors.push({ local: file.name, reason: readErr.message || t("fileReadFailed") });
-                        continue; // Skip zip processing if read failed
-                    }
-
-                    const zip = await JSZip.loadAsync(arrayBuffer);
-                    const zipEntries = Object.keys(zip.files);
-
-                    let foundJsonInZip = false;
-                    for (const entryName of zipEntries) {
-                        const entry = zip.files[entryName];
-                        // Skip directories and non-json files
-                        if (entry.dir || !entryName.toLowerCase().endsWith(".json")) continue;
-
-                        foundJsonInZip = true;
-                        try {
-                            const content = await entry.async("string");
-                            // Use format: zipName/entryName for display
-                            const displayName = `${file.name}/${entryName}`;
-                            jsonFilesToUpload.push({ content, name: displayName });
-                        } catch (err) {
-                            extractErrors.push({
-                                local: `${file.name}/${entryName}`,
-                                reason: t("zipExtractFailed"), // Prefer localized generic error for extraction issues
-                            });
-                        }
-                    }
-
-                    if (!foundJsonInZip) {
-                        extractErrors.push({ local: file.name, reason: t("zipNoJsonFiles") });
-                    }
-                } catch (err) {
-                    // Catch any other errors during zip processing (e.g. invalid zip format)
-                    extractErrors.push({ local: file.name, reason: t("zipExtractFailed") });
-                }
-            } else if (lowerName.endsWith(".json")) {
-                // Regular JSON file
-                try {
-                    const fileData = await readFileAsText(file);
-                    jsonFilesToUpload.push(fileData);
-                } catch (err) {
-                    extractErrors.push({ local: file.name, reason: err.message || t("fileReadFailed") });
-                }
-            }
-        }
-
-        // Check if we have anything to process
-        if (jsonFilesToUpload.length === 0 && extractErrors.length === 0) {
-            ElMessage.warning(t("noSupportedFiles"));
-            return;
-        }
-
-        // Upload all collected JSON files
-        const successFiles = [];
-        const failedFiles = [...extractErrors];
-
-        // Use batch upload API if multiple files, otherwise use single file upload
-        if (jsonFilesToUpload.length > 1) {
-            // Batch upload
-            const parsedFiles = [];
-            const parseErrors = [];
-
-            // Parse all files first
-            for (const fileData of jsonFilesToUpload) {
-                try {
-                    const parsed = JSON.parse(fileData.content);
-                    parsedFiles.push({ content: parsed, name: fileData.name });
-                } catch (err) {
-                    parseErrors.push({ local: fileData.name, reason: t("invalidJson") });
-                }
-            }
-
-            failedFiles.push(...parseErrors);
-
-            // Upload all valid files in one batch
-            if (parsedFiles.length > 0) {
-                try {
-                    const res = await fetch("/api/files/batch", {
-                        body: JSON.stringify({ files: parsedFiles.map(f => f.content) }),
-                        headers: { "Content-Type": "application/json" },
-                        method: "POST",
-                    });
-
-                    if (res.ok || res.status === 207) {
-                        const data = await res.json();
-                        // Process results array with proper index mapping
-                        if (data.results && Array.isArray(data.results)) {
-                            for (const result of data.results) {
-                                const originalFile = parsedFiles[result.index];
-                                if (result.success) {
-                                    successFiles.push({
-                                        local: originalFile?.name || `file-${result.index}`,
-                                        saved: result.filename || originalFile?.name || `file-${result.index}`,
-                                    });
-                                } else {
-                                    failedFiles.push({
-                                        local: originalFile?.name || `file-${result.index}`,
-                                        reason: result.error || t("unknownError"),
-                                    });
-                                }
-                            }
-                        }
-                    } else {
-                        // Batch upload failed completely
-                        let errorMsg;
-                        try {
-                            const data = await res.json();
-                            errorMsg = getApiErrorMessage(data);
-                        } catch (e) {
-                            if (res.statusText) {
-                                errorMsg = `HTTP Error ${res.status}: ${res.statusText}`;
-                            } else {
-                                errorMsg = `HTTP Error ${res.status}`;
-                            }
-                        }
-                        // Mark all parsed files as failed
-                        for (const fileData of parsedFiles) {
-                            failedFiles.push({ local: fileData.name, reason: errorMsg });
-                        }
-                    }
-                } catch (error) {
-                    // Network or other error - mark all parsed files as failed
-                    // (parseErrors are already in failedFiles)
-                    for (const fileData of parsedFiles) {
-                        failedFiles.push({ local: fileData.name, reason: error.message || t("networkError") });
-                    }
-                }
-            }
-        } else {
-            // Single file upload (use existing logic)
-            for (const fileData of jsonFilesToUpload) {
-                const result = await uploadFile(fileData);
-                if (result.success) {
-                    successFiles.push({ local: fileData.name, saved: result.filename });
-                } else {
-                    failedFiles.push({ local: fileData.name, reason: result.error });
-                }
-            }
-        }
-
-        // Build notification message with file details (scrollable container)
-        let messageHtml = '<div style="max-height: 50vh; overflow-y: auto;">';
-
-        if (successFiles.length > 0) {
-            messageHtml += `<div style="margin-bottom: 8px;"><strong style="color: var(--el-color-success);">${t("fileUploadBatchSuccess")} (${successFiles.length}):</strong></div>`;
-            messageHtml += '<ul style="margin: 0 0 12px 16px; padding: 0;">';
-            for (const f of successFiles) {
-                messageHtml += `<li style="word-break: break-all;">${escapeHtml(f.local)} → ${escapeHtml(f.saved)}</li>`;
-            }
-            messageHtml += "</ul>";
-        }
-
-        if (failedFiles.length > 0) {
-            messageHtml += `<div style="margin-bottom: 8px;"><strong style="color: var(--el-color-danger);">${t("fileUploadBatchFailed")} (${failedFiles.length}):</strong></div>`;
-            messageHtml += '<ul style="margin: 0 0 0 16px; padding: 0;">';
-            for (const f of failedFiles) {
-                messageHtml += `<li style="word-break: break-all;">${escapeHtml(f.local)}: ${escapeHtml(f.reason)}</li>`;
-            }
-            messageHtml += "</ul>";
-        }
-
-        messageHtml += "</div>";
-
-        // Determine notification type
-        let notifyType = "success";
-        if (failedFiles.length > 0 && successFiles.length === 0) {
-            notifyType = "error";
-        } else if (failedFiles.length > 0) {
-            notifyType = "warning";
-        }
-
-        // Build title with counts
-        const totalProcessed = successFiles.length + failedFiles.length;
-        let notifyTitle;
-        if (totalProcessed === 1) {
-            notifyTitle = t("fileUploadComplete");
-        } else {
-            notifyTitle = `${t("fileUploadBatchResult")} (✓${successFiles.length} ✗${failedFiles.length})`;
-        }
-
-        // Show result notification (keep open)
-        ElNotification({
-            dangerouslyUseHTMLString: true,
-            duration: 0,
-            message: messageHtml,
-            position: "top-right",
-            title: notifyTitle,
-            type: notifyType,
-        });
-
-        updateContent();
-    } finally {
-        // Always close notification and reset busy flag
-        notification.close();
-        state.isSwitchingAccount = false;
+    if (!response.ok) {
+        throw new Error(`setting log-max-count failed`);
     }
+
+    await refresh();
 };
-
-// Download account by index
-const downloadAccountByIndex = accountIndex => {
-    if (accountIndex === null || accountIndex === undefined) return;
-    window.location.href = `/api/files/auth-${accountIndex}.json`;
+const handleLanguageChange = async value => {
+    await I18n.setLang(value);
+    state.currentLang = value;
+    langVersion.value = I18n.state.version;
 };
-
-// Download current logs
-const downloadCurrentLogs = () => {
-    if (!state.logs) return;
-
-    const blob = new Blob([state.logs], { type: "text/plain" });
-    const now = new Date();
-    const YYYY = now.getFullYear();
-    const MM = String(now.getMonth() + 1).padStart(2, "0");
-    const DD = String(now.getDate()).padStart(2, "0");
-    const HH = String(now.getHours()).padStart(2, "0");
-    const mm = String(now.getMinutes()).padStart(2, "0");
-    const ss = String(now.getSeconds()).padStart(2, "0");
-
-    const filename = `CanvasProxy_${YYYY}-${MM}-${DD}_${HH}${mm}${ss}_${state.logCount}.log`;
-
+const toggleLanguage = () => handleLanguageChange(state.currentLang === "en" ? "zh" : "en");
+const downloadLogs = () => {
+    const blob = new Blob([state.logs || ""], { type: "text/plain;charset=utf-8" });
     const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
+    const link = document.createElement("a");
+    const now = new Date();
+    link.href = url;
+    link.download = `CanvasProxy_${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}_${String(now.getHours()).padStart(2, "0")}${String(now.getMinutes()).padStart(2, "0")}${String(now.getSeconds()).padStart(2, "0")}_${state.logCount}.log`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
     URL.revokeObjectURL(url);
 };
-
-// Check for updates once on page load
-const checkForUpdates = async () => {
-    try {
-        const res = await fetch("/api/version/check");
-        if (res.ok) {
-            const data = await res.json();
-            state.hasUpdate = data.hasUpdate;
-            state.latestVersion = data.latest;
-            state.releaseUrl = data.releaseUrl;
-        }
-    } catch (err) {
-        // Silently fail - version check is not critical
-        console.warn("Failed to check for updates:", err.message);
-    }
+const handleLogout = () =>
+    ElMessageBox.confirm(t("logoutConfirm"), {
+        cancelButtonText: t("cancel"),
+        confirmButtonText: t("ok"),
+        type: "warning",
+    })
+        .then(async () => {
+            await fetch("/logout", { method: "POST" });
+            router.push("/login");
+        })
+        .catch(() => {});
+const scheduleNextUpdate = () => {
+    updateTimer.value = window.setTimeout(async () => {
+        await refresh();
+        scheduleNextUpdate();
+    }, 3000);
 };
 
-// Theme handling is now managed by useTheme composable
-
-onMounted(() => {
-    // Listen for language changes
+onMounted(async () => {
     I18n.onChange(() => {
-        langVersion.value++;
-        if (state.logCount === 0) {
-            state.logs = t("loading");
-        }
+        state.currentLang = I18n.getLang();
+        langVersion.value = I18n.state.version;
     });
-    updateContent().finally(scheduleNextUpdate);
-
-    // Check for updates once on initial load
-    checkForUpdates();
-
-    // Expose copyText function globally for tooltip HTML content
-    window.__copyEnvVar = text => copyText(text);
+    await refresh();
+    await fetchVersionInfo();
+    scheduleNextUpdate();
 });
-
 onBeforeUnmount(() => {
-    isActive = false;
-    if (updateTimer) {
-        clearTimeout(updateTimer);
-    }
-    // Clean up global function
-    delete window.__copyEnvVar;
+    if (updateTimer.value) clearTimeout(updateTimer.value);
 });
-
 watchEffect(() => {
     document.title = t("statusTitle");
 });
@@ -2708,14 +1118,11 @@ watchEffect(() => {
 
 <style lang="less" scoped>
 @import "../styles/variables.less";
-
 .main-layout {
     display: flex;
     min-height: 100vh;
-    background-color: @background-light;
+    background: @background-light;
 }
-
-/* Sidebar Styling */
 .sidebar {
     width: 60px;
     background: @background-white;
@@ -2729,7 +1136,6 @@ watchEffect(() => {
     height: 100vh;
     z-index: 100;
 }
-
 .sidebar-menu,
 .sidebar-footer {
     display: flex;
@@ -2737,7 +1143,6 @@ watchEffect(() => {
     gap: 15px;
     align-items: center;
 }
-
 .menu-item {
     width: 40px;
     height: 40px;
@@ -2750,50 +1155,46 @@ watchEffect(() => {
     transition: all 0.2s;
     border: none;
     background: transparent;
-
-    &:hover {
-        background-color: @background-light;
-        color: @primary-color;
-    }
-
-    &.active {
-        background-color: @primary-color;
-        color: @text-on-primary;
-        box-shadow: 0 4px 12px rgba(var(--color-primary-rgb), 0.3);
-    }
-
-    &.logout-button:hover {
-        color: @error-color;
-        background-color: rgba(var(--color-error-rgb), 0.1);
-    }
 }
-
-/* Content Area */
+.menu-item:hover {
+    background: @background-light;
+    color: @primary-color;
+}
+.menu-item.active {
+    background: @primary-color;
+    color: @text-on-primary;
+    box-shadow: 0 4px 12px rgba(var(--color-primary-rgb), 0.3);
+}
+.menu-item.logout-button:hover {
+    color: @error-color;
+    background: rgba(var(--color-error-rgb), 0.1);
+}
 .content-area {
     flex: 1;
-    margin-left: 60px; /* Sidebar width */
+    margin-left: 60px;
     padding: 2rem;
-    max-width: none;
     min-width: 0;
 }
-
 .page-header {
     margin-bottom: 2rem;
-
-    h1 {
-        font-size: 1.5rem;
-        font-weight: 600;
-        color: @text-primary;
-        display: flex;
-        align-items: center;
-        gap: 10px;
-    }
 }
-
+.page-header h1 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: @text-primary;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.page-header-split {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+}
 .view-container {
     animation: fadeIn 0.3s ease;
 }
-
 @keyframes fadeIn {
     from {
         opacity: 0;
@@ -2804,40 +1205,33 @@ watchEffect(() => {
         transform: translateY(0);
     }
 }
-
-/* Dashboard Grid */
 .dashboard-grid {
     display: grid;
     gap: 24px;
     width: 100%;
 }
-
-/* Responsive Grid Columns */
 @media (max-width: 599px) {
     .dashboard-grid {
         grid-template-columns: 1fr;
     }
 }
-
 @media (min-width: 600px) and (max-width: 1023px) {
     .dashboard-grid {
         grid-template-columns: repeat(2, 1fr);
     }
 }
-
 @media (min-width: 1024px) {
     .dashboard-grid {
         grid-template-columns: repeat(3, 1fr);
     }
 }
-
-/* Full Width Section for Account Management */
+.settings-grid {
+    align-items: start;
+}
 .full-width-section {
     margin-top: 24px;
     width: 100%;
 }
-
-/* Common Card Styles */
 .status-card {
     background: @background-white;
     border-radius: 16px;
@@ -2846,7 +1240,6 @@ watchEffect(() => {
     border: 1px solid @border-light;
     min-width: 0;
 }
-
 .card-title {
     font-size: 0.9rem;
     color: @text-secondary;
@@ -2857,78 +1250,50 @@ watchEffect(() => {
     border-bottom: 1px solid @border-light;
     padding-bottom: 15px;
 }
-
-/* Status Items */
-.status-list {
+.card-title-tight {
+    margin-bottom: 0;
+}
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    align-items: center;
+    margin-bottom: 16px;
+}
+.status-list,
+.settings-switches,
+.session-list {
     display: flex;
     flex-direction: column;
     gap: 12px;
 }
-
-.status-item {
+.status-item,
+.switch-container,
+.session-row {
     display: flex;
     justify-content: space-between;
     align-items: center;
     font-size: 0.95rem;
-    min-height: 32px; /* Ensure uniform height even with components */
+    gap: 12px;
 }
-
-.label {
+.label,
+.session-meta {
     color: @text-secondary;
     display: inline-flex;
     align-items: center;
-
-    svg {
-        flex-shrink: 0;
-        transform: translateY(1px);
-    }
 }
-
+.label svg {
+    flex-shrink: 0;
+    transform: translateY(1px);
+}
 .value {
-    font-weight: 500;
     color: @text-primary;
+    font-weight: 500;
     font-family: @font-family-mono;
 }
-
-.status-text-bold {
-    font-weight: 700 !important;
-    opacity: 1 !important;
+.mono {
+    font-family: @font-family-mono;
 }
-
-.account-value {
-    display: flex;
-    justify-content: flex-end;
-    align-items: flex-start; /* Align to top for multiline names */
-    gap: 6px;
-    min-width: 0;
-    max-width: 100%;
-    text-align: right;
-}
-
-.account-idx-display {
-    white-space: nowrap;
-}
-
-.account-name {
-    max-width: 450px;
-    word-break: break-word;
-    white-space: normal;
-    min-width: 0;
-    text-align: right;
-}
-
-@media (min-width: 600px) {
-    .account-name {
-        max-width: 450px;
-    }
-}
-
-@media (min-width: 1024px) {
-    .account-name {
-        max-width: none;
-    }
-}
-
 .status-ok {
     color: @success-color;
 }
@@ -2938,400 +1303,191 @@ watchEffect(() => {
 .status-error {
     color: @error-color;
 }
-
+.status-text-bold {
+    font-weight: 700 !important;
+    opacity: 1 !important;
+}
 .dot {
     width: 8px;
     height: 8px;
     border-radius: 50%;
     background-color: @border-color;
-
-    &.status-running {
-        background-color: @success-color;
-        box-shadow: 0 0 8px @success-color;
-    }
-
-    &.status-error {
-        background-color: @error-color;
-    }
 }
-
-.clickable-version {
+.dot.status-running {
+    background-color: @success-color;
+    box-shadow: 0 0 8px @success-color;
+}
+.dot.status-error {
+    background-color: @error-color;
+}
+.action-btn {
+    border: 1px solid @border-color;
+    border-radius: 10px;
+    background: @background-white;
+    color: @text-primary;
     cursor: pointer;
-    transition: color 0.3s;
+    padding: 8px 14px;
+    transition: all 0.2s;
+}
+.status-link {
+    color: @primary-color;
+    text-decoration: none;
+    font-weight: 500;
+}
+.status-link:hover {
+    text-decoration: underline;
+}
+.repo-link {
+    color: @primary-color;
+    text-decoration: none;
+    font-weight: 500;
+}
+.repo-link:hover {
+    text-decoration: underline;
+}
+.update-link {
+    color: @error-color;
+    text-decoration: none;
+    font-weight: 700;
+}
+.update-link:hover {
+    text-decoration: underline;
+}
+.clickable-version,
+.version-align {
     display: inline-flex;
     align-items: center;
-
-    &:hover {
-        color: @primary-color;
-    }
+    gap: 0;
 }
-
-/* Account List */
-.account-list-container {
-    margin: 15px 0;
-    background: @background-light;
-    border-radius: 8px;
-    padding: 10px;
-    max-height: 150px;
-    overflow-y: auto;
+.clickable-version {
+    cursor: pointer;
+    transition: color 0.2s;
 }
-
-.account-row {
-    display: flex;
-    justify-content: space-between;
-    padding: 6px 0;
-    font-size: 0.9rem;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-
-    &:last-child {
-        border-bottom: none;
-    }
-}
-
-.account-idx {
-    color: @text-secondary;
-    font-family: @font-family-mono;
-}
-
-/* Settings View Specifics */
-.settings-card {
-    max-width: 600px;
-    margin: 0 auto;
-}
-
-.action-group {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 15px;
-    margin-bottom: 30px;
-    align-items: center;
-}
-
-.icon-buttons {
-    display: flex;
-    gap: 10px;
-
-    button {
-        width: 36px;
-        height: 36px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        border: 1px solid @border-color;
-        border-radius: 8px;
-        background: @background-white;
-        color: @text-secondary;
-        cursor: pointer;
-        transition: all 0.2s;
-
-        &:hover:not(:disabled) {
-            border-color: @primary-color;
-            color: @primary-color;
-        }
-
-        &:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-
-        &.btn-danger:hover:not(:disabled) {
-            border-color: @error-color;
-            color: @error-color;
-        }
-
-        &.btn-warning:hover:not(:disabled) {
-            border-color: @warning-color;
-            color: @warning-color;
-        }
-    }
-}
-
-/* Account list styles */
-.account-top-actions {
-    margin-bottom: 16px;
-    justify-content: space-between;
-}
-
-.batch-actions {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    flex-wrap: wrap;
-    height: 36px; // Force height to match buttons
-
-    .el-checkbox {
-        height: 100%;
-        margin-right: 0;
-        display: flex;
-        align-items: center;
-    }
-}
-
-.selected-count {
-    font-size: 0.85rem;
+.clickable-version:hover {
     color: @primary-color;
+}
+.clickable-version:hover .copy-icon {
+    opacity: 1;
+}
+.copy-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 4px;
+}
+.action-btn:hover {
+    border-color: @primary-color;
+    color: @primary-color;
+}
+.action-btn-secondary:hover {
+    border-color: @warning-color;
+    color: @warning-color;
+}
+.btn-icon {
+    padding: 8px;
+    border-radius: 8px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-light);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--text-primary);
+    transition: all 0.2s;
+}
+.btn-icon:hover {
+    border-color: @primary-color;
+    color: @primary-color;
+}
+.btn-icon span {
+    font-size: 0.9rem;
     font-weight: 500;
-    display: flex;
-    align-items: center;
-    height: 100%;
 }
-
-.btn-batch-delete {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 36px;
-    height: 36px;
-    padding: 0;
-    border: 1px solid @border-color;
+.readonly-row {
+    padding-top: 8px;
+    border-top: 1px dashed @border-light;
+}
+.session-row {
+    padding: 14px 16px;
     border-radius: 8px;
-    background: @background-white;
-    color: @text-secondary;
-    cursor: pointer;
-    transition: all 0.2s;
-
-    &:hover:not(:disabled) {
-        border-color: @error-color;
-        color: @error-color;
-        background: transparent;
-    }
-
-    &:disabled {
-        opacity: 0.5;
-        cursor: not-allowed;
-    }
-}
-
-.btn-batch-download {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 36px;
-    height: 36px;
-    padding: 0;
-    border: 1px solid @border-color;
-    border-radius: 8px;
-    background: @background-white;
-    color: @text-secondary;
-    cursor: pointer;
-    transition: all 0.2s;
-
-    &:hover:not(:disabled) {
-        border-color: @primary-color;
-        color: @primary-color;
-        background: transparent;
-    }
-
-    &:disabled {
-        opacity: 0.5;
-        cursor: not-allowed;
-    }
-}
-
-.account-list {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    max-height: 400px;
-    overflow-y: auto;
-}
-
-.account-list-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 12px 16px;
     background: @background-light;
-    border-radius: 8px;
     border: 1px solid transparent;
     transition: all 0.2s;
-
-    &:hover {
-        background: var(--bg-list-item-hover);
-    }
-
-    &.is-current {
-        border-color: @success-color;
-        background: rgba(var(--color-success-rgb), 0.25);
-    }
-
-    &.is-selected {
-        background: rgba(var(--color-primary-rgb), 0.25); // Darker blue background for selected
-    }
-
-    &.is-current.is-selected {
-        background: rgba(var(--color-primary-rgb), 0.25); // Use blue background like selected
-        border: 1px solid @success-color;
-    }
 }
-
-.account-checkbox {
-    flex-shrink: 0;
-    margin-right: 8px;
+.session-row:hover {
+    background: var(--bg-list-item-hover);
 }
-
-.account-info {
-    display: flex;
-    align-items: center;
-    gap: 5px;
+.session-row .status-ok,
+.session-row .status-error {
+    font-weight: 600;
+}
+.session-main {
+    min-width: 0;
     flex: 1;
-    min-width: 0;
 }
-
-.account-index {
-    font-family: @font-family-mono;
-    font-size: 0.85rem;
-    color: @text-secondary;
-    flex-shrink: 0;
-}
-
-.account-email {
-    font-size: 0.9rem;
+.session-id {
     color: @text-primary;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    min-width: 0;
-
-    &.is-error {
-        color: @error-color;
-    }
-
-    &.is-duplicate {
-        color: @warning-color;
-    }
+    margin-bottom: 6px;
+    font-weight: 700;
+    word-break: break-word;
 }
-
-.current-badge {
-    font-size: 0.75rem;
-    padding: 2px 8px;
-    background: @success-color;
-    color: @text-on-primary;
-    border-radius: 12px;
-    flex-shrink: 0;
-    margin-left: 0;
-    margin-right: 6px;
-}
-
-.expired-badge {
-    font-size: 0.75rem;
-    padding: 2px 8px;
-    background: @error-color;
-    color: @text-on-primary;
-    border-radius: 12px;
-    flex-shrink: 0;
-    margin-left: 0;
-    margin-right: 6px;
-}
-
-.account-actions {
+.session-meta {
     display: flex;
-    gap: 6px;
-    flex-shrink: 0;
-
-    button {
-        width: 28px;
-        height: 28px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        border: 1px solid @border-color;
-        border-radius: 6px;
-        background: @background-white;
-        color: @text-secondary;
-        cursor: pointer;
-        transition: all 0.2s;
-
-        &:hover:not(:disabled) {
-            border-color: @primary-color;
-            color: @primary-color;
-        }
-
-        &.btn-switch:hover:not(:disabled) {
-            border-color: @success-color;
-            color: @success-color;
-        }
-
-        &.btn-switch.is-active {
-            background-color: @background-white;
-            border-color: @success-color;
-            color: @success-color;
-            opacity: 1 !important;
-            cursor: not-allowed;
-        }
-
-        &.btn-switch.is-fast {
-            color: #f59e0b;
-            border-color: #fcd34d;
-        }
-
-        &.btn-switch.is-fast:hover:not(:disabled) {
-            border-color: @success-color;
-            color: @success-color;
-            background-color: @background-white;
-        }
-
-        &:disabled {
-            opacity: 0.4;
-            cursor: not-allowed;
-        }
-
-        &.btn-danger:hover:not(:disabled) {
-            border-color: @error-color;
-            color: @error-color;
-        }
-    }
+    flex-wrap: wrap;
+    gap: 8px 16px;
+    font-size: 0.9rem;
 }
-
-.account-list-empty {
+.session-side {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 6px;
+    white-space: nowrap;
+    text-align: right;
+}
+.session-badge {
+    font-weight: 700;
+    font-size: 0.75rem;
+    padding: 2px 8px;
+    border-radius: 12px;
+    color: @text-on-primary;
+}
+.session-badge.status-ok {
+    background: @success-color;
+}
+.session-badge.status-error {
+    background: @error-color;
+}
+.empty-state {
     padding: 24px;
     text-align: center;
     color: @text-secondary;
     font-size: 0.9rem;
 }
-
-.settings-switches {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-}
-
-.switch-container {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-size: 0.95rem;
-    min-height: 32px;
-}
-
-/* Logs View Specifics */
 .logs-view-container {
-    /* Full height minus content-area padding (2rem top + 2rem bottom) */
     height: calc(100vh - 4rem);
     display: flex;
     flex-direction: column;
     overflow: hidden;
 }
-
 .logs-view-container .page-header {
     flex-shrink: 0;
-    /* Ensure header doesn't take extra margins causing overflow */
     margin-bottom: 20px;
 }
-
 .logs-card {
     flex: 1;
     display: flex;
     flex-direction: column;
-    overflow: hidden; /* Contain scroll */
-    min-height: 0; /* Allow flex child to shrink below content size */
+    overflow: hidden;
+    min-height: 0;
     padding: 0;
     margin-bottom: 0;
 }
-
 #log-container {
     flex: 1;
-    overflow-y: auto; /* Internal scrollbar */
+    overflow-y: auto;
     padding: 20px;
     margin: 0;
     background: @background-white;
@@ -3345,204 +1501,6 @@ watchEffect(() => {
     max-width: 100%;
     width: 100%;
 }
-
-.version-footer {
-    margin-top: 30px;
-    display: flex;
-    gap: 15px;
-    justify-content: center;
-    align-items: center;
-    font-size: 0.9rem;
-    color: @text-secondary;
-}
-
-.github-link {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    background-color: #24292f;
-    color: #fff !important;
-    padding: 6px 16px;
-    border-radius: 20px;
-    font-weight: 600;
-    transition: all 0.2s;
-
-    &:hover {
-        background-color: #333;
-        transform: translateY(-1px);
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    }
-}
-
-.version-tag {
-    background-color: #0366d6;
-    color: #fff;
-    padding: 6px 12px;
-    border-radius: 20px;
-    font-weight: 600;
-    font-size: 0.9rem;
-}
-
-.update-tag {
-    color: @error-color !important;
-    font-weight: 600;
-    font-size: 0.9rem;
-}
-
-.repo-link {
-    color: @primary-color;
-    text-decoration: none;
-    font-weight: 500;
-}
-
-.repo-link:hover {
-    text-decoration: underline;
-}
-
-.update-link {
-    color: @error-color;
-    text-decoration: none;
-    font-weight: 700;
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    transition: all 0.2s;
-    animation: red-white-breath 2s infinite ease-in-out;
-
-    &:hover {
-        animation: none;
-        color: @error-color;
-        opacity: 1;
-    }
-}
-
-@keyframes red-white-breath {
-    0%,
-    100% {
-        color: @error-color;
-    }
-    50% {
-        color: rgba(var(--color-error-rgb), 0.5);
-    }
-}
-
-// Mobile floating action buttons
-.mobile-only {
-    display: block;
-}
-
-.floating-actions {
-    align-items: flex-end;
-    display: flex;
-    flex-direction: column-reverse; /* Put toggle button at bottom */
-    gap: 12px;
-    transition: all @transition-normal;
-
-    &:not(.is-expanded) {
-        opacity: 0.5;
-        transform: translateX(15px); /* Peek from the edge */
-
-        &:hover {
-            opacity: 1;
-            transform: translateX(0);
-        }
-    }
-
-    &.is-expanded {
-        opacity: 1;
-        transform: translateX(-30px);
-    }
-}
-
-.floating-btn {
-    align-items: center;
-    backdrop-filter: blur(10px);
-    background: @affix-button-bg;
-    border: 1px solid @affix-button-border;
-    border-radius: @border-radius-circle 0 0 @border-radius-circle; /* Rounded left side only when stuck */
-    box-shadow: @affix-button-shadow;
-    cursor: pointer;
-    display: flex;
-    height: @affix-button-size;
-    justify-content: center;
-    transition: all @transition-normal;
-    width: @affix-button-size;
-    position: relative;
-    z-index: 1;
-
-    &:disabled {
-        cursor: not-allowed;
-        opacity: 0.5;
-    }
-
-    svg {
-        display: block;
-        width: 24px;
-        height: 24px;
-        transition: transform @transition-normal;
-    }
-
-    &.secondary-btn {
-        opacity: 0;
-        transform: translateY(20px) scale(0.5);
-        pointer-events: none;
-        visibility: hidden;
-        border-radius: @border-radius-circle; /* Secondary buttons remain round */
-    }
-
-    &.lang-switcher {
-        color: @text-secondary;
-
-        &:hover:not(:disabled) {
-            background: @primary-color;
-            box-shadow: @affix-button-hover-shadow;
-            color: @background-white;
-            transform: scale(1.05);
-        }
-    }
-
-    &.logout-button {
-        color: @text-secondary;
-
-        &:hover:not(:disabled) {
-            background: @error-color;
-            box-shadow: @affix-button-hover-shadow;
-            color: @background-white;
-            transform: scale(1.05);
-        }
-    }
-
-    &.toggle-btn {
-        color: @text-secondary;
-        z-index: 2;
-
-        &:hover:not(:disabled) {
-            background: @background-white;
-            color: @primary-color;
-        }
-
-        &.is-active {
-            background: @primary-color;
-            color: @text-on-primary;
-            border-radius: @border-radius-circle; /* Become round when expanded */
-
-            svg {
-                transform: rotate(45deg);
-            }
-        }
-    }
-}
-
-.floating-actions.is-expanded {
-    .secondary-btn {
-        opacity: 1;
-        transform: translateY(0) scale(1);
-        pointer-events: auto;
-        visibility: visible;
-    }
-}
-
-/* Mobile Adaptation */
 @media (max-width: 768px) {
     .sidebar {
         width: 100%;
@@ -3554,67 +1512,36 @@ watchEffect(() => {
         border-top: 1px solid @border-light;
         padding: 0 20px;
     }
-
     .sidebar-menu {
         flex-direction: row;
         width: 100%;
         justify-content: space-around;
     }
-
     .sidebar-footer {
         display: none;
     }
-
     .content-area {
         margin-left: 0;
         padding: 16px;
         padding-bottom: 90px;
     }
-
-    /* Mobile adaptation for logs view is now handled by the general flex layout,
-       but we can adjust padding if needed */
+    .page-header-split {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    .dashboard-grid {
+        grid-template-columns: 1fr;
+    }
     .logs-view-container {
-        /* On mobile, content margin might be different.
-           If sidebar changes to top nav, height calc might need adjustment.
-           For now assuming similar layout logic or letting it fall back.
-        */
-        height: calc(100vh - 106px); /* Keeping the old logic for mobile specific height if needed */
+        height: calc(100vh - 106px);
     }
-}
-
-// Media query: Desktop (>=768px)
-@media (min-width: 768px) {
-    .mobile-only {
-        display: none !important;
+    .switch-container,
+    .session-row {
+        flex-direction: column;
+        align-items: flex-start;
     }
-}
-
-.clickable-version,
-.version-align {
-    display: inline-flex;
-    align-items: center;
-    gap: 0;
-}
-
-.clickable-version {
-    cursor: pointer;
-    transition: color 0.2s;
-
-    &:hover {
-        color: @primary-color;
-
-        .copy-icon {
-            opacity: 1;
-        }
+    .session-side {
+        align-items: flex-start;
     }
-}
-
-.copy-icon {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 28px;
-    height: 28px;
-    border-radius: 4px;
 }
 </style>

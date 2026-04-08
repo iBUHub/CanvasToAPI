@@ -16,11 +16,9 @@ const ProxyServerSystem = require("./src/core/ProxyServerSystem");
  * Initialize and start the server
  */
 const initializeServer = async () => {
-    const initialAuthIndex = parseInt(process.env.INITIAL_AUTH_INDEX, 10) || null;
-
     try {
         const serverSystem = new ProxyServerSystem();
-        await serverSystem.start(initialAuthIndex);
+        await serverSystem.start();
 
         // Handle graceful shutdown
         const shutdownHandler = async signal => {
