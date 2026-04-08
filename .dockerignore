@@ -20,6 +20,8 @@ yarn-error.log*
 # IDE and editor files
 .vscode
 .idea
+.devcontainer
+.husky
 *.swp
 *.swo
 *~
@@ -43,6 +45,7 @@ coverage
 dist
 build
 .cache
+ui/dist
 *.log
 
 # Docker files (not needed inside image)
@@ -64,7 +67,13 @@ tmp
 temp
 *.tmp
 *.zip
+.codex_tmp
+debug_page_source_*.html
+debug_screenshot_*.png
 camoufox*
 
 # Auth setup scripts (not needed in Linux container)
 scripts/auth
+
+# Local auth files
+configs/auth

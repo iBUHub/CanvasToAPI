@@ -6,6 +6,9 @@
     <title>CanvasToAPI Browser Client v0.0.2</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
+        :root {
+            color-scheme: dark;
+        }
         #logs::-webkit-scrollbar {
             width: 6px;
         }
@@ -19,94 +22,229 @@
         #logs::-webkit-scrollbar-thumb:hover {
             background: rgba(51, 65, 85, 0.8);
         }
+        .control-chip {
+            border: 1px solid rgb(51 65 85 / 1);
+            background: rgb(2 6 23 / 0.7);
+            color: rgb(226 232 240 / 1);
+        }
+        .log-entry:hover {
+            background: rgba(15, 23, 42, 0.35);
+        }
+        body.theme-light {
+            color-scheme: light;
+            background: linear-gradient(180deg, #f8fbff 0%, #eef4fb 100%);
+            color: #0f172a;
+        }
+        body.theme-light #page-header,
+        body.theme-light #console-panel {
+            border-color: #d8e3f0;
+            box-shadow: 0 18px 60px rgba(148, 163, 184, 0.18);
+        }
+        body.theme-light #page-header {
+            background: rgba(255, 255, 255, 0.92);
+        }
+        body.theme-light #console-panel {
+            background: rgba(255, 255, 255, 0.76);
+        }
+        body.theme-light #console-toolbar {
+            border-color: #d8e3f0;
+            background: rgba(241, 245, 249, 0.92);
+        }
+        body.theme-light #logs {
+            background: rgba(248, 250, 252, 0.94);
+        }
+        body.theme-light #logs::-webkit-scrollbar-track {
+            background: rgba(148, 163, 184, 0.12);
+        }
+        body.theme-light #logs::-webkit-scrollbar-thumb {
+            background: rgba(148, 163, 184, 0.55);
+        }
+        body.theme-light .page-title {
+            color: #0f172a !important;
+        }
+        body.theme-light .page-subtitle,
+        body.theme-light .field-label,
+        body.theme-light .panel-title,
+        body.theme-light .footer-item {
+            color: #475569 !important;
+        }
+        body.theme-light .field-hint,
+        body.theme-light .meta-text,
+        body.theme-light .log-timestamp,
+        body.theme-light .initial-log {
+            color: #64748b !important;
+        }
+        body.theme-light .brand-mark {
+            color: #0891b2 !important;
+        }
+        body.theme-light .control-chip,
+        body.theme-light #ws-endpoint,
+        body.theme-light #client-label {
+            border-color: #cbd5e1 !important;
+            background: rgba(255, 255, 255, 0.96) !important;
+            color: #0f172a !important;
+        }
+        body.theme-light #save-btn {
+            background: #e2e8f0 !important;
+            color: #0f172a !important;
+        }
+        body.theme-light #save-btn:hover {
+            background: #cbd5e1 !important;
+        }
+        body.theme-light #clear-logs {
+            color: #64748b !important;
+        }
+        body.theme-light #clear-logs:hover {
+            color: #0f172a !important;
+        }
+        body.theme-light .log-entry:hover {
+            background: rgba(226, 232, 240, 0.8);
+        }
+        body.theme-light .log-info {
+            color: #334155 !important;
+        }
+        body.theme-light .log-debug {
+            color: #64748b !important;
+        }
+        body.theme-light .log-warn {
+            color: #b45309 !important;
+        }
+        body.theme-light .log-error {
+            color: #dc2626 !important;
+        }
     </style>
 </head>
-<body class="h-screen bg-slate-950 text-slate-100 font-sans selection:bg-cyan-500/30 overflow-hidden">
-<div class="mx-auto flex h-screen max-w-6xl flex-col p-4 md:p-6 overflow-hidden">
+<body class="min-h-screen overflow-hidden bg-slate-950 font-sans text-slate-100 selection:bg-cyan-500/30">
+<div class="flex h-screen w-full flex-col overflow-hidden px-3 py-3 md:px-5 md:py-4 xl:px-6">
     <header
-        class="flex-none mb-4 flex flex-col gap-6 rounded-3xl border border-slate-800 bg-slate-900/80 p-6 md:p-8 shadow-2xl shadow-slate-950/30 md:flex-row md:items-end md:justify-between"
+        id="page-header"
+        class="mb-3 flex flex-none flex-col gap-4 rounded-[1.75rem] border border-slate-800 bg-slate-900/80 p-4 shadow-2xl shadow-slate-950/30 md:gap-5 md:p-5"
     >
-        <div class="flex-1">
-            <div class="flex items-center gap-2">
-                <span class="relative flex h-2 w-2">
-                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span>
-                    <span class="relative inline-flex rounded-full h-2 w-2 bg-cyan-500"></span>
-                </span>
-                <p class="text-xs uppercase font-bold tracking-[0.3em] text-cyan-400/90">CanvasToAPI</p>
+        <div class="flex items-start justify-between gap-3">
+            <div class="min-w-0">
+                <div class="flex items-center gap-2">
+                    <span class="relative flex h-2 w-2">
+                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span>
+                        <span class="relative inline-flex rounded-full h-2 w-2 bg-cyan-500"></span>
+                    </span>
+                    <p class="brand-mark text-xs uppercase font-bold tracking-[0.3em] text-cyan-400/90">CanvasToAPI</p>
+                </div>
+                <h1
+                    class="page-title mt-2 text-2xl font-bold tracking-tight text-white md:text-[2rem] md:leading-tight"
+                    data-i18n="pageTitle"
+                >
+                    Browser Session Client
+                </h1>
+                <p
+                    class="page-subtitle mt-1.5 max-w-2xl text-xs leading-relaxed text-slate-400 md:text-sm"
+                    data-i18n="pageDescription"
+                >
+                    Proxy Gemini API requests. Save the endpoint, then connect and keep the page open.
+                </p>
             </div>
-            <h1 class="mt-2 text-2xl md:text-3xl font-bold tracking-tight text-white text-nowrap">Browser Session Client</h1>
-            <p class="mt-2 max-w-xl text-xs md:text-sm leading-relaxed text-slate-400">
-                Proxy Gemini API requests. Save the endpoint, then connect and keep the page open.
-            </p>
+            <div class="flex shrink-0 items-center gap-2">
+                <button
+                    id="locale-toggle"
+                    type="button"
+                    class="control-chip rounded-lg px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.2em] transition hover:border-cyan-500/60 hover:text-white"
+                ></button>
+                <button
+                    id="theme-toggle"
+                    type="button"
+                    class="control-chip rounded-lg px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.2em] transition hover:border-cyan-500/60 hover:text-white"
+                ></button>
+            </div>
         </div>
 
-        <div class="flex flex-col gap-3 md:min-w-[400px]">
-            <div class="space-y-1.5">
+        <div class="grid min-w-0 grid-cols-2 gap-2 md:gap-4">
+            <div class="min-w-0 space-y-1.5">
                 <div class="flex justify-between items-center px-1">
-                    <label class="text-[10px] uppercase font-bold tracking-wider text-slate-500" for="ws-endpoint">Server WS Endpoint</label>
-                    <span id="save-tip" class="text-[10px] text-emerald-400 font-bold opacity-0 transition-opacity">SAVED!</span>
-                </div>
-                <div class="flex gap-2">
-                    <input
-                        id="ws-endpoint"
-                        placeholder="ws://127.0.0.1:9997"
-                        class="flex-1 rounded-xl border border-slate-700 bg-slate-950 px-4 py-2 font-mono text-sm text-slate-100 outline-none transition focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500/50"
-                    />
-                    <button
-                        id="save-btn"
-                        class="rounded-xl bg-slate-800 px-4 py-2 text-sm font-bold text-slate-300 transition hover:bg-slate-700 active:scale-95"
+                    <label
+                        class="field-label text-[10px] uppercase font-bold tracking-wider text-slate-500"
+                        for="ws-endpoint"
+                        data-i18n="serverWsEndpoint"
                     >
-                        Save
-                    </button>
+                        Server WS Endpoint
+                    </label>
                 </div>
-                <div class="space-y-1.5">
-                    <div class="flex justify-between items-center px-1">
-                        <label class="text-[10px] uppercase font-bold tracking-wider text-slate-500" for="client-label">Browser Identifier</label>
-                        <span class="text-[10px] text-slate-600">Blank = auto daily</span>
-                    </div>
-                    <input
-                        id="client-label"
-                        placeholder="Auto-generate a daily browser tag"
-                        class="w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-2 font-mono text-sm text-slate-100 outline-none transition focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500/50"
-                    />
+                <input
+                    id="ws-endpoint"
+                    placeholder="ws://127.0.0.1:9997"
+                    class="w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-2 font-mono text-sm text-slate-100 outline-none transition focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500/50"
+                />
+            </div>
+
+            <div class="min-w-0 space-y-1.5">
+                <div class="flex justify-between items-center px-1">
+                    <label
+                        class="field-label text-[10px] uppercase font-bold tracking-wider text-slate-500"
+                        for="client-label"
+                        data-i18n="browserIdentifier"
+                    >
+                        Browser Identifier
+                    </label>
+                    <span class="field-hint text-[10px] text-slate-600 whitespace-nowrap" data-i18n="blankAutoDaily">Blank = auto generate</span>
                 </div>
+                <input
+                    id="client-label"
+                    data-i18n-placeholder="clientLabelPlaceholder"
+                    placeholder="Auto-generate a browser tag"
+                    class="w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-2 font-mono text-sm text-slate-100 outline-none transition focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500/50"
+                />
+            </div>
+        </div>
+
+        <div class="flex flex-col gap-2.5 border-t border-slate-800/80 pt-3 sm:flex-row sm:items-center sm:justify-between">
+            <div class="flex flex-wrap items-center gap-2">
+                <button
+                    id="save-btn"
+                    class="flex-1 rounded-xl bg-slate-800 px-4 py-2 text-sm font-bold text-slate-300 transition hover:bg-slate-700 active:scale-95 sm:flex-none"
+                    data-i18n="save"
+                >
+                    Save
+                </button>
                 <button
                     id="connect-btn"
-                    class="w-full mt-1 rounded-xl bg-cyan-500 px-6 py-2.5 text-sm font-bold text-slate-950 transition hover:bg-cyan-400 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                    class="mt-0.5 flex-1 rounded-xl bg-cyan-500 px-6 py-2 text-sm font-bold text-slate-950 transition hover:bg-cyan-400 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto sm:min-w-[180px] sm:flex-none"
                 >
                     Connect
                 </button>
+                <span id="save-tip" class="px-1 text-[10px] font-bold text-emerald-400 opacity-0 transition-opacity" data-i18n="saved">
+                    SAVED!
+                </span>
             </div>
-            <div class="flex items-center justify-between px-1">
+            <div class="flex items-center justify-between px-1 sm:min-w-[240px] sm:justify-end sm:gap-6">
                 <div class="flex items-center gap-2">
                     <span id="status-indicator" class="h-2 w-2 rounded-full bg-amber-500"></span>
                     <span id="status-text" class="text-[10px] font-bold uppercase tracking-wide text-amber-500">Disconnected</span>
                 </div>
-                <span class="text-[10px] font-mono text-slate-600">v0.0.2-stable</span>
+                <span class="meta-text text-[10px] font-mono text-slate-600">v0.0.2-stable</span>
             </div>
         </div>
     </header>
 
-    <main class="flex-1 min-h-0 overflow-hidden flex flex-col rounded-3xl border border-slate-800 bg-black/40 backdrop-blur-sm shadow-2xl shadow-slate-950/30">
-        <div class="flex-none flex items-center justify-between border-b border-slate-800 px-6 py-3 bg-slate-900/40">
+    <main id="console-panel" class="flex min-h-0 flex-1 flex-col overflow-hidden rounded-[1.75rem] border border-slate-800 bg-black/40 shadow-2xl shadow-slate-950/30 backdrop-blur-sm">
+        <div id="console-toolbar" class="flex flex-none items-center justify-between border-b border-slate-800 bg-slate-900/40 px-5 py-3 md:px-6">
             <div class="flex items-center gap-3">
                 <div class="flex gap-1">
                     <div class="w-2.5 h-2.5 rounded-full bg-slate-700"></div>
                     <div class="w-2.5 h-2.5 rounded-full bg-slate-700"></div>
                     <div class="w-2.5 h-2.5 rounded-full bg-slate-700"></div>
                 </div>
-                <span class="font-mono text-xs font-semibold text-slate-400">Console Logs Output</span>
+                <span class="panel-title font-mono text-xs font-semibold text-slate-400" data-i18n="consoleLogsOutput">Console Logs Output</span>
             </div>
-            <button id="clear-logs" class="text-xs font-bold text-slate-500 uppercase tracking-widest hover:text-white transition">Clear</button>
+            <button id="clear-logs" class="text-xs font-bold text-slate-500 uppercase tracking-widest hover:text-white transition" data-i18n="clear">
+                Clear
+            </button>
         </div>
-        <div id="logs" class="flex-1 overflow-y-auto p-6 font-mono text-xs leading-relaxed space-y-1 bg-slate-950/20">
-            <div class="text-slate-500 italic">Initializing system... awaiting connection input.</div>
+        <div id="logs" class="flex-1 space-y-1 overflow-y-auto bg-slate-950/20 p-4 font-mono text-xs leading-relaxed md:p-5">
+            <div class="initial-log text-slate-500 italic" data-i18n="initialLog">Initializing system... awaiting connection input.</div>
         </div>
     </main>
 
-    <footer class="flex-none mt-3 px-2 flex justify-between items-center text-[10px] text-slate-600 uppercase tracking-widest">
-        <span>Target: generativelanguage.googleapis.com</span>
-        <span>Security: Browser-Bound Session</span>
+    <footer id="page-footer" class="mt-2 flex flex-none flex-wrap items-center justify-between gap-2 px-2 text-[10px] uppercase tracking-widest text-slate-600">
+        <span class="footer-item" data-i18n="footerTarget">Target: generativelanguage.googleapis.com</span>
+        <span class="footer-item" data-i18n="footerSecurity">Security: Browser-Bound Session</span>
     </footer>
 </div>
 
@@ -115,8 +253,77 @@
     const ENDPOINT_STORAGE_KEY = "canvasToApi.wsEndpoint";
     const CLIENT_LABEL_MODE_STORAGE_KEY = "canvasToApi.clientLabelMode";
     const CLIENT_LABEL_STORAGE_KEY = "canvasToApi.clientLabel";
-    const DAILY_CLIENT_LABEL_DATE_STORAGE_KEY = "canvasToApi.dailyClientLabelDate";
-    const DAILY_CLIENT_LABEL_STORAGE_KEY = "canvasToApi.dailyClientLabel";
+    const AUTO_CLIENT_LABEL_STORAGE_KEY = "canvasToApi.autoClientLabel";
+    const LEGACY_DAILY_CLIENT_LABEL_STORAGE_KEY = "canvasToApi.dailyClientLabel";
+    const LOCALE_STORAGE_KEY = "canvasToApi.locale";
+    const THEME_STORAGE_KEY = "canvasToApi.theme";
+    const SUPPORTED_LOCALES = ["zh-CN", "en-US"];
+    const translations = {
+        "zh-CN": {
+            documentTitle: "CanvasToAPI 浏览器客户端 v0.0.2",
+            pageTitle: "浏览器会话客户端",
+            pageDescription: "代理 Gemini API 请求。先保存配置，再连接，并保持这个页面处于打开状态。",
+            serverWsEndpoint: "服务端 WS 地址",
+            browserIdentifier: "浏览器标识",
+            blankAutoDaily: "留空 = 自动生成",
+            clientLabelPlaceholder: "自动生成浏览器标签",
+            save: "保存",
+            saved: "已保存",
+            consoleLogsOutput: "控制台日志输出",
+            clear: "清空",
+            initialLog: "系统初始化中，等待输入连接配置。",
+            footerTarget: "目标: generativelanguage.googleapis.com",
+            footerSecurity: "安全性: 浏览器绑定会话",
+            statusConnected: "已连接",
+            statusReconnecting: "重连中",
+            statusConnecting: "连接中",
+            statusError: "错误",
+            statusDisconnected: "未连接",
+            disconnectFromServer: "断开连接",
+            stopReconnecting: "停止重连",
+            connectingButton: "连接中...",
+            retryConnectNow: "立即重试",
+            connectToServer: "连接",
+            switchToEnglish: "切换到英文",
+            switchToChinese: "切换到中文",
+            switchToLightTheme: "切换到浅色主题",
+            switchToDarkTheme: "切换到深色主题",
+            themeLightShort: "浅色",
+            themeDarkShort: "深色",
+        },
+        "en-US": {
+            documentTitle: "CanvasToAPI Browser Client v0.0.2",
+            pageTitle: "Browser Session Client",
+            pageDescription: "Proxy Gemini API requests. Save the endpoint, then connect and keep the page open.",
+            serverWsEndpoint: "Server WS Endpoint",
+            browserIdentifier: "Browser Identifier",
+            blankAutoDaily: "Blank = auto generate",
+            clientLabelPlaceholder: "Auto-generate a browser tag",
+            save: "Save",
+            saved: "SAVED!",
+            consoleLogsOutput: "Console Logs Output",
+            clear: "Clear",
+            initialLog: "Initializing system... awaiting connection input.",
+            footerTarget: "Target: generativelanguage.googleapis.com",
+            footerSecurity: "Security: Browser-Bound Session",
+            statusConnected: "Connected",
+            statusReconnecting: "Reconnecting",
+            statusConnecting: "Connecting",
+            statusError: "Error",
+            statusDisconnected: "Disconnected",
+            disconnectFromServer: "Disconnect",
+            stopReconnecting: "Stop Reconnecting",
+            connectingButton: "Connecting...",
+            retryConnectNow: "Retry Now",
+            connectToServer: "Connect",
+            switchToEnglish: "Switch to English",
+            switchToChinese: "Switch to Chinese",
+            switchToLightTheme: "Switch to light theme",
+            switchToDarkTheme: "Switch to dark theme",
+            themeLightShort: "Light",
+            themeDarkShort: "Dark",
+        },
+    };
 
     const safeStorageGet = key => {
         try {
@@ -137,76 +344,129 @@
             localStorage.removeItem(key);
         } catch {}
     };
+    const getPreferredLocale = () => {
+        const savedLocale = safeStorageGet(LOCALE_STORAGE_KEY);
+        if (SUPPORTED_LOCALES.includes(savedLocale)) return savedLocale;
+        const browserLocale = typeof navigator !== "undefined" ? navigator.language : "";
+        return browserLocale?.toLowerCase().startsWith("zh") ? "zh-CN" : "en-US";
+    };
+    const getPreferredTheme = () => {
+        const savedTheme = safeStorageGet(THEME_STORAGE_KEY);
+        if (savedTheme === "light" || savedTheme === "dark") return savedTheme;
+        return window.matchMedia?.("(prefers-color-scheme: light)")?.matches ? "light" : "dark";
+    };
+    const formatMessage = (template, vars = {}) =>
+        String(template || "").replace(/\{(\w+)\}/g, (_, key) => String(vars[key] ?? ""));
+    const t = (key, vars = {}) => {
+        const localePack = translations[currentLocale] || translations["en-US"];
+        const fallbackPack = translations["en-US"];
+        return formatMessage(localePack[key] ?? fallbackPack[key] ?? key, vars);
+    };
 
-    const getTodayStamp = () => new Date().toISOString().slice(0, 10);
     const generateRandomSuffix = (length = 4) =>
         Array.from(crypto.getRandomValues(new Uint8Array(length)))
             .map(value => (value % 36).toString(36))
             .join("")
             .toUpperCase();
-    const generateDailyClientLabel = (dateStamp = getTodayStamp()) =>
-        `browser-${dateStamp.replace(/-/g, "")}-${generateRandomSuffix(4)}`;
+    const generateAutoClientLabel = () => `browser-${generateRandomSuffix(8)}`;
     const sanitizeClientLabel = value => String(value || "").trim().replace(/\s+/g, " ").slice(0, 64);
 
-    const getDailyClientLabel = () => {
-        const today = getTodayStamp();
-        const savedDate = safeStorageGet(DAILY_CLIENT_LABEL_DATE_STORAGE_KEY);
-        const savedLabel = sanitizeClientLabel(safeStorageGet(DAILY_CLIENT_LABEL_STORAGE_KEY));
-
-        if (savedDate === today && savedLabel) {
-            return savedLabel;
+    const getAutoClientLabel = () => {
+        const savedAutoLabel = sanitizeClientLabel(safeStorageGet(AUTO_CLIENT_LABEL_STORAGE_KEY));
+        if (savedAutoLabel) {
+            return savedAutoLabel;
         }
 
-        const newLabel = generateDailyClientLabel(today);
-        safeStorageSet(DAILY_CLIENT_LABEL_DATE_STORAGE_KEY, today);
-        safeStorageSet(DAILY_CLIENT_LABEL_STORAGE_KEY, newLabel);
+        const legacyDailyLabel = sanitizeClientLabel(safeStorageGet(LEGACY_DAILY_CLIENT_LABEL_STORAGE_KEY));
+        if (legacyDailyLabel) {
+            safeStorageSet(AUTO_CLIENT_LABEL_STORAGE_KEY, legacyDailyLabel);
+            return legacyDailyLabel;
+        }
+
+        const newLabel = generateAutoClientLabel();
+        safeStorageSet(AUTO_CLIENT_LABEL_STORAGE_KEY, newLabel);
         return newLabel;
     };
 
+    let currentLocale = getPreferredLocale();
+    let currentTheme = getPreferredTheme();
     let currentEndpoint = safeStorageGet(ENDPOINT_STORAGE_KEY) || DEFAULT_ENDPOINT;
-    let currentClientLabelMode = safeStorageGet(CLIENT_LABEL_MODE_STORAGE_KEY) || "daily";
+    let currentClientLabelMode = safeStorageGet(CLIENT_LABEL_MODE_STORAGE_KEY) || "auto";
     let currentClientLabel =
         currentClientLabelMode === "manual"
-            ? sanitizeClientLabel(safeStorageGet(CLIENT_LABEL_STORAGE_KEY)) || getDailyClientLabel()
-            : getDailyClientLabel();
+            ? sanitizeClientLabel(safeStorageGet(CLIENT_LABEL_STORAGE_KEY)) || getAutoClientLabel()
+            : getAutoClientLabel();
+    let currentStatus = "disconnected";
 
     if (currentClientLabelMode === "manual" && !safeStorageGet(CLIENT_LABEL_STORAGE_KEY)) {
-        currentClientLabelMode = "daily";
+        currentClientLabelMode = "auto";
+    }
+    if (currentClientLabelMode === "daily") {
+        currentClientLabelMode = "auto";
     }
 
+    const applyTheme = theme => {
+        currentTheme = theme === "light" ? "light" : "dark";
+        document.body.classList.toggle("theme-light", currentTheme === "light");
+        safeStorageSet(THEME_STORAGE_KEY, currentTheme);
+    };
+    const updateHeaderControls = () => {
+        const localeToggle = document.getElementById("locale-toggle");
+        const themeToggle = document.getElementById("theme-toggle");
+        if (localeToggle) {
+            localeToggle.textContent = currentLocale === "zh-CN" ? "EN" : "中";
+            localeToggle.title = currentLocale === "zh-CN" ? t("switchToEnglish") : t("switchToChinese");
+        }
+        if (themeToggle) {
+            themeToggle.textContent = currentTheme === "dark" ? t("themeLightShort") : t("themeDarkShort");
+            themeToggle.title = currentTheme === "dark" ? t("switchToLightTheme") : t("switchToDarkTheme");
+        }
+    };
+    const applyI18n = () => {
+        document.documentElement.lang = currentLocale === "zh-CN" ? "zh-CN" : "en-US";
+        document.title = t("documentTitle");
+        document.querySelectorAll("[data-i18n]").forEach(element => {
+            element.textContent = t(element.dataset.i18n);
+        });
+        document.querySelectorAll("[data-i18n-placeholder]").forEach(element => {
+            element.placeholder = t(element.dataset.i18nPlaceholder);
+        });
+        updateHeaderControls();
+    };
     const setStatus = status => {
         const textEl = document.getElementById("status-text");
         const indicatorEl = document.getElementById("status-indicator");
         const connectBtn = document.getElementById("connect-btn");
+        currentStatus = status;
 
-        textEl.textContent = status;
+        textEl.textContent = t(`status${status.charAt(0).toUpperCase()}${status.slice(1)}`);
         connectBtn.disabled = false;
 
         if (status === "connected") {
             textEl.className = "text-[10px] font-bold uppercase tracking-wide text-emerald-400";
             indicatorEl.className = "h-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.6)]";
-            connectBtn.textContent = "Disconnect From Server";
-            connectBtn.className = "w-full mt-1 rounded-xl bg-rose-500 px-6 py-2.5 text-sm font-bold text-white transition hover:bg-rose-400 active:scale-95";
+            connectBtn.textContent = t("disconnectFromServer");
+            connectBtn.className = "mt-0.5 flex-1 rounded-xl bg-rose-500 px-6 py-2 text-sm font-bold text-white transition hover:bg-rose-400 active:scale-95 sm:w-auto sm:min-w-[180px] sm:flex-none";
         } else if (status === "reconnecting") {
             textEl.className = "text-[10px] font-bold uppercase tracking-wide text-amber-500";
             indicatorEl.className = "h-2 w-2 rounded-full bg-amber-500 animate-pulse";
-            connectBtn.textContent = "Stop Reconnecting";
-            connectBtn.className = "w-full mt-1 rounded-xl bg-rose-500/80 px-6 py-2.5 text-sm font-bold text-white transition hover:bg-rose-500 active:scale-95";
+            connectBtn.textContent = t("stopReconnecting");
+            connectBtn.className = "mt-0.5 flex-1 rounded-xl bg-rose-500/80 px-6 py-2 text-sm font-bold text-white transition hover:bg-rose-500 active:scale-95 sm:w-auto sm:min-w-[180px] sm:flex-none";
         } else if (status === "connecting") {
             textEl.className = "text-[10px] font-bold uppercase tracking-wide text-amber-500";
             indicatorEl.className = "h-2 w-2 rounded-full bg-amber-500 animate-pulse";
-            connectBtn.textContent = "Connecting...";
+            connectBtn.textContent = t("connectingButton");
             connectBtn.disabled = true;
         } else if (status === "error") {
             textEl.className = "text-[10px] font-bold uppercase tracking-wide text-rose-500";
             indicatorEl.className = "h-2 w-2 rounded-full bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.6)]";
-            connectBtn.textContent = "Retry Connect Now";
-            connectBtn.className = "w-full mt-1 rounded-xl bg-cyan-500 px-6 py-2.5 text-sm font-bold text-slate-950 transition hover:bg-cyan-400 active:scale-95";
+            connectBtn.textContent = t("retryConnectNow");
+            connectBtn.className = "mt-0.5 flex-1 rounded-xl bg-cyan-500 px-6 py-2 text-sm font-bold text-slate-950 transition hover:bg-cyan-400 active:scale-95 sm:w-auto sm:min-w-[180px] sm:flex-none";
         } else {
             textEl.className = "text-[10px] font-bold uppercase tracking-wide text-amber-500";
             indicatorEl.className = "h-2 w-2 rounded-full bg-amber-500";
-            connectBtn.textContent = "Connect to Server";
-            connectBtn.className = "w-full mt-1 rounded-xl bg-cyan-500 px-6 py-2.5 text-sm font-bold text-slate-950 transition hover:bg-cyan-400 active:scale-95";
+            connectBtn.textContent = t("connectToServer");
+            connectBtn.className = "mt-0.5 flex-1 rounded-xl bg-cyan-500 px-6 py-2 text-sm font-bold text-slate-950 transition hover:bg-cyan-400 active:scale-95 sm:w-auto sm:min-w-[180px] sm:flex-none";
         }
     };
 
@@ -255,7 +515,12 @@
             if (!logContainer) return;
 
             const logElement = document.createElement("div");
-            const timeStr = new Date().toLocaleTimeString("en-US", { hour: "numeric", hour12: false, minute: "numeric", second: "numeric" });
+            const timeStr = new Date().toLocaleTimeString(currentLocale, {
+                hour: "2-digit",
+                hour12: false,
+                minute: "2-digit",
+                second: "2-digit",
+            });
 
             let textColorClass = "text-slate-300";
             if (level === this.LEVELS.ERROR) textColorClass = "text-rose-400";
@@ -265,8 +530,8 @@
 
             const prefix = level === this.LEVELS.INFO ? "" : `[${levelName}] `;
 
-            logElement.className = `${textColorClass} break-all rounded px-1 py-0.5 transition-colors duration-150 hover:bg-slate-900/50`;
-            logElement.innerHTML = `<span class="mr-2 text-slate-600">[${timeStr}]</span>${prefix}${messages.join(" ")}`;
+            logElement.className = `log-entry log-${levelName.toLowerCase()} ${textColorClass} break-all rounded px-1 py-0.5 transition-colors duration-150 hover:bg-slate-900/50`;
+            logElement.innerHTML = `<span class="log-timestamp mr-2 text-slate-600">[${timeStr}]</span>${prefix}${messages.join(" ")}`;
 
             logContainer.appendChild(logElement);
             logContainer.scrollTop = logContainer.scrollHeight;
@@ -694,7 +959,9 @@
                 Logger.output(`Received cancel instruction, aborting operation #${operationId} (attempt ${normalizedAttemptId})...`);
                 activeOperation.abortController.abort();
             } else if (activeOperation) {
-                Logger.debug(`Ignoring stale cancel for operation #${operationId}: expected attempt ${activeOperation.requestAttemptId}, got ${normalizedAttemptId}`);
+                Logger.debug(
+                    `Ignoring stale cancel for operation #${operationId}: expected attempt ${activeOperation.requestAttemptId}, got ${normalizedAttemptId}`
+                );
             }
         }
     }
@@ -961,23 +1228,27 @@
     const saveBtn = document.getElementById("save-btn");
     const connectBtn = document.getElementById("connect-btn");
     const saveTip = document.getElementById("save-tip");
-    const statusTextEl = document.getElementById("status-text");
+    const localeToggleBtn = document.getElementById("locale-toggle");
+    const themeToggleBtn = document.getElementById("theme-toggle");
 
+    applyTheme(currentTheme);
+    applyI18n();
     endpointInput.value = currentEndpoint;
     clientLabelInput.value = currentClientLabel;
     const proxySystem = new ProxySystem(currentEndpoint, currentClientLabel);
+    setStatus(currentStatus);
 
     saveBtn.addEventListener("click", () => {
         const val = endpointInput.value.trim() || DEFAULT_ENDPOINT;
         const inputClientLabel = sanitizeClientLabel(clientLabelInput.value);
-        const activeDailyLabel = getDailyClientLabel();
+        const activeAutoLabel = getAutoClientLabel();
 
         currentEndpoint = val;
         currentClientLabel =
-            !inputClientLabel || (currentClientLabelMode !== "manual" && inputClientLabel === activeDailyLabel)
-                ? activeDailyLabel
+            !inputClientLabel || (currentClientLabelMode !== "manual" && inputClientLabel === activeAutoLabel)
+                ? activeAutoLabel
                 : inputClientLabel;
-        currentClientLabelMode = currentClientLabel === activeDailyLabel ? "daily" : "manual";
+        currentClientLabelMode = currentClientLabel === activeAutoLabel ? "auto" : "manual";
 
         safeStorageSet(ENDPOINT_STORAGE_KEY, currentEndpoint);
         safeStorageSet(CLIENT_LABEL_MODE_STORAGE_KEY, currentClientLabelMode);
@@ -999,8 +1270,20 @@
         Logger.info(`Configuration saved. Active browser identifier: ${currentClientLabel}`);
     });
 
+    localeToggleBtn.addEventListener("click", () => {
+        currentLocale = currentLocale === "zh-CN" ? "en-US" : "zh-CN";
+        safeStorageSet(LOCALE_STORAGE_KEY, currentLocale);
+        applyI18n();
+        setStatus(currentStatus);
+    });
+
+    themeToggleBtn.addEventListener("click", () => {
+        applyTheme(currentTheme === "dark" ? "light" : "dark");
+        updateHeaderControls();
+    });
+
     connectBtn.addEventListener("click", async () => {
-        const isStopping = proxySystem.connectionManager.isConnected || statusTextEl.textContent === "reconnecting";
+        const isStopping = proxySystem.connectionManager.isConnected || currentStatus === "reconnecting";
 
         if (isStopping) {
             Logger.info("Stopping connection/reconnection...");
