@@ -77,7 +77,7 @@ The system follows a modular architecture with clear separation of concerns:
 **Session Routing**
 
 - Uses `ROUND` to auto-select a browser session for each new request
-- Uses `IMMEDIATE_SWITCH_STATUS_CODES` to retry immediately on another session for selected HTTP errors
+- Retries on the next available session for any non-user-aborted browser error
 - Uses `SESSION_ERROR_THRESHOLD` to disable unhealthy browser sessions after repeated browser / WebSocket errors
 
 **FormatConverter** (`src/core/FormatConverter.js`)
@@ -130,7 +130,6 @@ Key variables (see `.env.example` for full list):
 - `STREAMING_MODE`: "real" or "fake" streaming
 - `ROUND`: Session selection strategy (`round` or `random`)
 - `SESSION_ERROR_THRESHOLD`: Disable a browser session after repeated browser / WebSocket errors (default: 3)
-- `IMMEDIATE_SWITCH_STATUS_CODES`: Status codes triggering immediate switch (default: 429,503)
 - `CAMOUFOX_EXECUTABLE_PATH`: Custom browser executable path
 - `MAX_CONTEXTS`: Maximum number of accounts logged in simultaneously for faster switching (default: 1, memory usage: ~700MB per account)
 - `LOG_LEVEL`: Set to "DEBUG" for verbose logging

@@ -1,39 +1,13 @@
 /**
  * File: src/utils/CustomErrors.js
- * Description: Custom error classes for type-safe error handling without string matching
+ * Description: Custom error helpers for request handling
  *
  * Author: iBUHUB
  */
 
 /**
- * Custom error class for authentication expiration
- * Used to distinguish auth expiration from other errors without string matching
- */
-class AuthExpiredError extends Error {
-    constructor(
-        message = "🚨 Cookie expired/invalid! Browser was redirected to Google login page. Please re-extract storageState."
-    ) {
-        super(message);
-        this.name = "AuthExpiredError";
-        this.isAuthExpired = true;
-    }
-}
-
-/**
- * Custom error class for reconnect cancellation
- * Thrown when a lightweight reconnect is cancelled because the connection was re-established
- */
-class ReconnectCancelledError extends Error {
-    constructor(message = "Reconnect cancelled") {
-        super(message);
-        this.name = "ReconnectCancelledError";
-        this.isReconnectCancelled = true;
-    }
-}
-
-/**
- * Custom error class for user-aborted requests
- * Thrown when a user explicitly cancels/aborts an API request
+ * Custom error class for user-aborted requests.
+ * Kept for compatibility with any local throw sites or tests.
  */
 class UserAbortedError extends Error {
     constructor(message = "The user aborted a request") {
@@ -44,60 +18,27 @@ class UserAbortedError extends Error {
 }
 
 /**
- * Custom error class for context initialization abort
- * Thrown when a context initialization is aborted (e.g., marked for deletion or background preload cancelled)
- */
-class ContextAbortedError extends Error {
-    constructor(sessionId, reason = "marked for deletion") {
-        super(`Context initialization aborted for session ${sessionId} (${reason})`);
-        this.name = "ContextAbortedError";
-        this.isContextAborted = true;
-        this.sessionId = sessionId;
-        this.reason = reason;
-    }
-}
-
-/**
- * Helper function to check if an error is a user abort
- * @param {Error|Object} error - The error to check (can be Error object, DOMException, or message object with .message field)
- * @returns {boolean} True if the error indicates user abort
+ * Helper function to check if an error is a user abort.
+ * @param {Error|Object} error - The error to check.
+ * @returns {boolean} True if the error indicates user abort.
  */
 function isUserAbortedError(error) {
     if (error instanceof UserAbortedError || error?.isUserAborted === true) {
         return true;
     }
-    // Check for DOMException with name "AbortError" (thrown by browser-side script)
+
     if (error?.name === "AbortError") {
         return true;
     }
-    // Also check message string for compatibility with message objects from WebSocket
+
     if (typeof error?.message === "string" && error.message.includes("The user aborted a request")) {
         return true;
     }
-    return false;
-}
 
-/**
- * Helper function to check if an error is a context initialization abort
- * @param {Error} error - The error to check
- * @returns {boolean} True if the error indicates context abort
- */
-function isContextAbortedError(error) {
-    if (error instanceof ContextAbortedError || error?.isContextAborted === true) {
-        return true;
-    }
-    // Also check message string for backward compatibility
-    if (typeof error?.message === "string" && error.message.includes("aborted for session")) {
-        return true;
-    }
     return false;
 }
 
 module.exports = {
-    AuthExpiredError,
-    ContextAbortedError,
-    isContextAbortedError,
     isUserAbortedError,
-    ReconnectCancelledError,
     UserAbortedError,
 };

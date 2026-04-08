@@ -185,7 +185,6 @@ class StatusRoutes {
             forceThinking: this.serverSystem.forceThinking,
             forceUrlContext: this.serverSystem.forceUrlContext,
             forceWebSearch: this.serverSystem.forceWebSearch,
-            immediateSwitchStatusCodes: this.config.immediateSwitchStatusCodes,
             logMaxCount: this.logger.displayLimit || 100,
             maxRetries: this.config.maxRetries,
             selectionStrategy: this.config.sessionSelectionStrategy,

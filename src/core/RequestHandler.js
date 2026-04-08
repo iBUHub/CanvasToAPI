@@ -100,6 +100,46 @@ class RequestHandler {
         return false;
     }
 
+    _isQueueTimeoutError(error) {
+        if (!error) return false;
+        return error instanceof QueueTimeoutError || error.code === "QUEUE_TIMEOUT";
+    }
+
+    _getErrorStatusCode(error, fallbackStatus = 500) {
+        if (this._isQueueTimeoutError(error)) {
+            return 504;
+        }
+
+        if (this._isConnectionResetError(error)) {
+            return 503;
+        }
+
+        const explicitStatus = Number(error?.status);
+        if (Number.isFinite(explicitStatus) && explicitStatus >= 400) {
+            return explicitStatus;
+        }
+
+        return fallbackStatus;
+    }
+
+    _getGeminiErrorStatusText(statusCode) {
+        const geminiStatusMap = {
+            400: "INVALID_ARGUMENT",
+            401: "UNAUTHENTICATED",
+            403: "PERMISSION_DENIED",
+            404: "NOT_FOUND",
+            409: "ABORTED",
+            429: "RESOURCE_EXHAUSTED",
+            499: "CANCELLED",
+            500: "INTERNAL",
+            501: "UNIMPLEMENTED",
+            503: "UNAVAILABLE",
+            504: "DEADLINE_EXCEEDED",
+        };
+
+        return geminiStatusMap[statusCode] || "UNKNOWN";
+    }
+
     _logGeminiNativeChunkDebug(googleChunk, mode = "stream") {
         this.logger.debug(`[Proxy] Debug: Received Google chunk for Gemini native ${mode}: ${googleChunk}`);
     }
@@ -377,6 +417,31 @@ class RequestHandler {
         return { attemptedSessionIds };
     }
 
+    _shouldSwitchSessionOnError(errorDetails) {
+        if (!errorDetails || isUserAbortedError(errorDetails)) {
+            return false;
+        }
+
+        if (this._isConnectionResetError(errorDetails)) {
+            return errorDetails.reason !== "client_disconnect";
+        }
+
+        return true;
+    }
+
+    _describeErrorForSessionSwitch(errorDetails) {
+        const status = this._getErrorStatusCode(errorDetails, NaN);
+        if (Number.isFinite(status)) {
+            return `Received ${status}`;
+        }
+
+        if (errorDetails?.reason) {
+            return `Received queue closure (${errorDetails.reason})`;
+        }
+
+        return `Received error: ${errorDetails?.message || "unknown error"}`;
+    }
+
     async _performImmediateSwitchRetry(errorDetails, requestId, tracker) {
         const switched = await this.sessionState.switchToNextSession(tracker.attemptedSessionIds);
         if (!switched) {
@@ -534,15 +599,9 @@ class RequestHandler {
                     this._forwardRequest(proxyRequest);
                     initialMessage = await currentQueue.dequeue();
 
-                    const initialStatus = Number(initialMessage?.status);
-                    if (
-                        initialMessage.event_type === "error" &&
-                        !isUserAbortedError(initialMessage) &&
-                        Number.isFinite(initialStatus) &&
-                        this.config?.immediateSwitchStatusCodes?.includes(initialStatus)
-                    ) {
+                    if (initialMessage.event_type === "error" && this._shouldSwitchSessionOnError(initialMessage)) {
                         this.logger.warn(
-                            `[Request] OpenAI real stream received ${initialStatus}, switching session and retrying...`
+                            `[Request] OpenAI real stream ${this._describeErrorForSessionSwitch(initialMessage)}, switching session and retrying...`
                         );
                         const switched = await this._performImmediateSwitchRetry(
                             initialMessage,
@@ -870,15 +929,9 @@ class RequestHandler {
                     this._forwardRequest(proxyRequest);
                     initialMessage = await currentQueue.dequeue();
 
-                    const initialStatus = Number(initialMessage?.status);
-                    if (
-                        initialMessage.event_type === "error" &&
-                        !isUserAbortedError(initialMessage) &&
-                        Number.isFinite(initialStatus) &&
-                        this.config?.immediateSwitchStatusCodes?.includes(initialStatus)
-                    ) {
+                    if (initialMessage.event_type === "error" && this._shouldSwitchSessionOnError(initialMessage)) {
                         this.logger.warn(
-                            `[Request] OpenAI Response API real stream received ${initialStatus}, switching session and retrying...`
+                            `[Request] OpenAI Response API real stream ${this._describeErrorForSessionSwitch(initialMessage)}, switching session and retrying...`
                         );
                         const switched = await this._performImmediateSwitchRetry(
                             initialMessage,
@@ -1171,15 +1224,9 @@ class RequestHandler {
                     this._forwardRequest(proxyRequest);
                     initialMessage = await currentQueue.dequeue();
 
-                    const initialStatus = Number(initialMessage?.status);
-                    if (
-                        initialMessage.event_type === "error" &&
-                        !isUserAbortedError(initialMessage) &&
-                        Number.isFinite(initialStatus) &&
-                        this.config?.immediateSwitchStatusCodes?.includes(initialStatus)
-                    ) {
+                    if (initialMessage.event_type === "error" && this._shouldSwitchSessionOnError(initialMessage)) {
                         this.logger.warn(
-                            `[Request] Claude real stream received ${initialStatus}, switching session and retrying...`
+                            `[Request] Claude real stream ${this._describeErrorForSessionSwitch(initialMessage)}, switching session and retrying...`
                         );
                         const switched = await this._performImmediateSwitchRetry(
                             initialMessage,
@@ -1780,10 +1827,11 @@ class RequestHandler {
                 if (contentType && contentType.includes("text/event-stream")) {
                     try {
                         let errorType = "api_error";
+                        const status = this._getErrorStatusCode(error);
                         let errorMessage = `Processing failed: ${errorMsg}`;
 
                         // Use precise error type checking instead of string matching
-                        if (error instanceof QueueTimeoutError || error.code === "QUEUE_TIMEOUT") {
+                        if (this._isQueueTimeoutError(error)) {
                             errorType = "timeout_error";
                             errorMessage = `Stream timeout: ${errorMsg}`;
                         } else if (this._isConnectionResetError(error)) {
@@ -1795,6 +1843,7 @@ class RequestHandler {
                             `event: error\ndata: ${JSON.stringify({
                                 error: {
                                     message: errorMessage,
+                                    status,
                                     type: errorType,
                                 },
                                 type: "error",
@@ -1810,14 +1859,12 @@ class RequestHandler {
             if (!res.writableEnded) res.end();
         } else {
             this.logger.error(`[Request] Claude request error: ${errorMsg}`);
-            let status = 500;
+            const status = this._getErrorStatusCode(error);
             let errorType = "api_error";
             // Use precise error type checking instead of string matching
-            if (error instanceof QueueTimeoutError || error.code === "QUEUE_TIMEOUT") {
-                status = 504;
+            if (this._isQueueTimeoutError(error)) {
                 errorType = "timeout_error";
             } else if (this._isConnectionResetError(error)) {
-                status = 503;
                 errorType = "overloaded_error";
                 this.logger.info(`[Request] Queue closed, returning 503 Service Unavailable.`);
             }
@@ -2111,16 +2158,9 @@ class RequestHandler {
             this._forwardRequest(proxyRequest);
             headerMessage = await currentQueue.dequeue();
 
-            const headerStatus = Number(headerMessage?.status);
-            if (
-                headerMessage.event_type === "error" &&
-                proxyRequest.is_generative &&
-                !isUserAbortedError(headerMessage) &&
-                Number.isFinite(headerStatus) &&
-                this.config?.immediateSwitchStatusCodes?.includes(headerStatus)
-            ) {
+            if (headerMessage.event_type === "error" && this._shouldSwitchSessionOnError(headerMessage)) {
                 this.logger.warn(
-                    `[Request] Gemini real stream received ${headerStatus}, switching session and retrying...`
+                    `[Request] Gemini real stream ${this._describeErrorForSessionSwitch(headerMessage)}, switching session and retrying...`
                 );
                 const switched = await this._performImmediateSwitchRetry(
                     headerMessage,
@@ -2388,6 +2428,7 @@ class RequestHandler {
                 if (initialMessage.event_type === "timeout") {
                     throw new Error(
                         JSON.stringify({
+                            code: "QUEUE_TIMEOUT",
                             event_type: "error",
                             message: "Request timed out waiting for browser response.",
                             status: 504,
@@ -2409,11 +2450,15 @@ class RequestHandler {
                     errorPayload = JSON.parse(error.message);
                 } catch (e) {
                     // JSON parse failed - check if it's a timeout error
-                    if (error.code === "QUEUE_TIMEOUT" || error instanceof QueueTimeoutError) {
-                        errorPayload = { message: error.message || "Queue timeout", status: 504 };
+                    if (this._isQueueTimeoutError(error)) {
+                        errorPayload = { code: error.code, message: error.message || "Queue timeout", status: 504 };
                     } else {
                         errorPayload = { message: error.message, status: 500 };
                     }
+                }
+
+                if (this._isQueueTimeoutError(error)) {
+                    this._handleQueueTimeout(error, proxyRequest.request_id);
                 }
 
                 // Stop retrying immediately if the queue is closed
@@ -2425,28 +2470,59 @@ class RequestHandler {
                     if (isClientDisconnect) {
                         this.logger.warn(`[Request] Message queue closed due to client disconnect, aborting retries.`);
                         lastError = { message: "Connection lost (client disconnect)", status: 503 };
-                    } else {
-                        // Queue closed for other reasons (account_switch, system_reset, etc.)
-                        this.logger.warn(`[Request] Message queue closed (reason: ${reason}), aborting retries.`);
-                        lastError = {
-                            message: `Queue closed: ${error.message || reason}`,
-                            reason,
-                            status: 503,
-                        };
+                        break;
                     }
-                    break;
+
+                    lastError = {
+                        code: error.code,
+                        message: `Queue closed: ${error.message || reason}`,
+                        reason,
+                        status: 503,
+                    };
+                    this.logger.warn(
+                        `[Request] ${this._describeErrorForSessionSwitch(lastError)}, switching session and retrying...`
+                    );
+                    try {
+                        const switched = await this._performImmediateSwitchRetry(
+                            lastError,
+                            proxyRequest.request_id,
+                            immediateSwitchTracker
+                        );
+                        if (!switched) {
+                            lastError = { ...lastError, skipSessionSwitch: true };
+                            break;
+                        }
+                    } catch (switchError) {
+                        lastError = { ...lastError, skipSessionSwitch: true };
+                        this.logger.error(`[Request] Session switch failed during retry flow: ${switchError.message}`);
+                        break;
+                    }
+
+                    try {
+                        currentQueue.close("retry_creating_new_queue");
+                    } catch (e) {
+                        this.logger.debug(`[Request] Failed to close old queue before retry: ${e.message}`);
+                    }
+
+                    this.logger.debug(
+                        `[Request] Creating new message queue after session switch for request #${proxyRequest.request_id} (switching from session ${currentQueueSessionId} to ${this.currentSessionId})`
+                    );
+                    this._advanceProxyRequestAttempt(proxyRequest);
+                    currentQueue = this.connectionRegistry.createMessageQueue(
+                        proxyRequest.request_id,
+                        this.currentSessionId,
+                        proxyRequest.request_attempt_id
+                    );
+                    currentQueueSessionId = this.currentSessionId;
+                    continue;
                 }
 
                 lastError = errorPayload;
 
-                // Check if we should stop retrying immediately based on status code
-                const errorStatus = Number(errorPayload?.status);
-                if (
-                    Number.isFinite(errorStatus) &&
-                    this.config?.immediateSwitchStatusCodes?.includes(errorStatus) &&
-                    !isUserAbortedError(errorPayload)
-                ) {
-                    this.logger.warn(`[Request] Received ${errorStatus}, switching session and retrying...`);
+                if (this._shouldSwitchSessionOnError(errorPayload)) {
+                    this.logger.warn(
+                        `[Request] ${this._describeErrorForSessionSwitch(errorPayload)}, switching session and retrying...`
+                    );
                     try {
                         const switched = await this._performImmediateSwitchRetry(
                             errorPayload,
@@ -2471,7 +2547,7 @@ class RequestHandler {
                     }
 
                     this.logger.debug(
-                        `[Request] Creating new message queue after immediate switch for request #${proxyRequest.request_id} (switching from session ${currentQueueSessionId} to ${this.currentSessionId})`
+                        `[Request] Creating new message queue after session switch for request #${proxyRequest.request_id} (switching from session ${currentQueueSessionId} to ${this.currentSessionId})`
                     );
                     this._advanceProxyRequestAttempt(proxyRequest);
                     currentQueue = this.connectionRegistry.createMessageQueue(
@@ -2845,17 +2921,15 @@ class RequestHandler {
                     // SSE format - send error event
                     try {
                         // Determine error code and type based on error classification
-                        let errorCode = 500;
+                        const errorCode = this._getErrorStatusCode(error);
                         let errorType = "api_error";
                         let errorMessage = `Processing failed: ${errorMsg}`;
 
                         // Use precise error type checking instead of string matching
-                        if (error instanceof QueueTimeoutError || error.code === "QUEUE_TIMEOUT") {
-                            errorCode = 504;
+                        if (this._isQueueTimeoutError(error)) {
                             errorType = "timeout_error";
                             errorMessage = `Stream timeout: ${errorMsg}`;
                         } else if (this._isConnectionResetError(error)) {
-                            errorCode = 503;
                             errorType = "service_unavailable";
                             errorMessage = `Service unavailable: ${errorMsg}`;
                         }
@@ -2883,9 +2957,7 @@ class RequestHandler {
                                 })}\n\n`
                             );
                         } else if (format === "gemini") {
-                            let statusText = "INTERNAL";
-                            if (errorCode === 504) statusText = "DEADLINE_EXCEEDED";
-                            else if (errorCode === 503) statusText = "UNAVAILABLE";
+                            const statusText = this._getGeminiErrorStatusText(errorCode);
                             res.write(
                                 `data: ${JSON.stringify({
                                     error: {
@@ -2929,12 +3001,8 @@ class RequestHandler {
             }
         } else {
             this.logger.error(`[Request] Request processing error: ${errorMsg}`);
-            let status = 500;
-            // Use precise error type checking instead of string matching
-            if (error instanceof QueueTimeoutError || error.code === "QUEUE_TIMEOUT") {
-                status = 504;
-            } else if (this._isConnectionResetError(error)) {
-                status = 503;
+            const status = this._getErrorStatusCode(error);
+            if (this._isConnectionResetError(error)) {
                 this.logger.info(`[Request] Queue closed, returning 503 Service Unavailable.`);
             }
             this._sendErrorResponse(res, status, `Proxy error: ${errorMsg}`);

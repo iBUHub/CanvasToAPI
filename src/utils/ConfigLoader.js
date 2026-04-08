@@ -22,7 +22,6 @@ class ConfigLoader {
             forceWebSearch: false,
             host: "0.0.0.0",
             httpPort: 7861,
-            immediateSwitchStatusCodes: [429, 503],
             maxRetries: 3,
             retryDelay: 2000,
             sessionErrorThreshold: 3,
@@ -73,12 +72,6 @@ class ConfigLoader {
         if (process.env.SESSION_ERROR_THRESHOLD) {
             const parsed = parseInt(process.env.SESSION_ERROR_THRESHOLD, 10);
             config.sessionErrorThreshold = Number.isFinite(parsed) ? Math.max(1, parsed) : config.sessionErrorThreshold;
-        }
-
-        if (process.env.IMMEDIATE_SWITCH_STATUS_CODES) {
-            config.immediateSwitchStatusCodes = process.env.IMMEDIATE_SWITCH_STATUS_CODES.split(",")
-                .map(value => parseInt(String(value).trim(), 10))
-                .filter(Number.isFinite);
         }
 
         if (process.env.API_KEYS) {
@@ -148,7 +141,6 @@ class ConfigLoader {
         this.logger.info(`  Streaming Mode: ${config.streamingMode}`);
         this.logger.info(`  Session Selection: ${config.sessionSelectionStrategy}`);
         this.logger.info(`  Session Error Threshold: ${config.sessionErrorThreshold}`);
-        this.logger.info(`  Immediate Switch Status Codes: ${config.immediateSwitchStatusCodes.join(",") || "None"}`);
         this.logger.info(`  Force Thinking: ${config.forceThinking}`);
         this.logger.info(`  Force Web Search: ${config.forceWebSearch}`);
         this.logger.info(`  Force URL Context: ${config.forceUrlContext}`);
