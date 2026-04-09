@@ -77,6 +77,14 @@
         body.theme-light .brand-mark {
             color: #0891b2 !important;
         }
+        .brand-link {
+            color: inherit;
+            text-decoration: none;
+            transition: opacity 0.2s ease;
+        }
+        .brand-link:hover {
+            opacity: 0.82;
+        }
         body.theme-light .control-chip,
         body.theme-light #ws-endpoint,
         body.theme-light #client-label,
@@ -116,7 +124,7 @@
     </style>
 </head>
 <body class="min-h-screen overflow-hidden bg-slate-950 font-sans text-slate-100 selection:bg-cyan-500/30">
-<div class="flex h-screen w-full flex-col overflow-hidden px-3 py-3 md:px-5 md:py-4 xl:px-6">
+<div class="flex h-screen w-full flex-col overflow-hidden">
     <header
         id="page-header"
         class="mb-3 flex flex-none flex-col gap-2 rounded-[1.75rem] border border-slate-800 bg-slate-900/80 p-4 shadow-2xl shadow-slate-950/30 md:gap-2 md:p-5"
@@ -127,7 +135,12 @@
                     <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span>
                     <span class="relative inline-flex rounded-full h-2 w-2 bg-cyan-500"></span>
                 </span>
-                <p class="brand-mark truncate text-xs font-bold text-cyan-400/90">CanvasToAPI</p>
+                <a
+                    class="brand-mark brand-link truncate text-xs font-bold text-cyan-400/90"
+                    href="https://github.com/iBUHub/CanvasToAPI"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                >CanvasToAPI</a>
             </div>
             <div class="flex shrink-0 items-center gap-2">
                 <button
@@ -270,10 +283,6 @@
         </div>
     </main>
 
-    <footer id="page-footer" class="mt-2 flex flex-none flex-wrap items-center justify-between gap-2 px-2 text-[10px] uppercase tracking-widest text-slate-600">
-        <span class="footer-item" data-i18n="footerTarget">Target: generativelanguage.googleapis.com</span>
-        <span class="footer-item" data-i18n="footerSecurity">Security: Browser-Bound Session</span>
-    </footer>
 </div>
 
 <script>
@@ -303,8 +312,6 @@
             consoleLogsOutput: "控制台日志输出",
             clear: "清空",
             initialLog: "系统初始化中，等待输入连接配置。",
-            footerTarget: "目标: generativelanguage.googleapis.com",
-            footerSecurity: "安全性: 浏览器绑定会话",
             statusConnected: "已连接",
             statusReconnecting: "重连中",
             statusConnecting: "连接中",
@@ -341,8 +348,6 @@
             consoleLogsOutput: "Console Logs Output",
             clear: "Clear",
             initialLog: "Initializing system... awaiting connection input.",
-            footerTarget: "Target: generativelanguage.googleapis.com",
-            footerSecurity: "Security: Browser-Bound Session",
             statusConnected: "Connected",
             statusReconnecting: "Reconnecting",
             statusConnecting: "Connecting",
