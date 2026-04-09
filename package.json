@@ -1,6 +1,6 @@
 {
     "name": "canvas-to-api",
-    "version": "0.0.4",
+    "version": "0.0.5",
     "author": "iBUHUB",
     "description": "Encapsulate Gemini models on Canvas as API services.",
     "main": "main.js",
