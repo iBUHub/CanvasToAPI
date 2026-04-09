@@ -36,3 +36,4 @@ ui/dist/
 test/
 debug_*.png
 debug_*.html
+.gitnexus
