@@ -148,7 +148,9 @@ services:
 
 如果需要通过域名访问服务，或希望放在反向代理之后统一管理，可以使用 Nginx。
 
-> 重要：请确保 Nginx 正确转发 WebSocket 升级请求，至少包含 `proxy_http_version 1.1`、`proxy_set_header Upgrade $http_upgrade` 和 `proxy_set_header Connection "Upgrade"`。
+> [!IMPORTANT]
+> 如果需要在浏览器端连接非本地服务端，必须为服务器开启 HTTPS 反向代理，并通过 Nginx 提供 `wss://` 入口。
+> 同时请确保 Nginx 正确转发 WebSocket 升级请求，至少包含 `proxy_http_version 1.1`、`proxy_set_header Upgrade $http_upgrade` 和 `proxy_set_header Connection "Upgrade"`。
 >
 > 📖 详细的 Nginx 配置说明请参阅：[Nginx 反向代理配置文档](docs/zh/nginx-setup.md)
 

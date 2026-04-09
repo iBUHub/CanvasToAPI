@@ -148,7 +148,9 @@ On that page, manually enter the browser tag (`Browser Identifier`), API key, an
 
 If you need to access the service through a domain name or put it behind a reverse proxy, you can use Nginx.
 
-> Important: Make sure your Nginx config forwards WebSocket upgrade headers, including `proxy_http_version 1.1`, `proxy_set_header Upgrade $http_upgrade`, and `proxy_set_header Connection "Upgrade"`.
+> [!IMPORTANT]
+> If you need to connect to a non-local server from the browser, you must enable HTTPS reverse proxying for the server and expose a `wss://` endpoint through Nginx.
+> Also make sure your Nginx config forwards WebSocket upgrade headers, including `proxy_http_version 1.1`, `proxy_set_header Upgrade $http_upgrade`, and `proxy_set_header Connection "Upgrade"`.
 >
 > 📖 For detailed Nginx configuration instructions, see: [Nginx Reverse Proxy Configuration](docs/en/nginx-setup.md)
 
