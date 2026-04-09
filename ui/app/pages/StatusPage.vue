@@ -1532,14 +1532,86 @@ const switchTab = tabName => {
     }
 };
 
+const readJsonSafely = async response => {
+    try {
+        return await response.json();
+    } catch {
+        return {};
+    }
+};
+
+const getSettingLabel = setting => {
+    const settingLabelMap = {
+        "debug-mode": t("logLevel"),
+        "force-thinking": t("forceThinking"),
+        "force-url-context": t("forceUrlContext"),
+        "force-web-search": t("forceWebSearch"),
+        "log-max-count": t("logMaxCount"),
+        "selection-strategy": t("selectionStrategyLabel"),
+        "streaming-mode": t("streamingMode"),
+    };
+    return settingLabelMap[setting] || setting;
+};
+
+const getSettingValueLabel = (setting, value) => {
+    if (setting === "streaming-mode" && typeof value === "string") {
+        return t(value);
+    }
+
+    if (setting === "debug-mode" && typeof value === "string") {
+        return t(value);
+    }
+
+    if (setting === "selection-strategy" && typeof value === "string") {
+        const selectionStrategyKeyMap = {
+            random: "selectionStrategyRandom",
+            round: "selectionStrategyRound",
+        };
+        return t(selectionStrategyKeyMap[value] || value);
+    }
+
+    if (typeof value === "boolean") {
+        return t(value ? "enabled" : "disabled");
+    }
+
+    if (value === undefined || value === null || value === "") {
+        return "";
+    }
+
+    return String(value);
+};
+
 const postSetting = async (setting, body = {}) => {
-    const response = await fetch(`/api/settings/${setting}`, {
-        body: JSON.stringify(body),
-        headers: { "Content-Type": "application/json" },
-        method: "PUT",
-    });
-    if (!response.ok) throw new Error(`setting ${setting} failed`);
-    await refresh();
+    try {
+        const response = await fetch(`/api/settings/${setting}`, {
+            body: JSON.stringify(body),
+            headers: { "Content-Type": "application/json" },
+            method: "PUT",
+        });
+        const data = await readJsonSafely(response);
+
+        if (!response.ok) {
+            const errorMessage = data.error || data.message || `setting ${setting} failed`;
+            ElMessage.error(t("settingFailed", { message: errorMessage }));
+            return false;
+        }
+
+        await refresh();
+
+        if (data.message === "settingUpdateSuccess") {
+            ElMessage.success(
+                t("settingUpdateSuccess", {
+                    setting: getSettingLabel(setting),
+                    value: getSettingValueLabel(setting, data.value),
+                })
+            );
+        }
+
+        return true;
+    } catch (error) {
+        ElMessage.error(t("settingFailed", { message: error.message || error }));
+        return false;
+    }
 };
 
 const toggleStreamingMode = () =>
@@ -1594,20 +1666,10 @@ const handleDebugModeChange = value => {
 };
 const handleLogMaxCountChange = async value => {
     if (!value || value === state.logMaxCount) {
-        return;
+        return true;
     }
 
-    const response = await fetch("/api/settings/log-max-count", {
-        body: JSON.stringify({ count: value }),
-        headers: { "Content-Type": "application/json" },
-        method: "PUT",
-    });
-
-    if (!response.ok) {
-        throw new Error(`setting log-max-count failed`);
-    }
-
-    await refresh();
+    return postSetting("log-max-count", { count: value });
 };
 const resetSessionHealth = async session => {
     const sessionId = session?.connectionId;
