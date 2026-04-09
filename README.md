@@ -1,3 +1,5 @@
+> 当前分支尚未解决 auth 过期过快的问题，建议使用 [main 分支](https://github.com/iBUHub/CanvasToAPI) 的分体式部署方案。
+
 # Gemini Canvas to API Adapter
 
 中文文档 | [English](README_EN.md)

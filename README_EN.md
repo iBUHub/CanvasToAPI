@@ -1,3 +1,5 @@
+> This branch does not yet resolve the fast auth expiration issue. Please use the split-deployment setup from the [main branch](https://github.com/iBUHub/CanvasToAPI).
+
 # Gemini Canvas to API Adapter
 
 [中文文档](README.md) | English
