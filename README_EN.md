@@ -78,10 +78,10 @@ docker run -d \
   -e API_KEYS=your-api-key-1,your-api-key-2 \
   -e TZ=America/New_York \
   --restart unless-stopped \
-  ghcr.io/ibuhub/canvas-to-api:latest
+  ghcr.io/ibuhub/canvas-to-api:v0.0.1
 ```
 
-> 💡 **Tip:** If `ghcr.io` is slow or unavailable, you can use the Docker Hub image: `ibuhub/canvas-to-api:latest`.
+> 💡 **Tip:** If `ghcr.io` is slow or unavailable, you can use the Docker Hub image: `ibuhub/canvas-to-api:v0.0.1`.
 
 Parameters:
 
@@ -99,7 +99,7 @@ name: canvas-to-api
 
 services:
   app:
-    image: ghcr.io/ibuhub/canvas-to-api:latest
+    image: ghcr.io/ibuhub/canvas-to-api:v0.0.1
     container_name: canvas-to-api
     ports:
       # API server port (if using a reverse proxy, strongly consider `127.0.0.1:7861`)

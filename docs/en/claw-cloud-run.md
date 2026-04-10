@@ -9,7 +9,7 @@ This guide will help you deploy the `canvas-to-api` service on [Claw Cloud Run](
 3. **Configure Application**: Fill in the following parameters:
    - **Application Name**: Enter any name you prefer (e.g., `canvas-api`).
    - **Image**: Select **Public**.
-   - **Image Name**: `ghcr.io/ibuhub/canvas-to-api:latest`
+   - **Image Name**: `ghcr.io/ibuhub/canvas-to-api:v0.0.1`
 
    **Usage**:
    - **CPU**: `0.5`

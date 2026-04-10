@@ -18,7 +18,7 @@ This guide will help you deploy the `canvas-to-api` service on [Zeabur](https://
 4. **Configure Application**: Fill in the following parameters:
 
    **Image**:
-   - **Image Name**: `ghcr.io/ibuhub/canvas-to-api:latest`
+   - **Image Name**: `ghcr.io/ibuhub/canvas-to-api:v0.0.1`
    - **Username**: Leave empty
    - **Password**: Leave empty
 

@@ -18,7 +18,7 @@
 4. **配置应用**：填写以下参数：
 
    **镜像**：
-   - **镜像名称**：`ghcr.io/ibuhub/canvas-to-api:latest`
+   - **镜像名称**：`ghcr.io/ibuhub/canvas-to-api:v0.0.1`
    - **用户名**：不用填写
    - **密码**：不用填写
 
