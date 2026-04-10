@@ -809,3 +809,64 @@ Removed features without backend support (~850 lines), integrated LoadDistributi
 ### Next Steps
 
 - None - task complete
+
+## Session 11: Fix UI Issues: Remove User Info and Fix ElSelect Display
+
+**Date**: 2026-04-10
+**Task**: Fix UI Issues: Remove User Info and Fix ElSelect Display
+**Branch**: `frontend-refactor`
+
+### Summary
+
+(Add summary)
+
+### Main Changes
+
+| Feature              | Description                                                                                |
+| -------------------- | ------------------------------------------------------------------------------------------ |
+| Sidebar Cleanup      | Removed hardcoded user profile section (avatar, name, email) from sidebar footer           |
+| Element Plus Styling | Fixed ElSelect components not displaying selected values by adding CSS variable overrides  |
+| Theme Integration    | Aligned Element Plus text colors with Material Design 3 theme in both light and dark modes |
+
+**Problem Solved**:
+
+1. Sidebar displayed useless hardcoded user information ("Admin User", "admin@canvastoapi.io")
+2. Element Plus ElSelect components appeared blank when collapsed due to text color conflicts with Material Design 3 theme
+
+**Technical Changes**:
+
+- `ui/app/components/SideNavBar.vue`: Removed `sidebar-footer` section and associated CSS
+- `ui/app/styles/global.less`: Added Element Plus CSS variable overrides mapped to Material Design 3 colors
+
+**Key Variables Overridden**:
+
+- `--el-text-color-primary` → `var(--color-on-surface)`
+- `--el-select-input-color` → `var(--color-on-surface)`
+- `--el-input-placeholder-color` → `var(--color-on-surface-variant)`
+- Border and background colors aligned with theme
+
+**Affected Components**:
+
+- Log Level selector (debugMode)
+- Streaming Mode selector
+- Selection Strategy selector
+- Theme selector
+- Language selector
+
+### Git Commits
+
+| Hash      | Message       |
+| --------- | ------------- |
+| `a0439b6` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete

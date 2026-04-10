@@ -9,7 +9,7 @@
 <!-- @@@auto:current-status -->
 
 - **Active File**: `journal-1.md`
-- **Total Sessions**: 10
+- **Total Sessions**: 11
 - **Last Active**: 2026-04-10
 <!-- @@@/auto:current-status -->
 
@@ -21,7 +21,7 @@
 
 | File           | Lines | Status |
 | -------------- | ----- | ------ |
-| `journal-1.md` | ~808  | Active |
+| `journal-1.md` | ~870  | Active |
 
 <!-- @@@/auto:active-documents -->
 
@@ -33,6 +33,7 @@
 
 | #   | Date       | Title                                                     | Commits                         | Branch              |
 | --- | ---------- | --------------------------------------------------------- | ------------------------------- | ------------------- |
+| 11  | 2026-04-10 | Fix UI Issues: Remove User Info and Fix ElSelect Display  | `a0439b6`                       | `frontend-refactor` |
 | 10  | 2026-04-10 | 对齐重构后前端与原版操作逻辑                              | `1123464`                       | `frontend-refactor` |
 | 9   | 2026-04-10 | 前端操作逻辑对齐 - 需求发现与规划                         | -                               | `frontend-refactor` |
 | 8   | 2026-04-10 | Frontend Cleanup & Ralph Loop Fix                         | `0a8b321`                       | `frontend-refactor` |
