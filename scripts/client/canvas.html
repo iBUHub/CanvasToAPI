@@ -1,1462 +1,1585 @@
 <!doctype html>
 <html lang="zh-CN">
-<head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>CanvasToAPI Browser Client v0.0.2</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        :root {
-            color-scheme: dark;
-        }
-        #logs::-webkit-scrollbar {
-            width: 6px;
-        }
-        #logs::-webkit-scrollbar-track {
-            background: rgba(15, 23, 42, 0.1);
-        }
-        #logs::-webkit-scrollbar-thumb {
-            background: rgba(51, 65, 85, 0.5);
-            border-radius: 10px;
-        }
-        #logs::-webkit-scrollbar-thumb:hover {
-            background: rgba(51, 65, 85, 0.8);
-        }
-        .control-chip {
-            border: 1px solid rgb(51 65 85 / 1);
-            background: rgb(2 6 23 / 0.7);
-            color: rgb(226 232 240 / 1);
-        }
-        .log-entry:hover {
-            background: rgba(15, 23, 42, 0.35);
-        }
-        body.theme-light {
-            color-scheme: light;
-            background: linear-gradient(180deg, #f8fbff 0%, #eef4fb 100%);
-            color: #0f172a;
-        }
-        body.theme-light #page-header,
-        body.theme-light #console-panel {
-            border-color: #d8e3f0;
-            box-shadow: 0 18px 60px rgba(148, 163, 184, 0.18);
-        }
-        body.theme-light #page-header {
-            background: rgba(255, 255, 255, 0.92);
-        }
-        body.theme-light #console-panel {
-            background: rgba(255, 255, 255, 0.76);
-        }
-        body.theme-light #console-toolbar {
-            border-color: #d8e3f0;
-            background: rgba(241, 245, 249, 0.92);
-        }
-        body.theme-light #logs {
-            background: rgba(248, 250, 252, 0.94);
-        }
-        body.theme-light #logs::-webkit-scrollbar-track {
-            background: rgba(148, 163, 184, 0.12);
-        }
-        body.theme-light #logs::-webkit-scrollbar-thumb {
-            background: rgba(148, 163, 184, 0.55);
-        }
-        body.theme-light .page-title {
-            color: #0f172a !important;
-        }
-        body.theme-light .page-subtitle,
-        body.theme-light .field-label,
-        body.theme-light .panel-title,
-        body.theme-light .footer-item {
-            color: #475569 !important;
-        }
-        body.theme-light .field-hint,
-        body.theme-light .meta-text,
-        body.theme-light .log-timestamp,
-        body.theme-light .initial-log {
-            color: #64748b !important;
-        }
-        body.theme-light .brand-mark {
-            color: #0891b2 !important;
-        }
-        .brand-link {
-            color: inherit;
-            text-decoration: none;
-            transition: opacity 0.2s ease;
-        }
-        .brand-link:hover {
-            opacity: 0.82;
-        }
-        body.theme-light .control-chip,
-        body.theme-light #ws-endpoint,
-        body.theme-light #client-label,
-        body.theme-light #api-key {
-            border-color: #cbd5e1 !important;
-            background: rgba(255, 255, 255, 0.96) !important;
-            color: #0f172a !important;
-        }
-        body.theme-light #save-btn {
-            background: #e2e8f0 !important;
-            color: #0f172a !important;
-        }
-        body.theme-light #save-btn:hover {
-            background: #cbd5e1 !important;
-        }
-        body.theme-light #clear-logs {
-            color: #64748b !important;
-        }
-        body.theme-light #clear-logs:hover {
-            color: #0f172a !important;
-        }
-        body.theme-light .log-entry:hover {
-            background: rgba(226, 232, 240, 0.8);
-        }
-        body.theme-light .log-info {
-            color: #334155 !important;
-        }
-        body.theme-light .log-debug {
-            color: #64748b !important;
-        }
-        body.theme-light .log-warn {
-            color: #b45309 !important;
-        }
-        body.theme-light .log-error {
-            color: #dc2626 !important;
-        }
-    </style>
-</head>
-<body class="min-h-screen overflow-hidden bg-slate-950 font-sans text-slate-100 selection:bg-cyan-500/30">
-<div class="flex h-screen w-full flex-col overflow-hidden">
-    <header
-        id="page-header"
-        class="mb-3 flex flex-none flex-col gap-2 rounded-[1.75rem] border border-slate-800 bg-slate-900/80 p-4 shadow-2xl shadow-slate-950/30 md:gap-2 md:p-5"
-    >
-        <div class="flex items-center justify-between gap-3">
-            <div class="flex min-w-0 items-center gap-2">
-                <span class="relative flex h-2 w-2">
-                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span>
-                    <span class="relative inline-flex rounded-full h-2 w-2 bg-cyan-500"></span>
-                </span>
-                <a
-                    class="brand-mark brand-link truncate text-xs font-bold text-cyan-400/90"
-                    href="https://github.com/iBUHub/CanvasToAPI"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                >CanvasToAPI</a>
-            </div>
-            <div class="flex shrink-0 items-center gap-2">
-                <button
-                    id="header-collapse-toggle"
-                    type="button"
-                    class="control-chip rounded-lg px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.2em] transition hover:border-cyan-500/60 hover:text-white"
-                ></button>
-                <button
-                    id="locale-toggle"
-                    type="button"
-                    class="control-chip rounded-lg px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.2em] transition hover:border-cyan-500/60 hover:text-white"
-                ></button>
-                <button
-                    id="theme-toggle"
-                    type="button"
-                    class="control-chip rounded-lg px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.2em] transition hover:border-cyan-500/60 hover:text-white"
-                ></button>
-            </div>
-        </div>
-
-        <div class="min-w-0 -mt-1">
-            <h1
-                class="page-title text-2xl font-bold tracking-tight text-white md:text-[2rem] md:leading-tight"
-                data-i18n="pageTitle"
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>CanvasToAPI Browser Client v0.0.2</title>
+        <script src="https://cdn.tailwindcss.com"></script>
+        <style>
+            :root {
+                color-scheme: dark;
+            }
+            #logs::-webkit-scrollbar {
+                width: 6px;
+            }
+            #logs::-webkit-scrollbar-track {
+                background: rgba(15, 23, 42, 0.1);
+            }
+            #logs::-webkit-scrollbar-thumb {
+                background: rgba(51, 65, 85, 0.5);
+                border-radius: 10px;
+            }
+            #logs::-webkit-scrollbar-thumb:hover {
+                background: rgba(51, 65, 85, 0.8);
+            }
+            .control-chip {
+                border: 1px solid rgb(51 65 85 / 1);
+                background: rgb(2 6 23 / 0.7);
+                color: rgb(226 232 240 / 1);
+            }
+            .log-entry:hover {
+                background: rgba(15, 23, 42, 0.35);
+            }
+            body.theme-light {
+                color-scheme: light;
+                background: linear-gradient(180deg, #f8fbff 0%, #eef4fb 100%);
+                color: #0f172a;
+            }
+            body.theme-light #page-header,
+            body.theme-light #console-panel {
+                border-color: #d8e3f0;
+                box-shadow: 0 18px 60px rgba(148, 163, 184, 0.18);
+            }
+            body.theme-light #page-header {
+                background: rgba(255, 255, 255, 0.92);
+            }
+            body.theme-light #console-panel {
+                background: rgba(255, 255, 255, 0.76);
+            }
+            body.theme-light #console-toolbar {
+                border-color: #d8e3f0;
+                background: rgba(241, 245, 249, 0.92);
+            }
+            body.theme-light #logs {
+                background: rgba(248, 250, 252, 0.94);
+            }
+            body.theme-light #logs::-webkit-scrollbar-track {
+                background: rgba(148, 163, 184, 0.12);
+            }
+            body.theme-light #logs::-webkit-scrollbar-thumb {
+                background: rgba(148, 163, 184, 0.55);
+            }
+            body.theme-light .page-title {
+                color: #0f172a !important;
+            }
+            body.theme-light .page-subtitle,
+            body.theme-light .field-label,
+            body.theme-light .panel-title,
+            body.theme-light .footer-item {
+                color: #475569 !important;
+            }
+            body.theme-light .field-hint,
+            body.theme-light .meta-text,
+            body.theme-light .log-timestamp,
+            body.theme-light .initial-log {
+                color: #64748b !important;
+            }
+            body.theme-light .brand-mark {
+                color: #0891b2 !important;
+            }
+            .brand-link {
+                color: inherit;
+                text-decoration: none;
+                transition: opacity 0.2s ease;
+            }
+            .brand-link:hover {
+                opacity: 0.82;
+            }
+            body.theme-light .control-chip,
+            body.theme-light #ws-endpoint,
+            body.theme-light #client-label,
+            body.theme-light #api-key {
+                border-color: #cbd5e1 !important;
+                background: rgba(255, 255, 255, 0.96) !important;
+                color: #0f172a !important;
+            }
+            body.theme-light #save-btn {
+                background: #e2e8f0 !important;
+                color: #0f172a !important;
+            }
+            body.theme-light #save-btn:hover {
+                background: #cbd5e1 !important;
+            }
+            body.theme-light #clear-logs {
+                color: #64748b !important;
+            }
+            body.theme-light #clear-logs:hover {
+                color: #0f172a !important;
+            }
+            body.theme-light .log-entry:hover {
+                background: rgba(226, 232, 240, 0.8);
+            }
+            body.theme-light .log-info {
+                color: #334155 !important;
+            }
+            body.theme-light .log-debug {
+                color: #64748b !important;
+            }
+            body.theme-light .log-warn {
+                color: #b45309 !important;
+            }
+            body.theme-light .log-error {
+                color: #dc2626 !important;
+            }
+        </style>
+    </head>
+    <body class="min-h-screen overflow-hidden bg-slate-950 font-sans text-slate-100 selection:bg-cyan-500/30">
+        <div class="flex h-screen w-full flex-col overflow-hidden">
+            <header
+                id="page-header"
+                class="mb-3 flex flex-none flex-col gap-2 rounded-[1.75rem] border border-slate-800 bg-slate-900/80 p-4 shadow-2xl shadow-slate-950/30 md:gap-2 md:p-5"
             >
-                Browser Session Client
-            </h1>
-            <p
-                class="page-subtitle mt-1.5 max-w-2xl text-xs leading-relaxed text-slate-400 md:text-sm"
-                data-i18n="pageDescription"
+                <div class="flex items-center justify-between gap-3">
+                    <div class="flex min-w-0 items-center gap-2">
+                        <span class="relative flex h-2 w-2">
+                            <span
+                                class="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"
+                            ></span>
+                            <span class="relative inline-flex rounded-full h-2 w-2 bg-cyan-500"></span>
+                        </span>
+                        <a
+                            class="brand-mark brand-link truncate text-xs font-bold text-cyan-400/90"
+                            href="https://github.com/iBUHub/CanvasToAPI"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            >CanvasToAPI</a
+                        >
+                    </div>
+                    <div class="flex shrink-0 items-center gap-2">
+                        <button
+                            id="header-collapse-toggle"
+                            type="button"
+                            class="control-chip rounded-lg px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.2em] transition hover:border-cyan-500/60 hover:text-white"
+                        ></button>
+                        <button
+                            id="locale-toggle"
+                            type="button"
+                            class="control-chip rounded-lg px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.2em] transition hover:border-cyan-500/60 hover:text-white"
+                        ></button>
+                        <button
+                            id="theme-toggle"
+                            type="button"
+                            class="control-chip rounded-lg px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.2em] transition hover:border-cyan-500/60 hover:text-white"
+                        ></button>
+                    </div>
+                </div>
+
+                <div class="min-w-0 -mt-1">
+                    <h1
+                        class="page-title text-2xl font-bold tracking-tight text-white md:text-[2rem] md:leading-tight"
+                        data-i18n="pageTitle"
+                    >
+                        Browser Session Client
+                    </h1>
+                    <p
+                        class="page-subtitle mt-1.5 max-w-2xl text-xs leading-relaxed text-slate-400 md:text-sm"
+                        data-i18n="pageDescription"
+                    >
+                        Proxy Gemini API requests. Save the endpoint, then connect and keep the page open.
+                    </p>
+                </div>
+
+                <div id="header-config-content" class="flex flex-col gap-4">
+                    <div id="header-config-fields" class="grid min-w-0 grid-cols-1 gap-2 md:grid-cols-3 md:gap-4">
+                        <div class="min-w-0 space-y-1.5">
+                            <div class="flex justify-between items-center px-1">
+                                <label
+                                    class="field-label text-[10px] uppercase font-bold tracking-wider text-slate-500"
+                                    for="ws-endpoint"
+                                    data-i18n="serverWsEndpoint"
+                                >
+                                    Server WS Endpoint
+                                </label>
+                            </div>
+                            <input
+                                id="ws-endpoint"
+                                placeholder="ws://127.0.0.1:7861/ws"
+                                class="w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-2 font-mono text-sm text-slate-100 outline-none transition focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500/50"
+                            />
+                        </div>
+
+                        <div class="min-w-0 space-y-1.5">
+                            <div class="flex justify-between items-center px-1">
+                                <label
+                                    class="field-label text-[10px] uppercase font-bold tracking-wider text-slate-500"
+                                    for="client-label"
+                                    data-i18n="browserIdentifier"
+                                >
+                                    Browser Identifier
+                                </label>
+                                <span
+                                    class="field-hint text-[10px] text-slate-600 whitespace-nowrap"
+                                    data-i18n="blankAutoDaily"
+                                    >Blank = auto generate</span
+                                >
+                            </div>
+                            <input
+                                id="client-label"
+                                data-i18n-placeholder="clientLabelPlaceholder"
+                                placeholder="Auto-generate a browser tag"
+                                class="w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-2 font-mono text-sm text-slate-100 outline-none transition focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500/50"
+                            />
+                        </div>
+
+                        <div class="min-w-0 space-y-1.5">
+                            <div class="flex justify-between items-center px-1">
+                                <label
+                                    class="field-label text-[10px] uppercase font-bold tracking-wider text-slate-500"
+                                    for="api-key"
+                                    data-i18n="apiKeyLabel"
+                                >
+                                    API Key
+                                </label>
+                            </div>
+                            <input
+                                id="api-key"
+                                type="password"
+                                data-i18n-placeholder="apiKeyPlaceholder"
+                                placeholder="Same API key used for requests"
+                                class="w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-2 font-mono text-sm text-slate-100 outline-none transition focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500/50"
+                            />
+                        </div>
+                    </div>
+
+                    <div
+                        class="flex flex-col gap-2.5 border-t border-slate-800/80 pt-3 sm:flex-row sm:items-center sm:justify-between"
+                    >
+                        <div class="flex flex-wrap items-center gap-2">
+                            <button
+                                id="save-btn"
+                                class="flex-1 rounded-xl bg-slate-800 px-4 py-2 text-sm font-bold text-slate-300 transition hover:bg-slate-700 active:scale-95 sm:flex-none"
+                                data-i18n="save"
+                            >
+                                Save
+                            </button>
+                            <button
+                                id="connect-btn"
+                                class="mt-0.5 flex-1 rounded-xl bg-cyan-500 px-6 py-2 text-sm font-bold text-slate-950 transition hover:bg-cyan-400 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto sm:min-w-[180px] sm:flex-none"
+                            >
+                                Connect
+                            </button>
+                            <span
+                                id="save-tip"
+                                class="px-1 text-[10px] font-bold text-emerald-400 opacity-0 transition-opacity"
+                                data-i18n="saved"
+                            >
+                                SAVED!
+                            </span>
+                        </div>
+                        <div class="flex items-center justify-between px-1 sm:min-w-[240px] sm:justify-end sm:gap-6">
+                            <div class="flex items-center gap-2">
+                                <span id="status-indicator" class="h-2 w-2 rounded-full bg-amber-500"></span>
+                                <span
+                                    id="status-text"
+                                    class="text-[10px] font-bold uppercase tracking-wide text-amber-500"
+                                    >Disconnected</span
+                                >
+                            </div>
+                            <span class="meta-text text-[10px] font-mono text-slate-600">v0.0.5-stable</span>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <main
+                id="console-panel"
+                class="flex min-h-0 flex-1 flex-col overflow-hidden rounded-[1.75rem] border border-slate-800 bg-black/40 shadow-2xl shadow-slate-950/30 backdrop-blur-sm"
             >
-                Proxy Gemini API requests. Save the endpoint, then connect and keep the page open.
-            </p>
-        </div>
-
-        <div id="header-config-content" class="flex flex-col gap-4">
-            <div id="header-config-fields" class="grid min-w-0 grid-cols-1 gap-2 md:grid-cols-3 md:gap-4">
-                <div class="min-w-0 space-y-1.5">
-                    <div class="flex justify-between items-center px-1">
-                        <label
-                            class="field-label text-[10px] uppercase font-bold tracking-wider text-slate-500"
-                            for="ws-endpoint"
-                            data-i18n="serverWsEndpoint"
+                <div
+                    id="console-toolbar"
+                    class="flex flex-none items-center justify-between border-b border-slate-800 bg-slate-900/40 px-5 py-3 md:px-6"
+                >
+                    <div class="flex items-center gap-3">
+                        <div class="flex gap-1">
+                            <div class="w-2.5 h-2.5 rounded-full bg-slate-700"></div>
+                            <div class="w-2.5 h-2.5 rounded-full bg-slate-700"></div>
+                            <div class="w-2.5 h-2.5 rounded-full bg-slate-700"></div>
+                        </div>
+                        <span
+                            class="panel-title font-mono text-xs font-semibold text-slate-400"
+                            data-i18n="consoleLogsOutput"
+                            >Console Logs Output</span
                         >
-                            Server WS Endpoint
-                        </label>
                     </div>
-                    <input
-                        id="ws-endpoint"
-                        placeholder="ws://127.0.0.1:7861/ws"
-                        class="w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-2 font-mono text-sm text-slate-100 outline-none transition focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500/50"
-                    />
-                </div>
-
-                <div class="min-w-0 space-y-1.5">
-                    <div class="flex justify-between items-center px-1">
-                        <label
-                            class="field-label text-[10px] uppercase font-bold tracking-wider text-slate-500"
-                            for="client-label"
-                            data-i18n="browserIdentifier"
-                        >
-                            Browser Identifier
-                        </label>
-                        <span class="field-hint text-[10px] text-slate-600 whitespace-nowrap" data-i18n="blankAutoDaily">Blank = auto generate</span>
-                    </div>
-                    <input
-                        id="client-label"
-                        data-i18n-placeholder="clientLabelPlaceholder"
-                        placeholder="Auto-generate a browser tag"
-                        class="w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-2 font-mono text-sm text-slate-100 outline-none transition focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500/50"
-                    />
-                </div>
-
-                <div class="min-w-0 space-y-1.5">
-                    <div class="flex justify-between items-center px-1">
-                        <label
-                            class="field-label text-[10px] uppercase font-bold tracking-wider text-slate-500"
-                            for="api-key"
-                            data-i18n="apiKeyLabel"
-                        >
-                            API Key
-                        </label>
-                    </div>
-                    <input
-                        id="api-key"
-                        type="password"
-                        data-i18n-placeholder="apiKeyPlaceholder"
-                        placeholder="Same API key used for requests"
-                        class="w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-2 font-mono text-sm text-slate-100 outline-none transition focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500/50"
-                    />
-                </div>
-            </div>
-
-            <div class="flex flex-col gap-2.5 border-t border-slate-800/80 pt-3 sm:flex-row sm:items-center sm:justify-between">
-                <div class="flex flex-wrap items-center gap-2">
                     <button
-                        id="save-btn"
-                        class="flex-1 rounded-xl bg-slate-800 px-4 py-2 text-sm font-bold text-slate-300 transition hover:bg-slate-700 active:scale-95 sm:flex-none"
-                        data-i18n="save"
+                        id="clear-logs"
+                        class="text-xs font-bold text-slate-500 uppercase tracking-widest hover:text-white transition"
+                        data-i18n="clear"
                     >
-                        Save
+                        Clear
                     </button>
-                    <button
-                        id="connect-btn"
-                        class="mt-0.5 flex-1 rounded-xl bg-cyan-500 px-6 py-2 text-sm font-bold text-slate-950 transition hover:bg-cyan-400 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto sm:min-w-[180px] sm:flex-none"
-                    >
-                        Connect
-                    </button>
-                    <span id="save-tip" class="px-1 text-[10px] font-bold text-emerald-400 opacity-0 transition-opacity" data-i18n="saved">
-                        SAVED!
-                    </span>
                 </div>
-                <div class="flex items-center justify-between px-1 sm:min-w-[240px] sm:justify-end sm:gap-6">
-                    <div class="flex items-center gap-2">
-                        <span id="status-indicator" class="h-2 w-2 rounded-full bg-amber-500"></span>
-                        <span id="status-text" class="text-[10px] font-bold uppercase tracking-wide text-amber-500">Disconnected</span>
+                <div
+                    id="logs"
+                    class="flex-1 space-y-1 overflow-y-auto bg-slate-950/20 p-4 font-mono text-xs leading-relaxed md:p-5"
+                >
+                    <div class="initial-log text-slate-500 italic" data-i18n="initialLog">
+                        Initializing system... awaiting connection input.
                     </div>
-                    <span class="meta-text text-[10px] font-mono text-slate-600">v0.0.5-stable</span>
                 </div>
-            </div>
+            </main>
         </div>
-    </header>
 
-    <main id="console-panel" class="flex min-h-0 flex-1 flex-col overflow-hidden rounded-[1.75rem] border border-slate-800 bg-black/40 shadow-2xl shadow-slate-950/30 backdrop-blur-sm">
-        <div id="console-toolbar" class="flex flex-none items-center justify-between border-b border-slate-800 bg-slate-900/40 px-5 py-3 md:px-6">
-            <div class="flex items-center gap-3">
-                <div class="flex gap-1">
-                    <div class="w-2.5 h-2.5 rounded-full bg-slate-700"></div>
-                    <div class="w-2.5 h-2.5 rounded-full bg-slate-700"></div>
-                    <div class="w-2.5 h-2.5 rounded-full bg-slate-700"></div>
-                </div>
-                <span class="panel-title font-mono text-xs font-semibold text-slate-400" data-i18n="consoleLogsOutput">Console Logs Output</span>
-            </div>
-            <button id="clear-logs" class="text-xs font-bold text-slate-500 uppercase tracking-widest hover:text-white transition" data-i18n="clear">
-                Clear
-            </button>
-        </div>
-        <div id="logs" class="flex-1 space-y-1 overflow-y-auto bg-slate-950/20 p-4 font-mono text-xs leading-relaxed md:p-5">
-            <div class="initial-log text-slate-500 italic" data-i18n="initialLog">Initializing system... awaiting connection input.</div>
-        </div>
-    </main>
+        <script>
+            const DEFAULT_ENDPOINT = "ws://127.0.0.1:7861/ws";
+            const API_KEY_STORAGE_KEY = "canvasToApi.apiKey";
+            const ENDPOINT_STORAGE_KEY = "canvasToApi.wsEndpoint";
+            const CLIENT_LABEL_MODE_STORAGE_KEY = "canvasToApi.clientLabelMode";
+            const CLIENT_LABEL_STORAGE_KEY = "canvasToApi.clientLabel";
+            const AUTO_CLIENT_LABEL_STORAGE_KEY = "canvasToApi.autoClientLabel";
+            const LEGACY_DAILY_CLIENT_LABEL_STORAGE_KEY = "canvasToApi.dailyClientLabel";
+            const LOCALE_STORAGE_KEY = "canvasToApi.locale";
+            const THEME_STORAGE_KEY = "canvasToApi.theme";
+            const SUPPORTED_LOCALES = ["zh-CN", "en-US"];
+            const translations = {
+                "zh-CN": {
+                    apiKeyLabel: "API 密钥",
+                    apiKeyPlaceholder: "输入与请求相同的 API 密钥",
+                    documentTitle: "CanvasToAPI 浏览器客户端 v0.0.2",
+                    pageTitle: "浏览器会话客户端",
+                    pageDescription: "代理 Gemini API 请求。先保存配置，再连接，并保持这个页面处于打开状态。",
+                    serverWsEndpoint: "服务端 WS 地址",
+                    browserIdentifier: "浏览器标识",
+                    blankAutoDaily: "留空 = 自动生成",
+                    clientLabelPlaceholder: "自动生成浏览器标签",
+                    save: "保存",
+                    saved: "已保存",
+                    consoleLogsOutput: "控制台日志输出",
+                    clear: "清空",
+                    initialLog: "系统初始化中，等待输入连接配置。",
+                    statusConnected: "已连接",
+                    statusReconnecting: "重连中",
+                    statusConnecting: "连接中",
+                    statusError: "错误",
+                    statusDisconnected: "未连接",
+                    disconnectFromServer: "断开连接",
+                    stopReconnecting: "停止重连",
+                    connectingButton: "连接中...",
+                    retryConnectNow: "立即重试",
+                    connectToServer: "连接",
+                    switchToEnglish: "切换到英文",
+                    switchToChinese: "切换到中文",
+                    switchToLightTheme: "切换到浅色主题",
+                    switchToDarkTheme: "切换到深色主题",
+                    themeLightShort: "浅色",
+                    themeDarkShort: "深色",
+                    headerConfigHide: "收起",
+                    headerConfigHideTitle: "收起配置",
+                    headerConfigShow: "配置",
+                    headerConfigShowTitle: "展开配置",
+                },
+                "en-US": {
+                    apiKeyLabel: "API Key",
+                    apiKeyPlaceholder: "Enter the same API key used for requests",
+                    documentTitle: "CanvasToAPI Browser Client v0.0.2",
+                    pageTitle: "Browser Session Client",
+                    pageDescription:
+                        "Proxy Gemini API requests. Save the endpoint, then connect and keep the page open.",
+                    serverWsEndpoint: "Server WS Endpoint",
+                    browserIdentifier: "Browser Identifier",
+                    blankAutoDaily: "Blank = auto generate",
+                    clientLabelPlaceholder: "Auto-generate a browser tag",
+                    save: "Save",
+                    saved: "SAVED!",
+                    consoleLogsOutput: "Console Logs Output",
+                    clear: "Clear",
+                    initialLog: "Initializing system... awaiting connection input.",
+                    statusConnected: "Connected",
+                    statusReconnecting: "Reconnecting",
+                    statusConnecting: "Connecting",
+                    statusError: "Error",
+                    statusDisconnected: "Disconnected",
+                    disconnectFromServer: "Disconnect",
+                    stopReconnecting: "Stop Reconnecting",
+                    connectingButton: "Connecting...",
+                    retryConnectNow: "Retry Now",
+                    connectToServer: "Connect",
+                    switchToEnglish: "Switch to English",
+                    switchToChinese: "Switch to Chinese",
+                    switchToLightTheme: "Switch to light theme",
+                    switchToDarkTheme: "Switch to dark theme",
+                    themeLightShort: "Light",
+                    themeDarkShort: "Dark",
+                    headerConfigHide: "Hide",
+                    headerConfigHideTitle: "Hide settings",
+                    headerConfigShow: "Config",
+                    headerConfigShowTitle: "Show settings",
+                },
+            };
 
-</div>
-
-<script>
-    const DEFAULT_ENDPOINT = "ws://127.0.0.1:7861/ws";
-    const API_KEY_STORAGE_KEY = "canvasToApi.apiKey";
-    const ENDPOINT_STORAGE_KEY = "canvasToApi.wsEndpoint";
-    const CLIENT_LABEL_MODE_STORAGE_KEY = "canvasToApi.clientLabelMode";
-    const CLIENT_LABEL_STORAGE_KEY = "canvasToApi.clientLabel";
-    const AUTO_CLIENT_LABEL_STORAGE_KEY = "canvasToApi.autoClientLabel";
-    const LEGACY_DAILY_CLIENT_LABEL_STORAGE_KEY = "canvasToApi.dailyClientLabel";
-    const LOCALE_STORAGE_KEY = "canvasToApi.locale";
-    const THEME_STORAGE_KEY = "canvasToApi.theme";
-    const SUPPORTED_LOCALES = ["zh-CN", "en-US"];
-    const translations = {
-        "zh-CN": {
-            apiKeyLabel: "API 密钥",
-            apiKeyPlaceholder: "输入与请求相同的 API 密钥",
-            documentTitle: "CanvasToAPI 浏览器客户端 v0.0.2",
-            pageTitle: "浏览器会话客户端",
-            pageDescription: "代理 Gemini API 请求。先保存配置，再连接，并保持这个页面处于打开状态。",
-            serverWsEndpoint: "服务端 WS 地址",
-            browserIdentifier: "浏览器标识",
-            blankAutoDaily: "留空 = 自动生成",
-            clientLabelPlaceholder: "自动生成浏览器标签",
-            save: "保存",
-            saved: "已保存",
-            consoleLogsOutput: "控制台日志输出",
-            clear: "清空",
-            initialLog: "系统初始化中，等待输入连接配置。",
-            statusConnected: "已连接",
-            statusReconnecting: "重连中",
-            statusConnecting: "连接中",
-            statusError: "错误",
-            statusDisconnected: "未连接",
-            disconnectFromServer: "断开连接",
-            stopReconnecting: "停止重连",
-            connectingButton: "连接中...",
-            retryConnectNow: "立即重试",
-            connectToServer: "连接",
-            switchToEnglish: "切换到英文",
-            switchToChinese: "切换到中文",
-            switchToLightTheme: "切换到浅色主题",
-            switchToDarkTheme: "切换到深色主题",
-            themeLightShort: "浅色",
-            themeDarkShort: "深色",
-            headerConfigHide: "收起",
-            headerConfigHideTitle: "收起配置",
-            headerConfigShow: "配置",
-            headerConfigShowTitle: "展开配置",
-        },
-        "en-US": {
-            apiKeyLabel: "API Key",
-            apiKeyPlaceholder: "Enter the same API key used for requests",
-            documentTitle: "CanvasToAPI Browser Client v0.0.2",
-            pageTitle: "Browser Session Client",
-            pageDescription: "Proxy Gemini API requests. Save the endpoint, then connect and keep the page open.",
-            serverWsEndpoint: "Server WS Endpoint",
-            browserIdentifier: "Browser Identifier",
-            blankAutoDaily: "Blank = auto generate",
-            clientLabelPlaceholder: "Auto-generate a browser tag",
-            save: "Save",
-            saved: "SAVED!",
-            consoleLogsOutput: "Console Logs Output",
-            clear: "Clear",
-            initialLog: "Initializing system... awaiting connection input.",
-            statusConnected: "Connected",
-            statusReconnecting: "Reconnecting",
-            statusConnecting: "Connecting",
-            statusError: "Error",
-            statusDisconnected: "Disconnected",
-            disconnectFromServer: "Disconnect",
-            stopReconnecting: "Stop Reconnecting",
-            connectingButton: "Connecting...",
-            retryConnectNow: "Retry Now",
-            connectToServer: "Connect",
-            switchToEnglish: "Switch to English",
-            switchToChinese: "Switch to Chinese",
-            switchToLightTheme: "Switch to light theme",
-            switchToDarkTheme: "Switch to dark theme",
-            themeLightShort: "Light",
-            themeDarkShort: "Dark",
-            headerConfigHide: "Hide",
-            headerConfigHideTitle: "Hide settings",
-            headerConfigShow: "Config",
-            headerConfigShowTitle: "Show settings",
-        },
-    };
-
-    const safeStorageGet = key => {
-        try {
-            return localStorage.getItem(key);
-        } catch {
-            return null;
-        }
-    };
-
-    const safeStorageSet = (key, value) => {
-        try {
-            localStorage.setItem(key, value);
-        } catch {}
-    };
-
-    const safeStorageRemove = key => {
-        try {
-            localStorage.removeItem(key);
-        } catch {}
-    };
-    const getPreferredLocale = () => {
-        const savedLocale = safeStorageGet(LOCALE_STORAGE_KEY);
-        if (SUPPORTED_LOCALES.includes(savedLocale)) return savedLocale;
-        const browserLocale = typeof navigator !== "undefined" ? navigator.language : "";
-        return browserLocale?.toLowerCase().startsWith("zh") ? "zh-CN" : "en-US";
-    };
-    const getPreferredTheme = () => {
-        const savedTheme = safeStorageGet(THEME_STORAGE_KEY);
-        if (savedTheme === "light" || savedTheme === "dark") return savedTheme;
-        return window.matchMedia?.("(prefers-color-scheme: light)")?.matches ? "light" : "dark";
-    };
-    const formatMessage = (template, vars = {}) =>
-        String(template || "").replace(/\{(\w+)\}/g, (_, key) => String(vars[key] ?? ""));
-    const t = (key, vars = {}) => {
-        const localePack = translations[currentLocale] || translations["en-US"];
-        const fallbackPack = translations["en-US"];
-        return formatMessage(localePack[key] ?? fallbackPack[key] ?? key, vars);
-    };
-
-    const generateRandomSuffix = (length = 4) =>
-        Array.from(crypto.getRandomValues(new Uint8Array(length)))
-            .map(value => (value % 36).toString(36))
-            .join("")
-            .toUpperCase();
-    const sanitizeApiKey = value => String(value || "").trim();
-    const generateAutoClientLabel = () => `browser-${generateRandomSuffix(8)}`;
-    const sanitizeClientLabel = value => String(value || "").trim().replace(/\s+/g, " ").slice(0, 64);
-
-    const getAutoClientLabel = () => {
-        const savedAutoLabel = sanitizeClientLabel(safeStorageGet(AUTO_CLIENT_LABEL_STORAGE_KEY));
-        if (savedAutoLabel) {
-            return savedAutoLabel;
-        }
-
-        const legacyDailyLabel = sanitizeClientLabel(safeStorageGet(LEGACY_DAILY_CLIENT_LABEL_STORAGE_KEY));
-        if (legacyDailyLabel) {
-            safeStorageSet(AUTO_CLIENT_LABEL_STORAGE_KEY, legacyDailyLabel);
-            return legacyDailyLabel;
-        }
-
-        const newLabel = generateAutoClientLabel();
-        safeStorageSet(AUTO_CLIENT_LABEL_STORAGE_KEY, newLabel);
-        return newLabel;
-    };
-
-    let currentLocale = getPreferredLocale();
-    let currentTheme = getPreferredTheme();
-    let currentApiKey = sanitizeApiKey(safeStorageGet(API_KEY_STORAGE_KEY));
-    let currentEndpoint = safeStorageGet(ENDPOINT_STORAGE_KEY) || DEFAULT_ENDPOINT;
-    let currentClientLabelMode = safeStorageGet(CLIENT_LABEL_MODE_STORAGE_KEY) || "auto";
-    let currentClientLabel =
-        currentClientLabelMode === "manual"
-            ? sanitizeClientLabel(safeStorageGet(CLIENT_LABEL_STORAGE_KEY)) || getAutoClientLabel()
-            : getAutoClientLabel();
-    let currentStatus = "disconnected";
-    let isHeaderConfigCollapsed = false;
-
-    if (currentClientLabelMode === "manual" && !safeStorageGet(CLIENT_LABEL_STORAGE_KEY)) {
-        currentClientLabelMode = "auto";
-    }
-    if (currentClientLabelMode === "daily") {
-        currentClientLabelMode = "auto";
-    }
-
-    const applyTheme = theme => {
-        currentTheme = theme === "light" ? "light" : "dark";
-        document.body.classList.toggle("theme-light", currentTheme === "light");
-        safeStorageSet(THEME_STORAGE_KEY, currentTheme);
-    };
-    const updateHeaderControls = () => {
-        const localeToggle = document.getElementById("locale-toggle");
-        const themeToggle = document.getElementById("theme-toggle");
-        if (localeToggle) {
-            localeToggle.textContent = currentLocale === "zh-CN" ? "EN" : "中";
-            localeToggle.title = currentLocale === "zh-CN" ? t("switchToEnglish") : t("switchToChinese");
-        }
-        if (themeToggle) {
-            themeToggle.textContent = currentTheme === "dark" ? t("themeLightShort") : t("themeDarkShort");
-            themeToggle.title = currentTheme === "dark" ? t("switchToLightTheme") : t("switchToDarkTheme");
-        }
-        const headerCollapseToggle = document.getElementById("header-collapse-toggle");
-        if (headerCollapseToggle) {
-            const isCollapsed = isHeaderConfigCollapsed;
-            headerCollapseToggle.textContent = isCollapsed ? t("headerConfigShow") : t("headerConfigHide");
-            headerCollapseToggle.title = isCollapsed ? t("headerConfigShowTitle") : t("headerConfigHideTitle");
-            headerCollapseToggle.setAttribute("aria-label", headerCollapseToggle.title);
-            headerCollapseToggle.setAttribute("aria-expanded", String(!isCollapsed));
-        }
-    };
-    const applyHeaderCollapseState = () => {
-        const configContent = document.getElementById("header-config-content");
-        const headerCollapseToggle = document.getElementById("header-collapse-toggle");
-        const shouldCollapse = isHeaderConfigCollapsed;
-
-        if (configContent) {
-            configContent.classList.toggle("hidden", shouldCollapse);
-        }
-
-        updateHeaderControls();
-    };
-    const applyI18n = () => {
-        document.documentElement.lang = currentLocale === "zh-CN" ? "zh-CN" : "en-US";
-        document.title = t("documentTitle");
-        document.querySelectorAll("[data-i18n]").forEach(element => {
-            element.textContent = t(element.dataset.i18n);
-        });
-        document.querySelectorAll("[data-i18n-placeholder]").forEach(element => {
-            element.placeholder = t(element.dataset.i18nPlaceholder);
-        });
-        updateHeaderControls();
-    };
-    const setStatus = status => {
-        const textEl = document.getElementById("status-text");
-        const indicatorEl = document.getElementById("status-indicator");
-        const connectBtn = document.getElementById("connect-btn");
-        currentStatus = status;
-
-        textEl.textContent = t(`status${status.charAt(0).toUpperCase()}${status.slice(1)}`);
-        connectBtn.disabled = false;
-
-        if (status === "connected") {
-            textEl.className = "text-[10px] font-bold uppercase tracking-wide text-emerald-400";
-            indicatorEl.className = "h-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.6)]";
-            connectBtn.textContent = t("disconnectFromServer");
-            connectBtn.className = "mt-0.5 flex-1 rounded-xl bg-rose-500 px-6 py-2 text-sm font-bold text-white transition hover:bg-rose-400 active:scale-95 sm:w-auto sm:min-w-[180px] sm:flex-none";
-        } else if (status === "reconnecting") {
-            textEl.className = "text-[10px] font-bold uppercase tracking-wide text-amber-500";
-            indicatorEl.className = "h-2 w-2 rounded-full bg-amber-500 animate-pulse";
-            connectBtn.textContent = t("stopReconnecting");
-            connectBtn.className = "mt-0.5 flex-1 rounded-xl bg-rose-500/80 px-6 py-2 text-sm font-bold text-white transition hover:bg-rose-500 active:scale-95 sm:w-auto sm:min-w-[180px] sm:flex-none";
-        } else if (status === "connecting") {
-            textEl.className = "text-[10px] font-bold uppercase tracking-wide text-amber-500";
-            indicatorEl.className = "h-2 w-2 rounded-full bg-amber-500 animate-pulse";
-            connectBtn.textContent = t("connectingButton");
-            connectBtn.disabled = true;
-        } else if (status === "error") {
-            textEl.className = "text-[10px] font-bold uppercase tracking-wide text-rose-500";
-            indicatorEl.className = "h-2 w-2 rounded-full bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.6)]";
-            connectBtn.textContent = t("retryConnectNow");
-            connectBtn.className = "mt-0.5 flex-1 rounded-xl bg-cyan-500 px-6 py-2 text-sm font-bold text-slate-950 transition hover:bg-cyan-400 active:scale-95 sm:w-auto sm:min-w-[180px] sm:flex-none";
-        } else {
-            textEl.className = "text-[10px] font-bold uppercase tracking-wide text-amber-500";
-            indicatorEl.className = "h-2 w-2 rounded-full bg-amber-500";
-            connectBtn.textContent = t("connectToServer");
-            connectBtn.className = "mt-0.5 flex-1 rounded-xl bg-cyan-500 px-6 py-2 text-sm font-bold text-slate-950 transition hover:bg-cyan-400 active:scale-95 sm:w-auto sm:min-w-[180px] sm:flex-none";
-        }
-    };
-
-    const b64toBlob = (b64Data, contentType = "", sliceSize = 512) => {
-        const byteCharacters = atob(b64Data);
-        const byteArrays = [];
-        for (let offset = 0; offset < byteCharacters.length; offset += sliceSize) {
-            const slice = byteCharacters.slice(offset, offset + sliceSize);
-            const byteNumbers = new Array(slice.length);
-            for (let i = 0; i < slice.length; i++) {
-                byteNumbers[i] = slice.charCodeAt(i);
-            }
-            const byteArray = new Uint8Array(byteNumbers);
-            byteArrays.push(byteArray);
-        }
-        return new Blob(byteArrays, { type: contentType });
-    };
-
-    const Logger = {
-        _log(level, levelName, ...messages) {
-            if (!this.enabled || level < this.currentLevel) return;
-
-            let consolePrefix;
-            if (level === this.LEVELS.INFO) {
-                consolePrefix = "[ProxyClient]";
-            } else {
-                const levelLabel = levelName.charAt(0) + levelName.slice(1).toLowerCase();
-                consolePrefix = `[ProxyClient] ${levelLabel}:`;
-            }
-
-            switch (level) {
-                case this.LEVELS.ERROR:
-                    console.error(consolePrefix, ...messages);
-                    break;
-                case this.LEVELS.WARN:
-                    console.warn(consolePrefix, ...messages);
-                    break;
-                case this.LEVELS.DEBUG:
-                    console.debug(consolePrefix, ...messages);
-                    break;
-                default:
-                    console.log(consolePrefix, ...messages);
-            }
-
-            const logContainer = document.getElementById("logs");
-            if (!logContainer) return;
-
-            const logElement = document.createElement("div");
-            const timeStr = new Date().toLocaleTimeString(currentLocale, {
-                hour: "2-digit",
-                hour12: false,
-                minute: "2-digit",
-                second: "2-digit",
-            });
-
-            let textColorClass = "text-slate-300";
-            if (level === this.LEVELS.ERROR) textColorClass = "text-rose-400";
-            else if (level === this.LEVELS.WARN) textColorClass = "text-amber-300";
-            else if (level === this.LEVELS.DEBUG) textColorClass = "text-slate-500";
-            else if (messages.join(" ").includes("?")) textColorClass = "text-emerald-400";
-
-            const prefix = level === this.LEVELS.INFO ? "" : `[${levelName}] `;
-
-            logElement.className = `log-entry log-${levelName.toLowerCase()} ${textColorClass} break-all rounded px-1 py-0.5 transition-colors duration-150 hover:bg-slate-900/50`;
-            logElement.innerHTML = `<span class="log-timestamp mr-2 text-slate-600">[${timeStr}]</span>${prefix}${messages.join(" ")}`;
-
-            logContainer.appendChild(logElement);
-            logContainer.scrollTop = logContainer.scrollHeight;
-        },
-
-        currentLevel: 1,
-        enabled: true,
-        LEVELS: { DEBUG: 0, ERROR: 3, INFO: 1, WARN: 2 },
-        debug(...messages) {
-            this._log(this.LEVELS.DEBUG, "DEBUG", ...messages);
-        },
-        error(...messages) {
-            this._log(this.LEVELS.ERROR, "ERROR", ...messages);
-        },
-        info(...messages) {
-            this._log(this.LEVELS.INFO, "INFO", ...messages);
-        },
-        output(...messages) {
-            this.info(...messages);
-        },
-        warn(...messages) {
-            this._log(this.LEVELS.WARN, "WARN", ...messages);
-        },
-    };
-
-    document.getElementById("clear-logs").addEventListener("click", () => {
-        document.getElementById("logs").innerHTML = "";
-        Logger.info("Logs cleared.");
-    });
-    class ConnectionManager extends EventTarget {
-        constructor(endpoint = DEFAULT_ENDPOINT, clientLabel = "", apiKey = "") {
-            super();
-            this.endpoint = endpoint;
-            this.apiKey = sanitizeApiKey(apiKey);
-            this.clientLabel = sanitizeClientLabel(clientLabel);
-            this.socket = null;
-            this.isConnected = false;
-            this.isAuthenticated = false;
-            this.reconnectDelay = 5000;
-            this.reconnectAttempts = 0;
-            this.reconnectTimer = null;
-            this.manualDisconnect = false;
-            this.shouldReconnect = true;
-        }
-
-        updateEndpoint(newEndpoint) {
-            Logger.output("Endpoint updated to:", newEndpoint);
-            this.endpoint = newEndpoint;
-            this.reset();
-        }
-
-        updateApiKey(newApiKey) {
-            Logger.output("API key updated.");
-            this.apiKey = sanitizeApiKey(newApiKey);
-            this.reset();
-        }
-
-        updateClientLabel(newClientLabel) {
-            Logger.output("Browser identifier updated to:", newClientLabel);
-            this.clientLabel = sanitizeClientLabel(newClientLabel);
-            this.reset();
-        }
-
-        reset() {
-            this._clearReconnectTimer();
-            this.reconnectAttempts = 0;
-        }
-
-        async establish() {
-            if (this.isConnected) return Promise.resolve();
-
-            const wsUrl = this._buildConnectionUrl();
-            Logger.output(
-                "Connecting to server:",
-                this._maskSensitiveUrl(wsUrl),
-                this.clientLabel ? `(browser identifier: ${this.clientLabel})` : ""
-            );
-            setStatus("connecting");
-
-            return new Promise((resolve, reject) => {
-                let settled = false;
+            const safeStorageGet = key => {
                 try {
-                    this.manualDisconnect = false;
-                    this.shouldReconnect = true;
+                    return localStorage.getItem(key);
+                } catch {
+                    return null;
+                }
+            };
+
+            const safeStorageSet = (key, value) => {
+                try {
+                    localStorage.setItem(key, value);
+                } catch {}
+            };
+
+            const safeStorageRemove = key => {
+                try {
+                    localStorage.removeItem(key);
+                } catch {}
+            };
+            const getPreferredLocale = () => {
+                const savedLocale = safeStorageGet(LOCALE_STORAGE_KEY);
+                if (SUPPORTED_LOCALES.includes(savedLocale)) return savedLocale;
+                const browserLocale = typeof navigator !== "undefined" ? navigator.language : "";
+                return browserLocale?.toLowerCase().startsWith("zh") ? "zh-CN" : "en-US";
+            };
+            const getPreferredTheme = () => {
+                const savedTheme = safeStorageGet(THEME_STORAGE_KEY);
+                if (savedTheme === "light" || savedTheme === "dark") return savedTheme;
+                return window.matchMedia?.("(prefers-color-scheme: light)")?.matches ? "light" : "dark";
+            };
+            const formatMessage = (template, vars = {}) =>
+                String(template || "").replace(/\{(\w+)\}/g, (_, key) => String(vars[key] ?? ""));
+            const t = (key, vars = {}) => {
+                const localePack = translations[currentLocale] || translations["en-US"];
+                const fallbackPack = translations["en-US"];
+                return formatMessage(localePack[key] ?? fallbackPack[key] ?? key, vars);
+            };
+
+            const generateRandomSuffix = (length = 4) =>
+                Array.from(crypto.getRandomValues(new Uint8Array(length)))
+                    .map(value => (value % 36).toString(36))
+                    .join("")
+                    .toUpperCase();
+            const sanitizeApiKey = value => String(value || "").trim();
+            const generateAutoClientLabel = () => `browser-${generateRandomSuffix(8)}`;
+            const sanitizeClientLabel = value =>
+                String(value || "")
+                    .trim()
+                    .replace(/\s+/g, " ")
+                    .slice(0, 64);
+
+            const getAutoClientLabel = () => {
+                const savedAutoLabel = sanitizeClientLabel(safeStorageGet(AUTO_CLIENT_LABEL_STORAGE_KEY));
+                if (savedAutoLabel) {
+                    return savedAutoLabel;
+                }
+
+                const legacyDailyLabel = sanitizeClientLabel(safeStorageGet(LEGACY_DAILY_CLIENT_LABEL_STORAGE_KEY));
+                if (legacyDailyLabel) {
+                    safeStorageSet(AUTO_CLIENT_LABEL_STORAGE_KEY, legacyDailyLabel);
+                    return legacyDailyLabel;
+                }
+
+                const newLabel = generateAutoClientLabel();
+                safeStorageSet(AUTO_CLIENT_LABEL_STORAGE_KEY, newLabel);
+                return newLabel;
+            };
+
+            let currentLocale = getPreferredLocale();
+            let currentTheme = getPreferredTheme();
+            let currentApiKey = sanitizeApiKey(safeStorageGet(API_KEY_STORAGE_KEY));
+            let currentEndpoint = safeStorageGet(ENDPOINT_STORAGE_KEY) || DEFAULT_ENDPOINT;
+            let currentClientLabelMode = safeStorageGet(CLIENT_LABEL_MODE_STORAGE_KEY) || "auto";
+            let currentClientLabel =
+                currentClientLabelMode === "manual"
+                    ? sanitizeClientLabel(safeStorageGet(CLIENT_LABEL_STORAGE_KEY)) || getAutoClientLabel()
+                    : getAutoClientLabel();
+            let currentStatus = "disconnected";
+            let isHeaderConfigCollapsed = false;
+
+            if (currentClientLabelMode === "manual" && !safeStorageGet(CLIENT_LABEL_STORAGE_KEY)) {
+                currentClientLabelMode = "auto";
+            }
+            if (currentClientLabelMode === "daily") {
+                currentClientLabelMode = "auto";
+            }
+
+            const applyTheme = theme => {
+                currentTheme = theme === "light" ? "light" : "dark";
+                document.body.classList.toggle("theme-light", currentTheme === "light");
+                safeStorageSet(THEME_STORAGE_KEY, currentTheme);
+            };
+            const updateHeaderControls = () => {
+                const localeToggle = document.getElementById("locale-toggle");
+                const themeToggle = document.getElementById("theme-toggle");
+                if (localeToggle) {
+                    localeToggle.textContent = currentLocale === "zh-CN" ? "EN" : "中";
+                    localeToggle.title = currentLocale === "zh-CN" ? t("switchToEnglish") : t("switchToChinese");
+                }
+                if (themeToggle) {
+                    themeToggle.textContent = currentTheme === "dark" ? t("themeLightShort") : t("themeDarkShort");
+                    themeToggle.title = currentTheme === "dark" ? t("switchToLightTheme") : t("switchToDarkTheme");
+                }
+                const headerCollapseToggle = document.getElementById("header-collapse-toggle");
+                if (headerCollapseToggle) {
+                    const isCollapsed = isHeaderConfigCollapsed;
+                    headerCollapseToggle.textContent = isCollapsed ? t("headerConfigShow") : t("headerConfigHide");
+                    headerCollapseToggle.title = isCollapsed ? t("headerConfigShowTitle") : t("headerConfigHideTitle");
+                    headerCollapseToggle.setAttribute("aria-label", headerCollapseToggle.title);
+                    headerCollapseToggle.setAttribute("aria-expanded", String(!isCollapsed));
+                }
+            };
+            const applyHeaderCollapseState = () => {
+                const configContent = document.getElementById("header-config-content");
+                const headerCollapseToggle = document.getElementById("header-collapse-toggle");
+                const shouldCollapse = isHeaderConfigCollapsed;
+
+                if (configContent) {
+                    configContent.classList.toggle("hidden", shouldCollapse);
+                }
+
+                updateHeaderControls();
+            };
+            const applyI18n = () => {
+                document.documentElement.lang = currentLocale === "zh-CN" ? "zh-CN" : "en-US";
+                document.title = t("documentTitle");
+                document.querySelectorAll("[data-i18n]").forEach(element => {
+                    element.textContent = t(element.dataset.i18n);
+                });
+                document.querySelectorAll("[data-i18n-placeholder]").forEach(element => {
+                    element.placeholder = t(element.dataset.i18nPlaceholder);
+                });
+                updateHeaderControls();
+            };
+            const setStatus = status => {
+                const textEl = document.getElementById("status-text");
+                const indicatorEl = document.getElementById("status-indicator");
+                const connectBtn = document.getElementById("connect-btn");
+                currentStatus = status;
+
+                textEl.textContent = t(`status${status.charAt(0).toUpperCase()}${status.slice(1)}`);
+                connectBtn.disabled = false;
+
+                if (status === "connected") {
+                    textEl.className = "text-[10px] font-bold uppercase tracking-wide text-emerald-400";
+                    indicatorEl.className = "h-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.6)]";
+                    connectBtn.textContent = t("disconnectFromServer");
+                    connectBtn.className =
+                        "mt-0.5 flex-1 rounded-xl bg-rose-500 px-6 py-2 text-sm font-bold text-white transition hover:bg-rose-400 active:scale-95 sm:w-auto sm:min-w-[180px] sm:flex-none";
+                } else if (status === "reconnecting") {
+                    textEl.className = "text-[10px] font-bold uppercase tracking-wide text-amber-500";
+                    indicatorEl.className = "h-2 w-2 rounded-full bg-amber-500 animate-pulse";
+                    connectBtn.textContent = t("stopReconnecting");
+                    connectBtn.className =
+                        "mt-0.5 flex-1 rounded-xl bg-rose-500/80 px-6 py-2 text-sm font-bold text-white transition hover:bg-rose-500 active:scale-95 sm:w-auto sm:min-w-[180px] sm:flex-none";
+                } else if (status === "connecting") {
+                    textEl.className = "text-[10px] font-bold uppercase tracking-wide text-amber-500";
+                    indicatorEl.className = "h-2 w-2 rounded-full bg-amber-500 animate-pulse";
+                    connectBtn.textContent = t("connectingButton");
+                    connectBtn.disabled = true;
+                } else if (status === "error") {
+                    textEl.className = "text-[10px] font-bold uppercase tracking-wide text-rose-500";
+                    indicatorEl.className = "h-2 w-2 rounded-full bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.6)]";
+                    connectBtn.textContent = t("retryConnectNow");
+                    connectBtn.className =
+                        "mt-0.5 flex-1 rounded-xl bg-cyan-500 px-6 py-2 text-sm font-bold text-slate-950 transition hover:bg-cyan-400 active:scale-95 sm:w-auto sm:min-w-[180px] sm:flex-none";
+                } else {
+                    textEl.className = "text-[10px] font-bold uppercase tracking-wide text-amber-500";
+                    indicatorEl.className = "h-2 w-2 rounded-full bg-amber-500";
+                    connectBtn.textContent = t("connectToServer");
+                    connectBtn.className =
+                        "mt-0.5 flex-1 rounded-xl bg-cyan-500 px-6 py-2 text-sm font-bold text-slate-950 transition hover:bg-cyan-400 active:scale-95 sm:w-auto sm:min-w-[180px] sm:flex-none";
+                }
+            };
+
+            const b64toBlob = (b64Data, contentType = "", sliceSize = 512) => {
+                const byteCharacters = atob(b64Data);
+                const byteArrays = [];
+                for (let offset = 0; offset < byteCharacters.length; offset += sliceSize) {
+                    const slice = byteCharacters.slice(offset, offset + sliceSize);
+                    const byteNumbers = new Array(slice.length);
+                    for (let i = 0; i < slice.length; i++) {
+                        byteNumbers[i] = slice.charCodeAt(i);
+                    }
+                    const byteArray = new Uint8Array(byteNumbers);
+                    byteArrays.push(byteArray);
+                }
+                return new Blob(byteArrays, { type: contentType });
+            };
+
+            const Logger = {
+                _log(level, levelName, ...messages) {
+                    if (!this.enabled || level < this.currentLevel) return;
+
+                    let consolePrefix;
+                    if (level === this.LEVELS.INFO) {
+                        consolePrefix = "[ProxyClient]";
+                    } else {
+                        const levelLabel = levelName.charAt(0) + levelName.slice(1).toLowerCase();
+                        consolePrefix = `[ProxyClient] ${levelLabel}:`;
+                    }
+
+                    switch (level) {
+                        case this.LEVELS.ERROR:
+                            console.error(consolePrefix, ...messages);
+                            break;
+                        case this.LEVELS.WARN:
+                            console.warn(consolePrefix, ...messages);
+                            break;
+                        case this.LEVELS.DEBUG:
+                            console.debug(consolePrefix, ...messages);
+                            break;
+                        default:
+                            console.log(consolePrefix, ...messages);
+                    }
+
+                    const logContainer = document.getElementById("logs");
+                    if (!logContainer) return;
+
+                    const logElement = document.createElement("div");
+                    const timeStr = new Date().toLocaleTimeString(currentLocale, {
+                        hour: "2-digit",
+                        hour12: false,
+                        minute: "2-digit",
+                        second: "2-digit",
+                    });
+
+                    let textColorClass = "text-slate-300";
+                    if (level === this.LEVELS.ERROR) textColorClass = "text-rose-400";
+                    else if (level === this.LEVELS.WARN) textColorClass = "text-amber-300";
+                    else if (level === this.LEVELS.DEBUG) textColorClass = "text-slate-500";
+                    else if (messages.join(" ").includes("?")) textColorClass = "text-emerald-400";
+
+                    const prefix = level === this.LEVELS.INFO ? "" : `[${levelName}] `;
+
+                    logElement.className = `log-entry log-${levelName.toLowerCase()} ${textColorClass} break-all rounded px-1 py-0.5 transition-colors duration-150 hover:bg-slate-900/50`;
+                    logElement.innerHTML = `<span class="log-timestamp mr-2 text-slate-600">[${timeStr}]</span>${prefix}${messages.join(" ")}`;
+
+                    logContainer.appendChild(logElement);
+                    logContainer.scrollTop = logContainer.scrollHeight;
+                },
+
+                currentLevel: 1,
+                enabled: true,
+                LEVELS: { DEBUG: 0, ERROR: 3, INFO: 1, WARN: 2 },
+                debug(...messages) {
+                    this._log(this.LEVELS.DEBUG, "DEBUG", ...messages);
+                },
+                error(...messages) {
+                    this._log(this.LEVELS.ERROR, "ERROR", ...messages);
+                },
+                info(...messages) {
+                    this._log(this.LEVELS.INFO, "INFO", ...messages);
+                },
+                output(...messages) {
+                    this.info(...messages);
+                },
+                warn(...messages) {
+                    this._log(this.LEVELS.WARN, "WARN", ...messages);
+                },
+            };
+
+            document.getElementById("clear-logs").addEventListener("click", () => {
+                document.getElementById("logs").innerHTML = "";
+                Logger.info("Logs cleared.");
+            });
+            class ConnectionManager extends EventTarget {
+                constructor(endpoint = DEFAULT_ENDPOINT, clientLabel = "", apiKey = "") {
+                    super();
+                    this.endpoint = endpoint;
+                    this.apiKey = sanitizeApiKey(apiKey);
+                    this.clientLabel = sanitizeClientLabel(clientLabel);
+                    this.socket = null;
                     this.isConnected = false;
                     this.isAuthenticated = false;
-                    this.socket = new WebSocket(wsUrl);
+                    this.reconnectDelay = 5000;
+                    this.reconnectAttempts = 0;
+                    this.reconnectTimer = null;
+                    this.manualDisconnect = false;
+                    this.shouldReconnect = true;
+                }
 
-                    this.socket.addEventListener("open", () => {
-                        Logger.output("WebSocket connected, waiting for authentication...");
-                        Logger.output("✅ Connection successful!");
-                        this._sendAuthMessage();
-                        setStatus("connecting");
-                    });
+                updateEndpoint(newEndpoint) {
+                    Logger.output("Endpoint updated to:", newEndpoint);
+                    this.endpoint = newEndpoint;
+                    this.reset();
+                }
 
-                    this.socket.addEventListener("close", () => {
-                        this.isConnected = false;
-                        this.isAuthenticated = false;
-                        const shouldAutoReconnect = !this.manualDisconnect && this.shouldReconnect;
-                        const closeMessage = this.manualDisconnect
-                            ? "Connection closed by user."
-                            : shouldAutoReconnect
-                                ? "Connection disconnected, preparing to reconnect..."
-                                : "Connection disconnected.";
-                        Logger.output(closeMessage);
-                        setStatus(shouldAutoReconnect ? "reconnecting" : this.manualDisconnect ? "disconnected" : "error");
-                        this.dispatchEvent(new CustomEvent("disconnected"));
-                        if (shouldAutoReconnect) {
-                            this._scheduleReconnect();
-                        }
-                    });
+                updateApiKey(newApiKey) {
+                    Logger.output("API key updated.");
+                    this.apiKey = sanitizeApiKey(newApiKey);
+                    this.reset();
+                }
 
-                    this.socket.addEventListener("error", error => {
-                        Logger.output(
-                            `WebSocket connection error. Please check if the server is reachable at ${this.endpoint}`
-                        );
-                        setStatus("error");
-                        this.dispatchEvent(new CustomEvent("error", { detail: error }));
-                        if (!settled) {
-                            settled = true;
-                            reject(error);
-                        }
-                    });
+                updateClientLabel(newClientLabel) {
+                    Logger.output("Browser identifier updated to:", newClientLabel);
+                    this.clientLabel = sanitizeClientLabel(newClientLabel);
+                    this.reset();
+                }
 
-                    this.socket.addEventListener("message", event => {
+                reset() {
+                    this._clearReconnectTimer();
+                    this.reconnectAttempts = 0;
+                }
+
+                async establish() {
+                    if (this.isConnected) return Promise.resolve();
+
+                    const wsUrl = this._buildConnectionUrl();
+                    Logger.output(
+                        "Connecting to server:",
+                        this._maskSensitiveUrl(wsUrl),
+                        this.clientLabel ? `(browser identifier: ${this.clientLabel})` : ""
+                    );
+                    setStatus("connecting");
+
+                    return new Promise((resolve, reject) => {
+                        let settled = false;
                         try {
-                            const payload = JSON.parse(event.data);
-                            if (payload?.event_type === "auth_ack") {
-                                if (payload.authorized) {
-                                    this.isConnected = true;
-                                    this.isAuthenticated = true;
-                                    this.reconnectAttempts = 0;
-                                    Logger.output("Connection authenticated successfully!");
-                                    setStatus("connected");
-                                    this.dispatchEvent(new CustomEvent("connected"));
-                                    if (!settled) {
-                                        settled = true;
-                                        resolve();
+                            this.manualDisconnect = false;
+                            this.shouldReconnect = true;
+                            this.isConnected = false;
+                            this.isAuthenticated = false;
+                            this.socket = new WebSocket(wsUrl);
+
+                            this.socket.addEventListener("open", () => {
+                                Logger.output("WebSocket connected, waiting for authentication...");
+                                Logger.output("✅ Connection successful!");
+                                this._sendAuthMessage();
+                                setStatus("connecting");
+                            });
+
+                            this.socket.addEventListener("close", () => {
+                                this.isConnected = false;
+                                this.isAuthenticated = false;
+                                const shouldAutoReconnect = !this.manualDisconnect && this.shouldReconnect;
+                                const closeMessage = this.manualDisconnect
+                                    ? "Connection closed by user."
+                                    : shouldAutoReconnect
+                                      ? "Connection disconnected, preparing to reconnect..."
+                                      : "Connection disconnected.";
+                                Logger.output(closeMessage);
+                                setStatus(
+                                    shouldAutoReconnect
+                                        ? "reconnecting"
+                                        : this.manualDisconnect
+                                          ? "disconnected"
+                                          : "error"
+                                );
+                                this.dispatchEvent(new CustomEvent("disconnected"));
+                                if (shouldAutoReconnect) {
+                                    this._scheduleReconnect();
+                                }
+                            });
+
+                            this.socket.addEventListener("error", error => {
+                                Logger.output(
+                                    `WebSocket connection error. Please check if the server is reachable at ${this.endpoint}`
+                                );
+                                setStatus("error");
+                                this.dispatchEvent(new CustomEvent("error", { detail: error }));
+                                if (!settled) {
+                                    settled = true;
+                                    reject(error);
+                                }
+                            });
+
+                            this.socket.addEventListener("message", event => {
+                                try {
+                                    const payload = JSON.parse(event.data);
+                                    if (payload?.event_type === "auth_ack") {
+                                        if (payload.authorized) {
+                                            this.isConnected = true;
+                                            this.isAuthenticated = true;
+                                            this.reconnectAttempts = 0;
+                                            Logger.output("Connection authenticated successfully!");
+                                            setStatus("connected");
+                                            this.dispatchEvent(new CustomEvent("connected"));
+                                            if (!settled) {
+                                                settled = true;
+                                                resolve();
+                                            }
+                                        } else {
+                                            this.isConnected = false;
+                                            this.isAuthenticated = false;
+                                            this.shouldReconnect = false;
+                                            Logger.output(
+                                                `Authentication failed: ${payload.message || "invalid API key or client label"}`
+                                            );
+                                            setStatus("error");
+                                            if (this.socket && this.socket.readyState === WebSocket.OPEN) {
+                                                this.socket.close();
+                                            }
+                                            if (!settled) {
+                                                settled = true;
+                                                reject(new Error(payload.message || "WebSocket authentication failed"));
+                                            }
+                                        }
+                                        return;
                                     }
-                                } else {
-                                    this.isConnected = false;
-                                    this.isAuthenticated = false;
-                                    this.shouldReconnect = false;
-                                    Logger.output(
-                                        `Authentication failed: ${payload.message || "invalid API key or client label"}`
-                                    );
-                                    setStatus("error");
-                                    if (this.socket && this.socket.readyState === WebSocket.OPEN) {
-                                        this.socket.close();
+                                } catch {}
+
+                                this.dispatchEvent(new CustomEvent("message", { detail: event.data }));
+                            });
+                        } catch (e) {
+                            Logger.output(
+                                "WebSocket initialization failed. Please check address or browser security policy.",
+                                e.message
+                            );
+                            setStatus("error");
+                            reject(e);
+                        }
+                    });
+                }
+
+                disconnect() {
+                    this.manualDisconnect = true;
+                    this.shouldReconnect = false;
+                    this.reset();
+                    if (this.socket) {
+                        this.socket.close();
+                    }
+                }
+
+                transmit(data) {
+                    if (!this.isConnected || !this.isAuthenticated || !this.socket) {
+                        Logger.output("Cannot send data: Connection not established");
+                        return false;
+                    }
+                    this.socket.send(JSON.stringify(data));
+                    return true;
+                }
+
+                _clearReconnectTimer() {
+                    if (this.reconnectTimer) {
+                        clearTimeout(this.reconnectTimer);
+                        this.reconnectTimer = null;
+                    }
+                }
+
+                _scheduleReconnect() {
+                    this.reconnectAttempts++;
+                    this._clearReconnectTimer();
+                    this.reconnectTimer = setTimeout(() => {
+                        Logger.output(`Attempting reconnection ${this.reconnectAttempts} attempt...`);
+                        this.establish().catch(() => {});
+                    }, this.reconnectDelay);
+                }
+
+                _buildConnectionUrl() {
+                    const wsUrl = new URL(this.endpoint, window.location.href);
+                    wsUrl.search = "";
+                    return wsUrl.toString();
+                }
+
+                _sendAuthMessage() {
+                    if (!this.socket || this.socket.readyState !== WebSocket.OPEN) {
+                        return;
+                    }
+
+                    this.socket.send(
+                        JSON.stringify({
+                            apiKey: this.apiKey,
+                            clientLabel: this.clientLabel,
+                            event_type: "authenticate",
+                        })
+                    );
+                }
+
+                _maskSensitiveUrl(url) {
+                    try {
+                        const maskedUrl = new URL(url);
+                        if (maskedUrl.searchParams.has("key")) {
+                            maskedUrl.searchParams.set("key", "***");
+                        }
+                        return maskedUrl.toString();
+                    } catch {
+                        return url;
+                    }
+                }
+            }
+
+            class RequestProcessor {
+                constructor() {
+                    this.activeOperations = new Map();
+                    this.cancelledAttempts = new Set();
+                    this.targetDomain = "generativelanguage.googleapis.com";
+                }
+
+                _normalizeAttemptId(operationId, requestAttemptId) {
+                    return requestAttemptId || `${operationId}:attempt:legacy`;
+                }
+
+                _getAttemptKey(operationId, requestAttemptId) {
+                    return `${operationId}::${this._normalizeAttemptId(operationId, requestAttemptId)}`;
+                }
+
+                execute(requestSpec, operationId) {
+                    const requestAttemptId = this._normalizeAttemptId(operationId, requestSpec.request_attempt_id);
+                    const attemptKey = this._getAttemptKey(operationId, requestAttemptId);
+
+                    const existingOperation = this.activeOperations.get(operationId);
+                    if (existingOperation) {
+                        Logger.debug(`Aborting existing operation #${operationId} before starting new attempt`);
+                        existingOperation.abortController.abort();
+                    }
+
+                    if (this.cancelledAttempts.has(attemptKey)) {
+                        Logger.debug(
+                            `Clearing stale cancellation flag for operation #${operationId} attempt ${requestAttemptId}`
+                        );
+                        this.cancelledAttempts.delete(attemptKey);
+                    }
+
+                    const IDLE_TIMEOUT_DURATION = 300000;
+                    const abortController = new AbortController();
+                    const activeOperation = { abortController, requestAttemptId };
+                    this.activeOperations.set(operationId, activeOperation);
+
+                    let timeoutId = null;
+
+                    const startIdleTimeout = () =>
+                        new Promise((_, reject) => {
+                            timeoutId = setTimeout(() => {
+                                const error = new Error(
+                                    `Timeout: ${IDLE_TIMEOUT_DURATION / 1000} seconds without receiving any data`
+                                );
+                                abortController.abort();
+                                reject(error);
+                            }, IDLE_TIMEOUT_DURATION);
+                        });
+
+                    const cancelTimeout = () => {
+                        if (timeoutId) {
+                            clearTimeout(timeoutId);
+                            timeoutId = null;
+                        }
+                    };
+
+                    const attemptPromise = (async () => {
+                        try {
+                            Logger.debug("Executing request:", requestSpec.method, requestSpec.path);
+
+                            const requestUrl = this._constructUrl(requestSpec);
+                            const requestConfig = this._buildRequestConfig(requestSpec, abortController.signal);
+
+                            const response = await fetch(requestUrl, requestConfig);
+
+                            if (!response.ok) {
+                                const errorBody = await response.text();
+                                const error = new Error(
+                                    `Google API returned error: ${response.status} ${response.statusText} ${errorBody}`
+                                );
+                                error.status = response.status;
+                                throw error;
+                            }
+                            cancelTimeout();
+                            return response;
+                        } catch (error) {
+                            cancelTimeout();
+                            throw error;
+                        }
+                    })();
+
+                    attemptPromise.catch(() => {});
+
+                    const responsePromise = Promise.race([attemptPromise, startIdleTimeout()]);
+
+                    return { abortController, attemptKey, cancelTimeout, requestAttemptId, responsePromise };
+                }
+
+                cancelAllOperations() {
+                    this.activeOperations.forEach(operation => operation.abortController.abort());
+                    this.activeOperations.clear();
+                }
+
+                _constructUrl(requestSpec) {
+                    let pathAndQuery = requestSpec.url;
+
+                    if (!pathAndQuery) {
+                        const pathSegment = requestSpec.path || "";
+                        const queryParams = new URLSearchParams(requestSpec.query_params);
+
+                        if (
+                            requestSpec.streaming_mode === "fake" &&
+                            queryParams.has("alt") &&
+                            queryParams.get("alt") === "sse"
+                        ) {
+                            queryParams.delete("alt");
+                        }
+
+                        let finalPath = pathSegment;
+                        if (requestSpec.streaming_mode === "fake" && finalPath.includes(":streamGenerateContent")) {
+                            finalPath = finalPath.replace(":streamGenerateContent", ":generateContent");
+                        }
+
+                        const queryString = queryParams.toString();
+                        pathAndQuery = `${finalPath}${queryString ? "?" + queryString : ""}`;
+                    }
+
+                    if (pathAndQuery.match(/^https?:\/\//)) {
+                        try {
+                            const urlObj = new URL(pathAndQuery);
+                            const originalUrl = pathAndQuery;
+                            pathAndQuery = urlObj.pathname + urlObj.search;
+                            Logger.output(`Rewriting absolute URL: ${originalUrl} -> ${pathAndQuery}`);
+                        } catch (e) {
+                            Logger.output("URL parsing warning:", e.message);
+                        }
+                    }
+
+                    let targetHost = this.targetDomain;
+                    if (pathAndQuery.includes("__proxy_host__=")) {
+                        try {
+                            const tempUrl = new URL(pathAndQuery, "http://dummy");
+                            const params = tempUrl.searchParams;
+                            if (params.has("__proxy_host__")) {
+                                targetHost = params.get("__proxy_host__");
+                                params.delete("__proxy_host__");
+                                pathAndQuery = tempUrl.pathname + tempUrl.search;
+                                Logger.debug(`Dynamically switching target host: ${targetHost}`);
+                            }
+                        } catch (e) {
+                            Logger.output("Failed to parse proxy host:", e.message);
+                        }
+                    }
+
+                    const cleanPath = pathAndQuery.replace(/^\/+/, "");
+                    const finalUrl = `https://${targetHost}/${cleanPath}`;
+                    Logger.debug(`Constructed URL: ${pathAndQuery} -> ${finalUrl}`);
+                    return finalUrl;
+                }
+                _buildRequestConfig(requestSpec, signal) {
+                    const config = {
+                        headers: this._sanitizeHeaders(requestSpec.headers),
+                        method: requestSpec.method,
+                        signal,
+                    };
+
+                    if (["POST", "PUT", "PATCH"].includes(requestSpec.method)) {
+                        if (!requestSpec.is_generative && requestSpec.body_b64) {
+                            const contentType = requestSpec.headers?.["content-type"] || "";
+                            config.body = b64toBlob(requestSpec.body_b64, contentType);
+                            Logger.output("Using binary body (Base64 decoded) for non-generative request");
+                        } else if (requestSpec.body) {
+                            try {
+                                const bodyObj = JSON.parse(requestSpec.body);
+
+                                const isImageModel =
+                                    requestSpec.path.includes("-image") || requestSpec.path.includes("imagen");
+                                const isEmbeddingModel = requestSpec.path.includes("embedding");
+                                const isTtsModel = requestSpec.path.includes("tts");
+
+                                if (isImageModel || isEmbeddingModel || isTtsModel) {
+                                    const incompatibleKeys = ["toolConfig", "tool_config", "toolChoice", "tools"];
+                                    incompatibleKeys.forEach(key => {
+                                        if (Object.prototype.hasOwnProperty.call(bodyObj, key)) delete bodyObj[key];
+                                    });
+                                    if (bodyObj.generationConfig?.thinkingConfig)
+                                        delete bodyObj.generationConfig.thinkingConfig;
+                                    if (bodyObj.systemInstruction) delete bodyObj.systemInstruction;
+                                    if (bodyObj.generationConfig?.response_mime_type)
+                                        delete bodyObj.generationConfig.response_mime_type;
+                                    if (bodyObj.generationConfig?.responseMimeType)
+                                        delete bodyObj.generationConfig.responseMimeType;
+                                }
+
+                                if (isTtsModel) {
+                                    if (!bodyObj.generationConfig) bodyObj.generationConfig = {};
+                                    bodyObj.generationConfig.responseModalities = ["AUDIO"];
+                                    Logger.output("TTS model detected, setting responseModalities to AUDIO");
+                                } else if (isEmbeddingModel) {
+                                    if (bodyObj.generationConfig?.responseModalities)
+                                        delete bodyObj.generationConfig.responseModalities;
+                                }
+
+                                const isComputerUseModel = requestSpec.path.includes("computer-use");
+                                if (isComputerUseModel) {
+                                    const incompatibleKeys = ["tool_config", "toolChoice", "tools"];
+                                    incompatibleKeys.forEach(key => {
+                                        if (Object.prototype.hasOwnProperty.call(bodyObj, key)) delete bodyObj[key];
+                                    });
+                                    if (bodyObj.generationConfig?.responseModalities)
+                                        delete bodyObj.generationConfig.responseModalities;
+                                }
+
+                                const isRoboticsModel = requestSpec.path.includes("robotics");
+                                if (isRoboticsModel) {
+                                    if (Array.isArray(bodyObj.tools)) {
+                                        bodyObj.tools = bodyObj.tools.filter(t => !t.googleSearch && !t.urlContext);
+                                        if (bodyObj.tools.length === 0) delete bodyObj.tools;
                                     }
-                                    if (!settled) {
-                                        settled = true;
-                                        reject(new Error(payload.message || "WebSocket authentication failed"));
+                                    if (bodyObj.generationConfig?.responseModalities)
+                                        delete bodyObj.generationConfig.responseModalities;
+                                }
+
+                                const isGemini2 = requestSpec.path.match(/\/models\/gemini-2/);
+                                const isJsonMode =
+                                    bodyObj.generationConfig?.responseMimeType === "application/json" ||
+                                    bodyObj.generationConfig?.response_mime_type === "application/json";
+
+                                if (isGemini2 && isJsonMode) {
+                                    const incompatibleKeys = ["toolConfig", "tool_config", "toolChoice", "tools"];
+                                    let keysRemoved = 0;
+                                    incompatibleKeys.forEach(key => {
+                                        if (Object.prototype.hasOwnProperty.call(bodyObj, key)) {
+                                            delete bodyObj[key];
+                                            keysRemoved++;
+                                        }
+                                    });
+                                    if (keysRemoved > 0) {
+                                        Logger.output(
+                                            "Gemini 2/2.5 + JSON mode detected, automatically filtering tool parameter to prevent API error"
+                                        );
                                     }
                                 }
-                                return;
+
+                                if (bodyObj.generationConfig?.thinkingConfig?.thinkingLevel) {
+                                    bodyObj.generationConfig.thinkingConfig.thinkingLevel = String(
+                                        bodyObj.generationConfig.thinkingConfig.thinkingLevel
+                                    ).toUpperCase();
+                                }
+
+                                if (bodyObj.generationConfig?.responseModalities) {
+                                    if (Array.isArray(bodyObj.generationConfig.responseModalities)) {
+                                        bodyObj.generationConfig.responseModalities =
+                                            bodyObj.generationConfig.responseModalities.map(m =>
+                                                typeof m === "string" ? m.toUpperCase() : m
+                                            );
+                                    } else if (typeof bodyObj.generationConfig.responseModalities === "string") {
+                                        bodyObj.generationConfig.responseModalities = [
+                                            bodyObj.generationConfig.responseModalities.toUpperCase(),
+                                        ];
+                                    }
+                                }
+
+                                config.body = JSON.stringify(bodyObj);
+                            } catch (e) {
+                                Logger.output("Error occurred while processing request body:", e.message);
+                                config.body = requestSpec.body;
                             }
-                        } catch {}
+                        }
+                    }
 
-                        this.dispatchEvent(new CustomEvent("message", { detail: event.data }));
-                    });
-                } catch (e) {
-                    Logger.output(
-                        "WebSocket initialization failed. Please check address or browser security policy.",
-                        e.message
-                    );
-                    setStatus("error");
-                    reject(e);
+                    return config;
                 }
-            });
-        }
 
-        disconnect() {
-            this.manualDisconnect = true;
-            this.shouldReconnect = false;
-            this.reset();
-            if (this.socket) {
-                this.socket.close();
-            }
-        }
-
-        transmit(data) {
-            if (!this.isConnected || !this.isAuthenticated || !this.socket) {
-                Logger.output("Cannot send data: Connection not established");
-                return false;
-            }
-            this.socket.send(JSON.stringify(data));
-            return true;
-        }
-
-        _clearReconnectTimer() {
-            if (this.reconnectTimer) {
-                clearTimeout(this.reconnectTimer);
-                this.reconnectTimer = null;
-            }
-        }
-
-        _scheduleReconnect() {
-            this.reconnectAttempts++;
-            this._clearReconnectTimer();
-            this.reconnectTimer = setTimeout(() => {
-                Logger.output(`Attempting reconnection ${this.reconnectAttempts} attempt...`);
-                this.establish().catch(() => {});
-            }, this.reconnectDelay);
-        }
-
-        _buildConnectionUrl() {
-            const wsUrl = new URL(this.endpoint, window.location.href);
-            wsUrl.search = "";
-            return wsUrl.toString();
-        }
-
-        _sendAuthMessage() {
-            if (!this.socket || this.socket.readyState !== WebSocket.OPEN) {
-                return;
-            }
-
-            this.socket.send(JSON.stringify({
-                apiKey: this.apiKey,
-                clientLabel: this.clientLabel,
-                event_type: "authenticate",
-            }));
-        }
-
-        _maskSensitiveUrl(url) {
-            try {
-                const maskedUrl = new URL(url);
-                if (maskedUrl.searchParams.has("key")) {
-                    maskedUrl.searchParams.set("key", "***");
+                _sanitizeHeaders(headers) {
+                    const sanitized = { ...(headers || {}) };
+                    const forbiddenHeaders = [
+                        "host",
+                        "connection",
+                        "content-length",
+                        "origin",
+                        "referer",
+                        "user-agent",
+                        "sec-fetch-mode",
+                        "sec-fetch-site",
+                        "sec-fetch-dest",
+                    ];
+                    forbiddenHeaders.forEach(h => delete sanitized[h]);
+                    return sanitized;
                 }
-                return maskedUrl.toString();
-            } catch {
-                return url;
-            }
-        }
-    }
 
-    class RequestProcessor {
-        constructor() {
-            this.activeOperations = new Map();
-            this.cancelledAttempts = new Set();
-            this.targetDomain = "generativelanguage.googleapis.com";
-        }
-
-        _normalizeAttemptId(operationId, requestAttemptId) {
-            return requestAttemptId || `${operationId}:attempt:legacy`;
-        }
-
-        _getAttemptKey(operationId, requestAttemptId) {
-            return `${operationId}::${this._normalizeAttemptId(operationId, requestAttemptId)}`;
-        }
-
-        execute(requestSpec, operationId) {
-            const requestAttemptId = this._normalizeAttemptId(operationId, requestSpec.request_attempt_id);
-            const attemptKey = this._getAttemptKey(operationId, requestAttemptId);
-
-            const existingOperation = this.activeOperations.get(operationId);
-            if (existingOperation) {
-                Logger.debug(`Aborting existing operation #${operationId} before starting new attempt`);
-                existingOperation.abortController.abort();
-            }
-
-            if (this.cancelledAttempts.has(attemptKey)) {
-                Logger.debug(`Clearing stale cancellation flag for operation #${operationId} attempt ${requestAttemptId}`);
-                this.cancelledAttempts.delete(attemptKey);
-            }
-
-            const IDLE_TIMEOUT_DURATION = 300000;
-            const abortController = new AbortController();
-            const activeOperation = { abortController, requestAttemptId };
-            this.activeOperations.set(operationId, activeOperation);
-
-            let timeoutId = null;
-
-            const startIdleTimeout = () =>
-                new Promise((_, reject) => {
-                    timeoutId = setTimeout(() => {
-                        const error = new Error(`Timeout: ${IDLE_TIMEOUT_DURATION / 1000} seconds without receiving any data`);
-                        abortController.abort();
-                        reject(error);
-                    }, IDLE_TIMEOUT_DURATION);
-                });
-
-            const cancelTimeout = () => {
-                if (timeoutId) {
-                    clearTimeout(timeoutId);
-                    timeoutId = null;
+                cancelOperation(operationId, requestAttemptId) {
+                    const normalizedAttemptId = this._normalizeAttemptId(operationId, requestAttemptId);
+                    const attemptKey = this._getAttemptKey(operationId, normalizedAttemptId);
+                    this.cancelledAttempts.add(attemptKey);
+                    const activeOperation = this.activeOperations.get(operationId);
+                    if (activeOperation && activeOperation.requestAttemptId === normalizedAttemptId) {
+                        Logger.output(
+                            `Received cancel instruction, aborting operation #${operationId} (attempt ${normalizedAttemptId})...`
+                        );
+                        activeOperation.abortController.abort();
+                    } else if (activeOperation) {
+                        Logger.debug(
+                            `Ignoring stale cancel for operation #${operationId}: expected attempt ${activeOperation.requestAttemptId}, got ${normalizedAttemptId}`
+                        );
+                    }
                 }
-            };
+            }
 
-            const attemptPromise = (async () => {
-                try {
-                    Logger.debug("Executing request:", requestSpec.method, requestSpec.path);
+            class ProxySystem extends EventTarget {
+                constructor(websocketEndpoint, clientLabel = "", apiKey = "") {
+                    super();
+                    this.connectionManager = new ConnectionManager(websocketEndpoint, clientLabel, apiKey);
+                    this.requestProcessor = new RequestProcessor();
+                    this._setupEventHandlers();
+                }
 
-                    const requestUrl = this._constructUrl(requestSpec);
-                    const requestConfig = this._buildRequestConfig(requestSpec, abortController.signal);
-
-                    const response = await fetch(requestUrl, requestConfig);
-
-                    if (!response.ok) {
-                        const errorBody = await response.text();
-                        const error = new Error(`Google API returned error: ${response.status} ${response.statusText} ${errorBody}`);
-                        error.status = response.status;
+                async initialize() {
+                    Logger.output("System initializing...");
+                    try {
+                        await this.connectionManager.establish();
+                        Logger.output("System initialization complete, waiting for server instructions...");
+                        this.dispatchEvent(new CustomEvent("ready"));
+                    } catch (error) {
+                        Logger.output("System initialization failed: " + error.message);
+                        this.dispatchEvent(new CustomEvent("error", { detail: error }));
                         throw error;
                     }
-                    cancelTimeout();
-                    return response;
-                } catch (error) {
-                    cancelTimeout();
-                    throw error;
-                }
-            })();
-
-            attemptPromise.catch(() => {});
-
-            const responsePromise = Promise.race([attemptPromise, startIdleTimeout()]);
-
-            return { abortController, attemptKey, cancelTimeout, requestAttemptId, responsePromise };
-        }
-
-        cancelAllOperations() {
-            this.activeOperations.forEach(operation => operation.abortController.abort());
-            this.activeOperations.clear();
-        }
-
-        _constructUrl(requestSpec) {
-            let pathAndQuery = requestSpec.url;
-
-            if (!pathAndQuery) {
-                const pathSegment = requestSpec.path || "";
-                const queryParams = new URLSearchParams(requestSpec.query_params);
-
-                if (requestSpec.streaming_mode === "fake" && queryParams.has("alt") && queryParams.get("alt") === "sse") {
-                    queryParams.delete("alt");
                 }
 
-                let finalPath = pathSegment;
-                if (requestSpec.streaming_mode === "fake" && finalPath.includes(":streamGenerateContent")) {
-                    finalPath = finalPath.replace(":streamGenerateContent", ":generateContent");
+                _setupEventHandlers() {
+                    this.connectionManager.addEventListener("message", e => this._handleIncomingMessage(e.detail));
+                    this.connectionManager.addEventListener("disconnected", () =>
+                        this.requestProcessor.cancelAllOperations()
+                    );
                 }
 
-                const queryString = queryParams.toString();
-                pathAndQuery = `${finalPath}${queryString ? "?" + queryString : ""}`;
-            }
-
-            if (pathAndQuery.match(/^https?:\/\//)) {
-                try {
-                    const urlObj = new URL(pathAndQuery);
-                    const originalUrl = pathAndQuery;
-                    pathAndQuery = urlObj.pathname + urlObj.search;
-                    Logger.output(`Rewriting absolute URL: ${originalUrl} -> ${pathAndQuery}`);
-                } catch (e) {
-                    Logger.output("URL parsing warning:", e.message);
-                }
-            }
-
-            let targetHost = this.targetDomain;
-            if (pathAndQuery.includes("__proxy_host__=")) {
-                try {
-                    const tempUrl = new URL(pathAndQuery, "http://dummy");
-                    const params = tempUrl.searchParams;
-                    if (params.has("__proxy_host__")) {
-                        targetHost = params.get("__proxy_host__");
-                        params.delete("__proxy_host__");
-                        pathAndQuery = tempUrl.pathname + tempUrl.search;
-                        Logger.debug(`Dynamically switching target host: ${targetHost}`);
-                    }
-                } catch (e) {
-                    Logger.output("Failed to parse proxy host:", e.message);
-                }
-            }
-
-            const cleanPath = pathAndQuery.replace(/^\/+/, "");
-            const finalUrl = `https://${targetHost}/${cleanPath}`;
-            Logger.debug(`Constructed URL: ${pathAndQuery} -> ${finalUrl}`);
-            return finalUrl;
-        }
-        _buildRequestConfig(requestSpec, signal) {
-            const config = {
-                headers: this._sanitizeHeaders(requestSpec.headers),
-                method: requestSpec.method,
-                signal,
-            };
-
-            if (["POST", "PUT", "PATCH"].includes(requestSpec.method)) {
-                if (!requestSpec.is_generative && requestSpec.body_b64) {
-                    const contentType = requestSpec.headers?.["content-type"] || "";
-                    config.body = b64toBlob(requestSpec.body_b64, contentType);
-                    Logger.output("Using binary body (Base64 decoded) for non-generative request");
-                } else if (requestSpec.body) {
+                async _handleIncomingMessage(messageData) {
+                    let requestSpec = {};
                     try {
-                        const bodyObj = JSON.parse(requestSpec.body);
+                        requestSpec = JSON.parse(messageData);
 
-                        const isImageModel = requestSpec.path.includes("-image") || requestSpec.path.includes("imagen");
-                        const isEmbeddingModel = requestSpec.path.includes("embedding");
-                        const isTtsModel = requestSpec.path.includes("tts");
-
-                        if (isImageModel || isEmbeddingModel || isTtsModel) {
-                            const incompatibleKeys = ["toolConfig", "tool_config", "toolChoice", "tools"];
-                            incompatibleKeys.forEach(key => {
-                                if (Object.prototype.hasOwnProperty.call(bodyObj, key)) delete bodyObj[key];
-                            });
-                            if (bodyObj.generationConfig?.thinkingConfig) delete bodyObj.generationConfig.thinkingConfig;
-                            if (bodyObj.systemInstruction) delete bodyObj.systemInstruction;
-                            if (bodyObj.generationConfig?.response_mime_type) delete bodyObj.generationConfig.response_mime_type;
-                            if (bodyObj.generationConfig?.responseMimeType) delete bodyObj.generationConfig.responseMimeType;
-                        }
-
-                        if (isTtsModel) {
-                            if (!bodyObj.generationConfig) bodyObj.generationConfig = {};
-                            bodyObj.generationConfig.responseModalities = ["AUDIO"];
-                            Logger.output("TTS model detected, setting responseModalities to AUDIO");
-                        } else if (isEmbeddingModel) {
-                            if (bodyObj.generationConfig?.responseModalities) delete bodyObj.generationConfig.responseModalities;
-                        }
-
-                        const isComputerUseModel = requestSpec.path.includes("computer-use");
-                        if (isComputerUseModel) {
-                            const incompatibleKeys = ["tool_config", "toolChoice", "tools"];
-                            incompatibleKeys.forEach(key => {
-                                if (Object.prototype.hasOwnProperty.call(bodyObj, key)) delete bodyObj[key];
-                            });
-                            if (bodyObj.generationConfig?.responseModalities) delete bodyObj.generationConfig.responseModalities;
-                        }
-
-                        const isRoboticsModel = requestSpec.path.includes("robotics");
-                        if (isRoboticsModel) {
-                            if (Array.isArray(bodyObj.tools)) {
-                                bodyObj.tools = bodyObj.tools.filter(t => !t.googleSearch && !t.urlContext);
-                                if (bodyObj.tools.length === 0) delete bodyObj.tools;
-                            }
-                            if (bodyObj.generationConfig?.responseModalities) delete bodyObj.generationConfig.responseModalities;
-                        }
-
-                        const isGemini2 = requestSpec.path.match(/\/models\/gemini-2/);
-                        const isJsonMode =
-                            bodyObj.generationConfig?.responseMimeType === "application/json" ||
-                            bodyObj.generationConfig?.response_mime_type === "application/json";
-
-                        if (isGemini2 && isJsonMode) {
-                            const incompatibleKeys = ["toolConfig", "tool_config", "toolChoice", "tools"];
-                            let keysRemoved = 0;
-                            incompatibleKeys.forEach(key => {
-                                if (Object.prototype.hasOwnProperty.call(bodyObj, key)) {
-                                    delete bodyObj[key];
-                                    keysRemoved++;
-                                }
-                            });
-                            if (keysRemoved > 0) {
-                                Logger.output("Gemini 2/2.5 + JSON mode detected, automatically filtering tool parameter to prevent API error");
-                            }
-                        }
-
-                        if (bodyObj.generationConfig?.thinkingConfig?.thinkingLevel) {
-                            bodyObj.generationConfig.thinkingConfig.thinkingLevel = String(
-                                bodyObj.generationConfig.thinkingConfig.thinkingLevel
-                            ).toUpperCase();
-                        }
-
-                        if (bodyObj.generationConfig?.responseModalities) {
-                            if (Array.isArray(bodyObj.generationConfig.responseModalities)) {
-                                bodyObj.generationConfig.responseModalities = bodyObj.generationConfig.responseModalities.map(m =>
-                                    typeof m === "string" ? m.toUpperCase() : m
+                        switch (requestSpec.event_type) {
+                            case "cancel_request":
+                                this.requestProcessor.cancelOperation(
+                                    requestSpec.request_id,
+                                    requestSpec.request_attempt_id
                                 );
-                            } else if (typeof bodyObj.generationConfig.responseModalities === "string") {
-                                bodyObj.generationConfig.responseModalities = [bodyObj.generationConfig.responseModalities.toUpperCase()];
-                            }
-                        }
-
-                        config.body = JSON.stringify(bodyObj);
-                    } catch (e) {
-                        Logger.output("Error occurred while processing request body:", e.message);
-                        config.body = requestSpec.body;
-                    }
-                }
-            }
-
-            return config;
-        }
-
-        _sanitizeHeaders(headers) {
-            const sanitized = { ...(headers || {}) };
-            const forbiddenHeaders = [
-                "host", "connection", "content-length", "origin", "referer",
-                "user-agent", "sec-fetch-mode", "sec-fetch-site", "sec-fetch-dest"
-            ];
-            forbiddenHeaders.forEach(h => delete sanitized[h]);
-            return sanitized;
-        }
-
-        cancelOperation(operationId, requestAttemptId) {
-            const normalizedAttemptId = this._normalizeAttemptId(operationId, requestAttemptId);
-            const attemptKey = this._getAttemptKey(operationId, normalizedAttemptId);
-            this.cancelledAttempts.add(attemptKey);
-            const activeOperation = this.activeOperations.get(operationId);
-            if (activeOperation && activeOperation.requestAttemptId === normalizedAttemptId) {
-                Logger.output(`Received cancel instruction, aborting operation #${operationId} (attempt ${normalizedAttemptId})...`);
-                activeOperation.abortController.abort();
-            } else if (activeOperation) {
-                Logger.debug(
-                    `Ignoring stale cancel for operation #${operationId}: expected attempt ${activeOperation.requestAttemptId}, got ${normalizedAttemptId}`
-                );
-            }
-        }
-    }
-
-    class ProxySystem extends EventTarget {
-        constructor(websocketEndpoint, clientLabel = "", apiKey = "") {
-            super();
-            this.connectionManager = new ConnectionManager(websocketEndpoint, clientLabel, apiKey);
-            this.requestProcessor = new RequestProcessor();
-            this._setupEventHandlers();
-        }
-
-        async initialize() {
-            Logger.output("System initializing...");
-            try {
-                await this.connectionManager.establish();
-                Logger.output("System initialization complete, waiting for server instructions...");
-                this.dispatchEvent(new CustomEvent("ready"));
-            } catch (error) {
-                Logger.output("System initialization failed: " + error.message);
-                this.dispatchEvent(new CustomEvent("error", { detail: error }));
-                throw error;
-            }
-        }
-
-        _setupEventHandlers() {
-            this.connectionManager.addEventListener("message", e => this._handleIncomingMessage(e.detail));
-            this.connectionManager.addEventListener("disconnected", () => this.requestProcessor.cancelAllOperations());
-        }
-
-        async _handleIncomingMessage(messageData) {
-            let requestSpec = {};
-            try {
-                requestSpec = JSON.parse(messageData);
-
-                switch (requestSpec.event_type) {
-                    case "cancel_request":
-                        this.requestProcessor.cancelOperation(requestSpec.request_id, requestSpec.request_attempt_id);
-                        break;
-                    case "set_log_level":
-                        if (Logger.LEVELS[requestSpec.level] !== undefined) {
-                            const oldLevel = Object.keys(Logger.LEVELS).find(k => Logger.LEVELS[k] === Logger.currentLevel);
-                            Logger.currentLevel = Logger.LEVELS[requestSpec.level];
-                            Logger.info(`Log level changed: ${oldLevel} -> ${requestSpec.level}`);
-                        } else {
-                            Logger.warn(`Invalid log level: ${requestSpec.level}`);
-                        }
-                        break;
-                    default:
-                        Logger.output(`Received request: ${requestSpec.method} ${requestSpec.path}`);
-                        await this._processProxyRequest(requestSpec);
-                        break;
-                }
-            } catch (error) {
-                Logger.output("Message processing error:", error.message);
-                if (requestSpec.request_id && requestSpec.event_type !== "cancel_request") {
-                    this._sendErrorResponse(error, requestSpec.request_id, requestSpec.request_attempt_id);
-                }
-            }
-        }
-        async _processProxyRequest(requestSpec) {
-            const operationId = requestSpec.request_id;
-            const requestAttemptId = this.requestProcessor._normalizeAttemptId(operationId, requestSpec.request_attempt_id);
-            const attemptKey = this.requestProcessor._getAttemptKey(operationId, requestAttemptId);
-            const mode = requestSpec.streaming_mode || "fake";
-            Logger.debug("Browser received request");
-            let cancelTimeout;
-            let reader;
-            let abortController;
-            const isOperationCancelled = () => this.requestProcessor.cancelledAttempts.has(attemptKey);
-
-            try {
-                if (isOperationCancelled()) throw new DOMException("The user aborted a request.", "AbortError");
-
-                const { responsePromise, cancelTimeout: ct, abortController: ac } = this.requestProcessor.execute(requestSpec, operationId);
-                cancelTimeout = ct;
-                abortController = ac;
-                const response = await responsePromise;
-
-                if (isOperationCancelled()) throw new DOMException("The user aborted a request.", "AbortError");
-
-                this._transmitHeaders(response, operationId, requestAttemptId, requestSpec.headers?.host);
-                reader = response.body.getReader();
-                const textDecoder = new TextDecoder();
-
-                let fullBody = "";
-                const CHUNK_READ_TIMEOUT = 300000;
-                let processing = true;
-
-                while (processing) {
-                    if (!this.connectionManager.isConnected) {
-                        Logger.debug(`WebSocket disconnected, stopping stream read for operation #${operationId}`);
-                        processing = false;
-                        break;
-                    }
-
-                    if (isOperationCancelled()) {
-                        Logger.debug(`Operation #${operationId} cancelled, stopping stream read`);
-                        processing = false;
-                        break;
-                    }
-
-                    let chunkTimeoutId;
-                    let timeoutOccurred = false;
-
-                    const timeoutPromise = new Promise((_, reject) => {
-                        chunkTimeoutId = setTimeout(() => {
-                            timeoutOccurred = true;
-                            reject(new Error(`Chunk read timeout: no data received for ${CHUNK_READ_TIMEOUT / 1000} seconds`));
-                        }, CHUNK_READ_TIMEOUT);
-                    });
-
-                    try {
-                        const readPromise = reader.read();
-                        readPromise.catch(() => {});
-                        const { done, value } = await Promise.race([readPromise, timeoutPromise]);
-                        clearTimeout(chunkTimeoutId);
-                        chunkTimeoutId = null;
-
-                        if (done) {
-                            processing = false;
-                            break;
-                        }
-
-                        cancelTimeout();
-
-                        const chunk = textDecoder.decode(value, { stream: true });
-                        if (mode === "real") {
-                            this._transmitChunk(chunk, operationId, requestAttemptId);
-                        } else {
-                            fullBody += chunk;
+                                break;
+                            case "set_log_level":
+                                if (Logger.LEVELS[requestSpec.level] !== undefined) {
+                                    const oldLevel = Object.keys(Logger.LEVELS).find(
+                                        k => Logger.LEVELS[k] === Logger.currentLevel
+                                    );
+                                    Logger.currentLevel = Logger.LEVELS[requestSpec.level];
+                                    Logger.info(`Log level changed: ${oldLevel} -> ${requestSpec.level}`);
+                                } else {
+                                    Logger.warn(`Invalid log level: ${requestSpec.level}`);
+                                }
+                                break;
+                            default:
+                                Logger.output(`Received request: ${requestSpec.method} ${requestSpec.path}`);
+                                await this._processProxyRequest(requestSpec);
+                                break;
                         }
                     } catch (error) {
-                        if (chunkTimeoutId) {
-                            clearTimeout(chunkTimeoutId);
-                            chunkTimeoutId = null;
+                        Logger.output("Message processing error:", error.message);
+                        if (requestSpec.request_id && requestSpec.event_type !== "cancel_request") {
+                            this._sendErrorResponse(error, requestSpec.request_id, requestSpec.request_attempt_id);
                         }
+                    }
+                }
+                async _processProxyRequest(requestSpec) {
+                    const operationId = requestSpec.request_id;
+                    const requestAttemptId = this.requestProcessor._normalizeAttemptId(
+                        operationId,
+                        requestSpec.request_attempt_id
+                    );
+                    const attemptKey = this.requestProcessor._getAttemptKey(operationId, requestAttemptId);
+                    const mode = requestSpec.streaming_mode || "fake";
+                    Logger.debug("Browser received request");
+                    let cancelTimeout;
+                    let reader;
+                    let abortController;
+                    const isOperationCancelled = () => this.requestProcessor.cancelledAttempts.has(attemptKey);
+
+                    try {
+                        if (isOperationCancelled()) throw new DOMException("The user aborted a request.", "AbortError");
+
+                        const {
+                            responsePromise,
+                            cancelTimeout: ct,
+                            abortController: ac,
+                        } = this.requestProcessor.execute(requestSpec, operationId);
+                        cancelTimeout = ct;
+                        abortController = ac;
+                        const response = await responsePromise;
 
                         if (isOperationCancelled()) throw new DOMException("The user aborted a request.", "AbortError");
 
-                        const errorMessage = String(error?.message ?? error);
+                        this._transmitHeaders(response, operationId, requestAttemptId, requestSpec.headers?.host);
+                        reader = response.body.getReader();
+                        const textDecoder = new TextDecoder();
 
-                        if (timeoutOccurred || errorMessage.includes("Chunk read timeout")) {
-                            try { await reader.cancel(); } catch (cancelError) { Logger.debug(`Failed to cancel reader: ${cancelError.message}`); }
-                            if (abortController && typeof abortController.abort === "function") {
-                                try { abortController.abort(); } catch (abortError) { Logger.debug(`Failed to abort request: ${abortError.message}`); }
+                        let fullBody = "";
+                        const CHUNK_READ_TIMEOUT = 300000;
+                        let processing = true;
+
+                        while (processing) {
+                            if (!this.connectionManager.isConnected) {
+                                Logger.debug(
+                                    `WebSocket disconnected, stopping stream read for operation #${operationId}`
+                                );
+                                processing = false;
+                                break;
+                            }
+
+                            if (isOperationCancelled()) {
+                                Logger.debug(`Operation #${operationId} cancelled, stopping stream read`);
+                                processing = false;
+                                break;
+                            }
+
+                            let chunkTimeoutId;
+                            let timeoutOccurred = false;
+
+                            const timeoutPromise = new Promise((_, reject) => {
+                                chunkTimeoutId = setTimeout(() => {
+                                    timeoutOccurred = true;
+                                    reject(
+                                        new Error(
+                                            `Chunk read timeout: no data received for ${CHUNK_READ_TIMEOUT / 1000} seconds`
+                                        )
+                                    );
+                                }, CHUNK_READ_TIMEOUT);
+                            });
+
+                            try {
+                                const readPromise = reader.read();
+                                readPromise.catch(() => {});
+                                const { done, value } = await Promise.race([readPromise, timeoutPromise]);
+                                clearTimeout(chunkTimeoutId);
+                                chunkTimeoutId = null;
+
+                                if (done) {
+                                    processing = false;
+                                    break;
+                                }
+
+                                cancelTimeout();
+
+                                const chunk = textDecoder.decode(value, { stream: true });
+                                if (mode === "real") {
+                                    this._transmitChunk(chunk, operationId, requestAttemptId);
+                                } else {
+                                    fullBody += chunk;
+                                }
+                            } catch (error) {
+                                if (chunkTimeoutId) {
+                                    clearTimeout(chunkTimeoutId);
+                                    chunkTimeoutId = null;
+                                }
+
+                                if (isOperationCancelled())
+                                    throw new DOMException("The user aborted a request.", "AbortError");
+
+                                const errorMessage = String(error?.message ?? error);
+
+                                if (timeoutOccurred || errorMessage.includes("Chunk read timeout")) {
+                                    try {
+                                        await reader.cancel();
+                                    } catch (cancelError) {
+                                        Logger.debug(`Failed to cancel reader: ${cancelError.message}`);
+                                    }
+                                    if (abortController && typeof abortController.abort === "function") {
+                                        try {
+                                            abortController.abort();
+                                        } catch (abortError) {
+                                            Logger.debug(`Failed to abort request: ${abortError.message}`);
+                                        }
+                                    }
+                                }
+                                throw error;
                             }
                         }
-                        throw error;
+
+                        Logger.output("Data stream read complete.");
+
+                        if (isOperationCancelled()) {
+                            Logger.debug(`Operation #${operationId} was cancelled, skipping final transmission`);
+                            return;
+                        }
+
+                        if (mode === "fake") {
+                            this._transmitChunk(fullBody, operationId, requestAttemptId);
+                        }
+
+                        this._transmitStreamEnd(operationId, requestAttemptId);
+                    } catch (error) {
+                        const wasCancelled = isOperationCancelled();
+                        if (wasCancelled) {
+                            Logger.output(`[Diagnosis] Operation #${operationId} has been aborted by user.`);
+                        } else if (error.name === "AbortError") {
+                            Logger.output(
+                                `[Diagnosis] Operation #${operationId} aborted due to internal shutdown/disconnect.`
+                            );
+                        } else {
+                            Logger.output(`Request processing failed: ${error.message}`);
+                        }
+                        if (wasCancelled) return;
+
+                        const currentOperation = this.requestProcessor.activeOperations.get(operationId);
+                        if (
+                            currentOperation?.abortController === abortController &&
+                            currentOperation?.requestAttemptId === requestAttemptId
+                        ) {
+                            this._sendErrorResponse(error, operationId, requestAttemptId);
+                        } else {
+                            Logger.debug(`[Diagnosis] Suppressing error for superseded operation #${operationId}`);
+                        }
+                    } finally {
+                        if (cancelTimeout && typeof cancelTimeout === "function") cancelTimeout();
+                        if (reader && typeof reader.cancel === "function") {
+                            try {
+                                await reader.cancel();
+                            } catch (e) {
+                                if (e.name !== "TypeError" && !e.message.includes("closed"))
+                                    Logger.debug(`Reader cancel error: ${e.message}`);
+                            }
+                        }
+                        const currentOperation = this.requestProcessor.activeOperations.get(operationId);
+                        if (
+                            currentOperation?.abortController === abortController &&
+                            currentOperation?.requestAttemptId === requestAttemptId
+                        ) {
+                            this.requestProcessor.activeOperations.delete(operationId);
+                            this.requestProcessor.cancelledAttempts.delete(attemptKey);
+                        }
                     }
                 }
 
-                Logger.output("Data stream read complete.");
-
-                if (isOperationCancelled()) {
-                    Logger.debug(`Operation #${operationId} was cancelled, skipping final transmission`);
-                    return;
+                _transmitHeaders(response, operationId, requestAttemptId, proxyHost) {
+                    const headerMap = {};
+                    response.headers.forEach((v, k) => {
+                        const lowerKey = k.toLowerCase();
+                        if (lowerKey === "location" && v.includes("googleapis.com")) {
+                            try {
+                                const urlObj = new URL(v);
+                                const host = proxyHost || location.host;
+                                const separator = urlObj.search ? "&" : "?";
+                                const newSearch = `${urlObj.search}${separator}__proxy_host__=${urlObj.host}`;
+                                const newUrl = `${location.protocol}//${host}${urlObj.pathname}${newSearch}`;
+                                headerMap[k] = newUrl;
+                                Logger.debug(`Rewriting header ${k}: ${v} -> ${headerMap[k]}`);
+                            } catch (e) {
+                                headerMap[k] = v;
+                            }
+                        } else {
+                            headerMap[k] = v;
+                        }
+                    });
+                    this.connectionManager.transmit({
+                        event_type: "response_headers",
+                        headers: headerMap,
+                        request_attempt_id: requestAttemptId,
+                        request_id: operationId,
+                        status: response.status,
+                    });
                 }
 
-                if (mode === "fake") {
-                    this._transmitChunk(fullBody, operationId, requestAttemptId);
+                _transmitChunk(data, operationId, requestAttemptId) {
+                    if (!data) return;
+                    this.connectionManager.transmit({
+                        data,
+                        event_type: "chunk",
+                        request_attempt_id: requestAttemptId,
+                        request_id: operationId,
+                    });
                 }
 
-                this._transmitStreamEnd(operationId, requestAttemptId);
-            } catch (error) {
-                const wasCancelled = isOperationCancelled();
-                if (wasCancelled) {
-                    Logger.output(`[Diagnosis] Operation #${operationId} has been aborted by user.`);
-                } else if (error.name === "AbortError") {
-                    Logger.output(`[Diagnosis] Operation #${operationId} aborted due to internal shutdown/disconnect.`);
-                } else {
-                    Logger.output(`Request processing failed: ${error.message}`);
+                _transmitStreamEnd(operationId, requestAttemptId) {
+                    this.connectionManager.transmit({
+                        event_type: "stream_close",
+                        request_attempt_id: requestAttemptId,
+                        request_id: operationId,
+                    });
+                    Logger.output("Task completed, stream end signal sent");
                 }
-                if (wasCancelled) return;
 
-                const currentOperation = this.requestProcessor.activeOperations.get(operationId);
-                if (currentOperation?.abortController === abortController && currentOperation?.requestAttemptId === requestAttemptId) {
-                    this._sendErrorResponse(error, operationId, requestAttemptId);
-                } else {
-                    Logger.debug(`[Diagnosis] Suppressing error for superseded operation #${operationId}`);
-                }
-            } finally {
-                if (cancelTimeout && typeof cancelTimeout === "function") cancelTimeout();
-                if (reader && typeof reader.cancel === "function") {
-                    try { await reader.cancel(); } catch (e) {
-                        if (e.name !== "TypeError" && !e.message.includes("closed")) Logger.debug(`Reader cancel error: ${e.message}`);
+                _sendErrorResponse(error, operationId, requestAttemptId) {
+                    if (!operationId) return;
+                    this.connectionManager.transmit({
+                        event_type: "error",
+                        message: `Proxy browser error: ${error.message || "Unknown error"}`,
+                        request_attempt_id: requestAttemptId,
+                        request_id: operationId,
+                        status: error.status || 504,
+                    });
+                    if (error.name === "AbortError") {
+                        Logger.output("Sent 'abort' status back to server");
+                    } else {
+                        Logger.output("Sent 'error' information back to server");
                     }
-                }
-                const currentOperation = this.requestProcessor.activeOperations.get(operationId);
-                if (currentOperation?.abortController === abortController && currentOperation?.requestAttemptId === requestAttemptId) {
-                    this.requestProcessor.activeOperations.delete(operationId);
-                    this.requestProcessor.cancelledAttempts.delete(attemptKey);
                 }
             }
-        }
 
-        _transmitHeaders(response, operationId, requestAttemptId, proxyHost) {
-            const headerMap = {};
-            response.headers.forEach((v, k) => {
-                const lowerKey = k.toLowerCase();
-                if (lowerKey === "location" && v.includes("googleapis.com")) {
-                    try {
-                        const urlObj = new URL(v);
-                        const host = proxyHost || location.host;
-                        const separator = urlObj.search ? "&" : "?";
-                        const newSearch = `${urlObj.search}${separator}__proxy_host__=${urlObj.host}`;
-                        const newUrl = `${location.protocol}//${host}${urlObj.pathname}${newSearch}`;
-                        headerMap[k] = newUrl;
-                        Logger.debug(`Rewriting header ${k}: ${v} -> ${headerMap[k]}`);
-                    } catch (e) {
-                        headerMap[k] = v;
-                    }
-                } else {
-                    headerMap[k] = v;
-                }
-            });
-            this.connectionManager.transmit({
-                event_type: "response_headers",
-                headers: headerMap,
-                request_attempt_id: requestAttemptId,
-                request_id: operationId,
-                status: response.status,
-            });
-        }
+            const endpointInput = document.getElementById("ws-endpoint");
+            const clientLabelInput = document.getElementById("client-label");
+            const apiKeyInput = document.getElementById("api-key");
+            const saveBtn = document.getElementById("save-btn");
+            const connectBtn = document.getElementById("connect-btn");
+            const saveTip = document.getElementById("save-tip");
+            const localeToggleBtn = document.getElementById("locale-toggle");
+            const themeToggleBtn = document.getElementById("theme-toggle");
+            const headerCollapseToggleBtn = document.getElementById("header-collapse-toggle");
 
-        _transmitChunk(data, operationId, requestAttemptId) {
-            if (!data) return;
-            this.connectionManager.transmit({
-                data,
-                event_type: "chunk",
-                request_attempt_id: requestAttemptId,
-                request_id: operationId,
-            });
-        }
-
-        _transmitStreamEnd(operationId, requestAttemptId) {
-            this.connectionManager.transmit({
-                event_type: "stream_close",
-                request_attempt_id: requestAttemptId,
-                request_id: operationId,
-            });
-            Logger.output("Task completed, stream end signal sent");
-        }
-
-        _sendErrorResponse(error, operationId, requestAttemptId) {
-            if (!operationId) return;
-            this.connectionManager.transmit({
-                event_type: "error",
-                message: `Proxy browser error: ${error.message || "Unknown error"}`,
-                request_attempt_id: requestAttemptId,
-                request_id: operationId,
-                status: error.status || 504,
-            });
-            if (error.name === "AbortError") {
-                Logger.output("Sent 'abort' status back to server");
-            } else {
-                Logger.output("Sent 'error' information back to server");
-            }
-        }
-    }
-
-    const endpointInput = document.getElementById("ws-endpoint");
-    const clientLabelInput = document.getElementById("client-label");
-    const apiKeyInput = document.getElementById("api-key");
-    const saveBtn = document.getElementById("save-btn");
-    const connectBtn = document.getElementById("connect-btn");
-    const saveTip = document.getElementById("save-tip");
-    const localeToggleBtn = document.getElementById("locale-toggle");
-    const themeToggleBtn = document.getElementById("theme-toggle");
-    const headerCollapseToggleBtn = document.getElementById("header-collapse-toggle");
-
-    applyTheme(currentTheme);
-    applyI18n();
-    applyHeaderCollapseState();
-    endpointInput.value = currentEndpoint;
-    clientLabelInput.value = currentClientLabel;
-    apiKeyInput.value = currentApiKey;
-    const proxySystem = new ProxySystem(currentEndpoint, currentClientLabel, currentApiKey);
-    setStatus(currentStatus);
-
-    saveBtn.addEventListener("click", () => {
-        const val = endpointInput.value.trim() || DEFAULT_ENDPOINT;
-        const inputClientLabel = sanitizeClientLabel(clientLabelInput.value);
-        const inputApiKey = sanitizeApiKey(apiKeyInput.value);
-        const activeAutoLabel = getAutoClientLabel();
-
-        currentEndpoint = val;
-        currentApiKey = inputApiKey;
-        currentClientLabel =
-            !inputClientLabel || (currentClientLabelMode !== "manual" && inputClientLabel === activeAutoLabel)
-                ? activeAutoLabel
-                : inputClientLabel;
-        currentClientLabelMode = currentClientLabel === activeAutoLabel ? "auto" : "manual";
-
-        safeStorageSet(ENDPOINT_STORAGE_KEY, currentEndpoint);
-        safeStorageSet(API_KEY_STORAGE_KEY, currentApiKey);
-        safeStorageSet(CLIENT_LABEL_MODE_STORAGE_KEY, currentClientLabelMode);
-        if (currentClientLabelMode === "manual") {
-            safeStorageSet(CLIENT_LABEL_STORAGE_KEY, currentClientLabel);
-        } else {
-            safeStorageRemove(CLIENT_LABEL_STORAGE_KEY);
-        }
-
-        clientLabelInput.value = currentClientLabel;
-        apiKeyInput.value = currentApiKey;
-
-        proxySystem.connectionManager.disconnect();
-        proxySystem.connectionManager.updateEndpoint(val);
-        proxySystem.connectionManager.updateApiKey(currentApiKey);
-        proxySystem.connectionManager.updateClientLabel(currentClientLabel);
-        setStatus("disconnected");
-
-        saveTip.classList.remove("opacity-0");
-        setTimeout(() => saveTip.classList.add("opacity-0"), 2000);
-        Logger.info(`Configuration saved. Active browser identifier: ${currentClientLabel}`);
-    });
-
-    localeToggleBtn.addEventListener("click", () => {
-        currentLocale = currentLocale === "zh-CN" ? "en-US" : "zh-CN";
-        safeStorageSet(LOCALE_STORAGE_KEY, currentLocale);
-        applyI18n();
-        setStatus(currentStatus);
-    });
-
-    themeToggleBtn.addEventListener("click", () => {
-        applyTheme(currentTheme === "dark" ? "light" : "dark");
-        updateHeaderControls();
-    });
-
-    if (headerCollapseToggleBtn) {
-        headerCollapseToggleBtn.addEventListener("click", () => {
-            isHeaderConfigCollapsed = !isHeaderConfigCollapsed;
+            applyTheme(currentTheme);
+            applyI18n();
             applyHeaderCollapseState();
-        });
-    }
+            endpointInput.value = currentEndpoint;
+            clientLabelInput.value = currentClientLabel;
+            apiKeyInput.value = currentApiKey;
+            const proxySystem = new ProxySystem(currentEndpoint, currentClientLabel, currentApiKey);
+            setStatus(currentStatus);
 
-    connectBtn.addEventListener("click", async () => {
-        const isStopping = proxySystem.connectionManager.isConnected || currentStatus === "reconnecting";
+            saveBtn.addEventListener("click", () => {
+                const val = endpointInput.value.trim() || DEFAULT_ENDPOINT;
+                const inputClientLabel = sanitizeClientLabel(clientLabelInput.value);
+                const inputApiKey = sanitizeApiKey(apiKeyInput.value);
+                const activeAutoLabel = getAutoClientLabel();
 
-        if (isStopping) {
-            Logger.info("Stopping connection/reconnection...");
-            proxySystem.connectionManager.disconnect();
-            setStatus("disconnected");
-        } else {
-            try {
-                await proxySystem.initialize();
-            } catch (error) {
-                Logger.error("Proxy system startup failed: " + error.message);
+                currentEndpoint = val;
+                currentApiKey = inputApiKey;
+                currentClientLabel =
+                    !inputClientLabel || (currentClientLabelMode !== "manual" && inputClientLabel === activeAutoLabel)
+                        ? activeAutoLabel
+                        : inputClientLabel;
+                currentClientLabelMode = currentClientLabel === activeAutoLabel ? "auto" : "manual";
+
+                safeStorageSet(ENDPOINT_STORAGE_KEY, currentEndpoint);
+                safeStorageSet(API_KEY_STORAGE_KEY, currentApiKey);
+                safeStorageSet(CLIENT_LABEL_MODE_STORAGE_KEY, currentClientLabelMode);
+                if (currentClientLabelMode === "manual") {
+                    safeStorageSet(CLIENT_LABEL_STORAGE_KEY, currentClientLabel);
+                } else {
+                    safeStorageRemove(CLIENT_LABEL_STORAGE_KEY);
+                }
+
+                clientLabelInput.value = currentClientLabel;
+                apiKeyInput.value = currentApiKey;
+
+                proxySystem.connectionManager.disconnect();
+                proxySystem.connectionManager.updateEndpoint(val);
+                proxySystem.connectionManager.updateApiKey(currentApiKey);
+                proxySystem.connectionManager.updateClientLabel(currentClientLabel);
+                setStatus("disconnected");
+
+                saveTip.classList.remove("opacity-0");
+                setTimeout(() => saveTip.classList.add("opacity-0"), 2000);
+                Logger.info(`Configuration saved. Active browser identifier: ${currentClientLabel}`);
+            });
+
+            localeToggleBtn.addEventListener("click", () => {
+                currentLocale = currentLocale === "zh-CN" ? "en-US" : "zh-CN";
+                safeStorageSet(LOCALE_STORAGE_KEY, currentLocale);
+                applyI18n();
+                setStatus(currentStatus);
+            });
+
+            themeToggleBtn.addEventListener("click", () => {
+                applyTheme(currentTheme === "dark" ? "light" : "dark");
+                updateHeaderControls();
+            });
+
+            if (headerCollapseToggleBtn) {
+                headerCollapseToggleBtn.addEventListener("click", () => {
+                    isHeaderConfigCollapsed = !isHeaderConfigCollapsed;
+                    applyHeaderCollapseState();
+                });
             }
-        }
-    });
 
-    window.onload = () => {
-        Logger.info(`Client ready. Active browser identifier: ${currentClientLabel}`);
-    };
-</script>
-</body>
+            connectBtn.addEventListener("click", async () => {
+                const isStopping = proxySystem.connectionManager.isConnected || currentStatus === "reconnecting";
+
+                if (isStopping) {
+                    Logger.info("Stopping connection/reconnection...");
+                    proxySystem.connectionManager.disconnect();
+                    setStatus("disconnected");
+                } else {
+                    try {
+                        await proxySystem.initialize();
+                    } catch (error) {
+                        Logger.error("Proxy system startup failed: " + error.message);
+                    }
+                }
+            });
+
+            window.onload = () => {
+                Logger.info(`Client ready. Active browser identifier: ${currentClientLabel}`);
+            };
+        </script>
+    </body>
 </html>
