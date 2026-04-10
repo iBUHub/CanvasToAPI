@@ -31,7 +31,13 @@ ui/
 │   │   ├── StatusPage.vue        # Main dashboard page
 │   │   └── NotFound.vue          # 404 error page
 │   ├── components/               # Reusable components
-│   │   └── EnvVarTooltip.vue     # Environment variable tooltip
+│   │   ├── EnvVarTooltip.vue     # Environment variable tooltip
+│   │   ├── SideNavBar.vue        # Left sidebar navigation
+│   │   ├── TopAppBar.vue         # Top header with search/actions
+│   │   ├── MetricCard.vue        # Dashboard metric card
+│   │   ├── TrafficChart.vue      # Real-time traffic chart
+│   │   ├── LoadDistribution.vue  # Account load progress bars
+│   │   └── RequestTable.vue      # API requests data table
 │   ├── utils/                    # Utility functions and Composables
 │   │   ├── useTheme.js           # Theme management Composable
 │   │   ├── i18n.js               # Internationalization utility
@@ -118,8 +124,13 @@ ui/
 **Components** (`ui/app/components/`):
 
 - `EnvVarTooltip.vue` - Reusable tooltip for environment variables
-- Used in `StatusPage.vue` for documentation links
-- Contains both logic and scoped styles
+- `SideNavBar.vue` - Fixed left sidebar with navigation and user profile
+- `TopAppBar.vue` - Fixed top header with search and action buttons
+- `MetricCard.vue` - Dashboard metric card with status indicator
+- `TrafficChart.vue` - Bar chart for real-time traffic visualization
+- `LoadDistribution.vue` - Progress bars for account load distribution
+- `RequestTable.vue` - Data table for recent API requests
+- Each component is self-contained with scoped styles
 
 **Utils/Composables** (`ui/app/utils/`):
 

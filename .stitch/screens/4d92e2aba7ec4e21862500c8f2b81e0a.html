@@ -1,0 +1,603 @@
+<!doctype html>
+
+<html class="light" lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+        <title>CanvasToAPI - Technical Dashboard</title>
+        <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+        <link
+            href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&amp;family=Inter:wght@300;400;500;600&amp;display=swap"
+            rel="stylesheet"
+        />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+            rel="stylesheet"
+        />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+            rel="stylesheet"
+        />
+        <script id="tailwind-config">
+            tailwind.config = {
+                darkMode: "class",
+                theme: {
+                    extend: {
+                        colors: {
+                            "secondary-container": "#d5e3fc",
+                            "primary-container": "#2563eb",
+                            primary: "#004ac6",
+                            "surface-dim": "#d9d9e5",
+                            "tertiary-fixed-dim": "#ffb596",
+                            "outline-variant": "#c3c6d7",
+                            "inverse-primary": "#b4c5ff",
+                            "on-secondary-container": "#57657a",
+                            surface: "#faf8ff",
+                            "on-error-container": "#93000a",
+                            "on-surface": "#191b23",
+                            "on-secondary": "#ffffff",
+                            "on-tertiary-fixed-variant": "#7d2d00",
+                            "surface-container-highest": "#e1e2ed",
+                            "on-tertiary-fixed": "#360f00",
+                            "on-secondary-fixed-variant": "#3a485b",
+                            "on-tertiary": "#ffffff",
+                            "inverse-surface": "#2e3039",
+                            secondary: "#515f74",
+                            "secondary-fixed-dim": "#b9c7df",
+                            "on-primary-container": "#eeefff",
+                            "secondary-fixed": "#d5e3fc",
+                            "surface-container-lowest": "#ffffff",
+                            "surface-container": "#ededf9",
+                            outline: "#737686",
+                            "on-error": "#ffffff",
+                            "surface-variant": "#e1e2ed",
+                            "error-container": "#ffdad6",
+                            "primary-fixed": "#dbe1ff",
+                            error: "#ba1a1a",
+                            background: "#faf8ff",
+                            "surface-container-high": "#e7e7f3",
+                            "on-tertiary-container": "#ffede6",
+                            "on-primary-fixed": "#00174b",
+                            tertiary: "#943700",
+                            "surface-tint": "#0053db",
+                            "surface-bright": "#faf8ff",
+                            "on-background": "#191b23",
+                            "on-surface-variant": "#434655",
+                            "primary-fixed-dim": "#b4c5ff",
+                            "on-primary-fixed-variant": "#003ea8",
+                            "tertiary-fixed": "#ffdbcd",
+                            "on-primary": "#ffffff",
+                            "tertiary-container": "#bc4800",
+                            "surface-container-low": "#f3f3fe",
+                            "inverse-on-surface": "#f0f0fb",
+                            "on-secondary-fixed": "#0d1c2e",
+                        },
+                        borderRadius: {
+                            DEFAULT: "0.125rem",
+                            lg: "0.25rem",
+                            xl: "0.5rem",
+                            full: "0.75rem",
+                        },
+                        fontFamily: {
+                            headline: ["Manrope"],
+                            body: ["Inter"],
+                            label: ["Inter"],
+                        },
+                    },
+                },
+            };
+        </script>
+        <style>
+            body {
+                font-family: "Inter", sans-serif;
+            }
+            .font-manrope {
+                font-family: "Manrope", sans-serif;
+            }
+            .material-symbols-outlined {
+                font-variation-settings:
+                    "FILL" 0,
+                    "wght" 400,
+                    "GRAD" 0,
+                    "opsz" 24;
+            }
+        </style>
+    </head>
+    <body class="bg-surface text-on-surface antialiased">
+        <!-- SideNavBar Component -->
+        <aside
+            class="h-screen w-64 fixed left-0 top-0 bg-slate-100 dark:bg-slate-900 flex flex-col h-full py-6 px-4 font-manrope text-sm font-medium z-50"
+        >
+            <div class="mb-10 px-2">
+                <h1 class="text-xl font-bold tracking-tight text-blue-600 dark:text-blue-400">CanvasToAPI</h1>
+                <p class="text-xs text-slate-500 uppercase tracking-widest mt-1">Technical Proxy</p>
+            </div>
+            <nav class="flex-1 space-y-1">
+                <!-- Active Item: Dashboard -->
+                <a
+                    class="flex items-center gap-3 px-3 py-2 rounded-xl text-blue-700 dark:text-blue-300 font-semibold bg-slate-200 dark:bg-slate-800 transition-colors translate-x-1 duration-200"
+                    href="#"
+                >
+                    <span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+                    <span>Dashboard</span>
+                </a>
+                <a
+                    class="flex items-center gap-3 px-3 py-2 rounded-xl text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors"
+                    href="#"
+                >
+                    <span class="material-symbols-outlined" data-icon="manage_accounts">manage_accounts</span>
+                    <span>Account</span>
+                </a>
+                <a
+                    class="flex items-center gap-3 px-3 py-2 rounded-xl text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors"
+                    href="#"
+                >
+                    <span class="material-symbols-outlined" data-icon="settings_input_component"
+                        >settings_input_component</span
+                    >
+                    <span>Configuration</span>
+                </a>
+                <a
+                    class="flex items-center gap-3 px-3 py-2 rounded-xl text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors"
+                    href="#"
+                >
+                    <span class="material-symbols-outlined" data-icon="terminal">terminal</span>
+                    <span>System Logs</span>
+                </a>
+            </nav>
+            <div class="mt-auto pt-6 border-t border-slate-200 dark:border-slate-800 flex items-center gap-3 px-2">
+                <div class="w-8 h-8 rounded-full bg-primary-container flex items-center justify-center text-white">
+                    <span class="material-symbols-outlined text-sm" data-icon="person">person</span>
+                </div>
+                <div class="overflow-hidden">
+                    <p class="text-xs font-bold truncate">Admin User Profile</p>
+                    <p class="text-[10px] text-slate-500 truncate">admin@canvastoapi.io</p>
+                </div>
+            </div>
+        </aside>
+        <!-- TopAppBar Component -->
+        <header
+            class="fixed top-0 right-0 left-64 h-16 bg-white/70 dark:bg-slate-950/70 backdrop-blur-md flex items-center justify-between px-8 w-full z-40 font-manrope antialiased"
+        >
+            <div class="flex items-center bg-surface-container-low px-4 py-2 rounded-full w-96">
+                <span class="material-symbols-outlined text-outline text-sm" data-icon="search">search</span>
+                <input
+                    class="bg-transparent border-none focus:ring-0 text-sm w-full ml-2 text-on-surface-variant"
+                    placeholder="Search system resources..."
+                    type="text"
+                />
+            </div>
+            <div class="flex items-center gap-4">
+                <button class="text-slate-600 dark:text-slate-400 hover:text-blue-500 transition-all p-2">
+                    <span class="material-symbols-outlined" data-icon="health_metrics">health_metrics</span>
+                </button>
+                <button class="text-slate-600 dark:text-slate-400 hover:text-blue-500 transition-all p-2">
+                    <span class="material-symbols-outlined" data-icon="lan">lan</span>
+                </button>
+                <button class="text-slate-600 dark:text-slate-400 hover:text-blue-500 transition-all p-2">
+                    <span class="material-symbols-outlined" data-icon="dark_mode">dark_mode</span>
+                </button>
+                <button class="text-slate-600 dark:text-slate-400 hover:text-blue-500 transition-all p-2">
+                    <span class="material-symbols-outlined" data-icon="translate">translate</span>
+                </button>
+            </div>
+        </header>
+        <!-- Main Content Canvas -->
+        <main class="ml-64 pt-16 min-h-screen bg-surface">
+            <div class="p-8 space-y-8">
+                <!-- Header Section -->
+                <div class="flex items-end justify-between">
+                    <div>
+                        <h2 class="text-3xl font-extrabold font-manrope text-on-surface tracking-tight">
+                            Dashboard Overview
+                        </h2>
+                        <p class="text-on-surface-variant mt-1 text-sm">
+                            Real-time infrastructure health and API throughput.
+                        </p>
+                    </div>
+                    <div class="flex gap-3">
+                        <button
+                            class="px-4 py-2 bg-surface-container-high rounded-xl text-on-surface font-medium text-sm hover:opacity-80 transition-all"
+                        >
+                            Export Report
+                        </button>
+                        <button
+                            class="px-4 py-2 bg-gradient-to-br from-primary to-primary-container text-white rounded-xl font-medium text-sm shadow-sm hover:opacity-90 transition-all flex items-center gap-2"
+                        >
+                            <span class="material-symbols-outlined text-sm" data-icon="add">add</span>
+                            New Deployment
+                        </button>
+                    </div>
+                </div>
+                <!-- Metrics Row -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <!-- Metric 1 -->
+                    <div
+                        class="bg-surface-container-lowest p-6 rounded-2xl border border-outline-variant/15 flex flex-col justify-between h-32 relative overflow-hidden group"
+                    >
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-semibold text-on-surface-variant uppercase tracking-wider"
+                                >Server Status</span
+                            >
+                            <div
+                                class="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700"
+                            >
+                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                                <span class="text-[10px] font-bold">Online</span>
+                            </div>
+                        </div>
+                        <div class="mt-2">
+                            <div class="text-2xl font-bold font-manrope">99.98%</div>
+                            <div class="text-[10px] text-on-surface-variant">Uptime last 24h</div>
+                        </div>
+                        <div class="absolute bottom-0 right-0 w-24 h-12 opacity-20 pointer-events-none">
+                            <svg
+                                class="w-full h-full text-emerald-500 fill-none stroke-current stroke-2"
+                                viewbox="0 0 100 40"
+                            >
+                                <path d="M0 35 Q10 35 20 20 T40 15 T60 25 T80 5 T100 15"></path>
+                            </svg>
+                        </div>
+                    </div>
+                    <!-- Metric 2 -->
+                    <div
+                        class="bg-surface-container-lowest p-6 rounded-2xl border border-outline-variant/15 flex flex-col justify-between h-32 relative overflow-hidden"
+                    >
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-semibold text-on-surface-variant uppercase tracking-wider"
+                                >Active Sessions</span
+                            >
+                            <span class="material-symbols-outlined text-primary text-lg" data-icon="groups"
+                                >groups</span
+                            >
+                        </div>
+                        <div class="mt-2">
+                            <div class="text-2xl font-bold font-manrope text-primary">12</div>
+                            <div class="text-[10px] text-on-surface-variant">4 connected via WebSocket</div>
+                        </div>
+                        <div class="absolute bottom-0 right-0 w-24 h-12 opacity-20 pointer-events-none">
+                            <svg
+                                class="w-full h-full text-primary fill-none stroke-current stroke-2"
+                                viewbox="0 0 100 40"
+                            >
+                                <path d="M0 20 Q15 5 30 25 T60 10 T90 30 L100 25"></path>
+                            </svg>
+                        </div>
+                    </div>
+                    <!-- Metric 3 -->
+                    <div
+                        class="bg-surface-container-lowest p-6 rounded-2xl border border-outline-variant/15 flex flex-col justify-between h-32 relative overflow-hidden"
+                    >
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-semibold text-on-surface-variant uppercase tracking-wider"
+                                >Today Requests</span
+                            >
+                            <span class="material-symbols-outlined text-secondary text-lg" data-icon="swap_calls"
+                                >swap_calls</span
+                            >
+                        </div>
+                        <div class="mt-2">
+                            <div class="text-2xl font-bold font-manrope">1,452</div>
+                            <div class="text-[10px] text-emerald-600 font-medium">+12% vs yesterday</div>
+                        </div>
+                        <div class="absolute bottom-0 right-0 w-24 h-12 opacity-10 pointer-events-none">
+                            <svg
+                                class="w-full h-full text-secondary fill-none stroke-current stroke-2"
+                                viewbox="0 0 100 40"
+                            >
+                                <path d="M0 40 L20 30 L40 35 L60 15 L80 20 L100 5"></path>
+                            </svg>
+                        </div>
+                    </div>
+                    <!-- Metric 4 -->
+                    <div
+                        class="bg-surface-container-lowest p-6 rounded-2xl border border-outline-variant/15 flex flex-col justify-between h-32 relative overflow-hidden"
+                    >
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-semibold text-on-surface-variant uppercase tracking-wider"
+                                >Avg Latency</span
+                            >
+                            <span class="material-symbols-outlined text-tertiary text-lg" data-icon="timer">timer</span>
+                        </div>
+                        <div class="mt-2">
+                            <div class="text-2xl font-bold font-manrope">240ms</div>
+                            <div class="text-[10px] text-on-surface-variant">P95: 385ms</div>
+                        </div>
+                        <div class="absolute bottom-0 right-0 w-24 h-12 opacity-20 pointer-events-none">
+                            <svg
+                                class="w-full h-full text-tertiary fill-none stroke-current stroke-2"
+                                viewbox="0 0 100 40"
+                            >
+                                <path
+                                    d="M0 10 L10 12 L20 8 L30 15 L40 12 L50 20 L60 18 L70 25 L80 22 L90 30 L100 28"
+                                ></path>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+                <!-- Main Grid: Charts -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <!-- Real-time Traffic -->
+                    <div
+                        class="lg:col-span-2 bg-surface-container-low p-6 rounded-2xl border border-outline-variant/15"
+                    >
+                        <div class="flex items-center justify-between mb-8">
+                            <div>
+                                <h3 class="font-manrope font-bold text-lg">Real-time Traffic</h3>
+                                <p class="text-xs text-on-surface-variant">Global request volume (per minute)</p>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span class="text-[10px] font-bold text-on-surface-variant">60m</span>
+                                <span class="w-8 h-4 bg-primary/20 rounded-full flex items-center px-1">
+                                    <span class="w-2.5 h-2.5 bg-primary rounded-full translate-x-3.5"></span>
+                                </span>
+                            </div>
+                        </div>
+                        <div class="h-64 relative">
+                            <!-- Chart Mockup -->
+                            <div class="absolute inset-0 flex items-end justify-between px-2">
+                                <div class="w-[3%] bg-primary/10 rounded-t-sm h-[20%]"></div>
+                                <div class="w-[3%] bg-primary/20 rounded-t-sm h-[35%]"></div>
+                                <div class="w-[3%] bg-primary/15 rounded-t-sm h-[45%]"></div>
+                                <div class="w-[3%] bg-primary/30 rounded-t-sm h-[60%]"></div>
+                                <div class="w-[3%] bg-primary/25 rounded-t-sm h-[55%]"></div>
+                                <div class="w-[3%] bg-primary/40 rounded-t-sm h-[75%]"></div>
+                                <div class="w-[3%] bg-primary/35 rounded-t-sm h-[70%]"></div>
+                                <div class="w-[3%] bg-primary/50 rounded-t-sm h-[90%]"></div>
+                                <div class="w-[3%] bg-primary/45 rounded-t-sm h-[85%]"></div>
+                                <div class="w-[3%] bg-primary/60 rounded-t-sm h-[95%]"></div>
+                                <div class="w-[3%] bg-primary/55 rounded-t-sm h-[80%]"></div>
+                                <div class="w-[3%] bg-primary/70 rounded-t-sm h-[100%]"></div>
+                                <div class="w-[3%] bg-primary/65 rounded-t-sm h-[90%]"></div>
+                                <div class="w-[3%] bg-primary/80 rounded-t-sm h-[70%]"></div>
+                                <div class="w-[3%] bg-primary/75 rounded-t-sm h-[60%]"></div>
+                                <div class="w-[3%] bg-primary/40 rounded-t-sm h-[40%]"></div>
+                                <div class="w-[3%] bg-primary/30 rounded-t-sm h-[30%]"></div>
+                                <div class="w-[3%] bg-primary/20 rounded-t-sm h-[25%]"></div>
+                                <div class="w-[3%] bg-primary/10 rounded-t-sm h-[20%]"></div>
+                            </div>
+                            <!-- Overlay Line -->
+                            <svg class="absolute inset-0 w-full h-full pointer-events-none" preserveaspectratio="none">
+                                <defs>
+                                    <lineargradient id="chartGradient" x1="0" x2="0" y1="0" y2="1">
+                                        <stop offset="0%" stop-color="#004ac6" stop-opacity="0.2"></stop>
+                                        <stop offset="100%" stop-color="#004ac6" stop-opacity="0"></stop>
+                                    </lineargradient>
+                                </defs>
+                                <path
+                                    d="M0 180 Q100 150 200 170 T400 100 T600 50 T800 120 T1000 140"
+                                    fill="url(#chartGradient)"
+                                    stroke="#004ac6"
+                                    stroke-width="2"
+                                ></path>
+                            </svg>
+                        </div>
+                    </div>
+                    <!-- Account Load Distribution -->
+                    <div class="bg-surface-container-low p-6 rounded-2xl border border-outline-variant/15">
+                        <div class="mb-8">
+                            <h3 class="font-manrope font-bold text-lg">Load Distribution</h3>
+                            <p class="text-xs text-on-surface-variant">Requests per account unit</p>
+                        </div>
+                        <div class="space-y-6">
+                            <div>
+                                <div class="flex justify-between text-xs mb-2">
+                                    <span class="font-mono text-on-surface">account-01</span>
+                                    <span class="text-on-surface-variant">42%</span>
+                                </div>
+                                <div class="h-2 bg-surface-container-highest rounded-full overflow-hidden">
+                                    <div class="h-full w-[42%] bg-primary rounded-full"></div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="flex justify-between text-xs mb-2">
+                                    <span class="font-mono text-on-surface">account-02</span>
+                                    <span class="text-on-surface-variant">28%</span>
+                                </div>
+                                <div class="h-2 bg-surface-container-highest rounded-full overflow-hidden">
+                                    <div class="h-full w-[28%] bg-secondary rounded-full"></div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="flex justify-between text-xs mb-2">
+                                    <span class="font-mono text-on-surface">account-03</span>
+                                    <span class="text-on-surface-variant">15%</span>
+                                </div>
+                                <div class="h-2 bg-surface-container-highest rounded-full overflow-hidden">
+                                    <div class="h-full w-[15%] bg-tertiary-container rounded-full"></div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="flex justify-between text-xs mb-2">
+                                    <span class="font-mono text-on-surface">account-04</span>
+                                    <span class="text-on-surface-variant">15%</span>
+                                </div>
+                                <div class="h-2 bg-surface-container-highest rounded-full overflow-hidden">
+                                    <div class="h-full w-[15%] bg-outline rounded-full"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mt-8 pt-6 border-t border-outline-variant/10 text-center">
+                            <button class="text-primary text-xs font-bold hover:underline">
+                                View Detailed Balancer Logs
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <!-- Bottom Row: Recent API Requests Table -->
+                <div class="bg-surface-container-low rounded-2xl border border-outline-variant/15 overflow-hidden">
+                    <div class="p-6 flex items-center justify-between border-b border-outline-variant/10">
+                        <h3 class="font-manrope font-bold text-lg">Recent API Requests</h3>
+                        <div class="flex gap-2">
+                            <button class="p-1.5 hover:bg-surface-container-high rounded-lg text-on-surface-variant">
+                                <span class="material-symbols-outlined text-lg" data-icon="filter_list"
+                                    >filter_list</span
+                                >
+                            </button>
+                            <button class="p-1.5 hover:bg-surface-container-high rounded-lg text-on-surface-variant">
+                                <span class="material-symbols-outlined text-lg" data-icon="refresh">refresh</span>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-surface-container-high/30">
+                                    <th
+                                        class="px-6 py-4 text-[10px] font-bold text-on-surface-variant uppercase tracking-widest"
+                                    >
+                                        Method
+                                    </th>
+                                    <th
+                                        class="px-6 py-4 text-[10px] font-bold text-on-surface-variant uppercase tracking-widest"
+                                    >
+                                        Path
+                                    </th>
+                                    <th
+                                        class="px-6 py-4 text-[10px] font-bold text-on-surface-variant uppercase tracking-widest"
+                                    >
+                                        Status
+                                    </th>
+                                    <th
+                                        class="px-6 py-4 text-[10px] font-bold text-on-surface-variant uppercase tracking-widest text-right"
+                                    >
+                                        Timestamp
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-outline-variant/5">
+                                <tr class="hover:bg-on-surface/[0.04] transition-colors group">
+                                    <td class="px-6 py-4">
+                                        <span
+                                            class="px-2 py-0.5 rounded-lg bg-blue-100 text-blue-700 font-mono text-xs font-bold"
+                                            >POST</span
+                                        >
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        <span class="text-sm font-mono text-on-surface-variant"
+                                            >/api/v1/transform/canvas-data</span
+                                        >
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        <span
+                                            class="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-[10px] font-bold uppercase"
+                                            >200 OK</span
+                                        >
+                                    </td>
+                                    <td class="px-6 py-4 text-right">
+                                        <span class="text-xs text-on-surface-variant font-medium"
+                                            >2023-10-24 14:32:01.442</span
+                                        >
+                                    </td>
+                                </tr>
+                                <tr class="hover:bg-on-surface/[0.04] transition-colors group">
+                                    <td class="px-6 py-4">
+                                        <span
+                                            class="px-2 py-0.5 rounded-lg bg-slate-100 text-slate-700 font-mono text-xs font-bold"
+                                            >GET</span
+                                        >
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        <span class="text-sm font-mono text-on-surface-variant"
+                                            >/api/v1/health/detailed</span
+                                        >
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        <span
+                                            class="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-[10px] font-bold uppercase"
+                                            >200 OK</span
+                                        >
+                                    </td>
+                                    <td class="px-6 py-4 text-right">
+                                        <span class="text-xs text-on-surface-variant font-medium"
+                                            >2023-10-24 14:31:58.210</span
+                                        >
+                                    </td>
+                                </tr>
+                                <tr class="hover:bg-on-surface/[0.04] transition-colors group">
+                                    <td class="px-6 py-4">
+                                        <span
+                                            class="px-2 py-0.5 rounded-lg bg-blue-100 text-blue-700 font-mono text-xs font-bold"
+                                            >POST</span
+                                        >
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        <span class="text-sm font-mono text-on-surface-variant"
+                                            >/api/v1/auth/provision</span
+                                        >
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        <span
+                                            class="px-2 py-0.5 rounded-full bg-red-100 text-red-700 text-[10px] font-bold uppercase"
+                                            >500 ERR</span
+                                        >
+                                    </td>
+                                    <td class="px-6 py-4 text-right">
+                                        <span class="text-xs text-on-surface-variant font-medium"
+                                            >2023-10-24 14:31:55.992</span
+                                        >
+                                    </td>
+                                </tr>
+                                <tr class="hover:bg-on-surface/[0.04] transition-colors group">
+                                    <td class="px-6 py-4">
+                                        <span
+                                            class="px-2 py-0.5 rounded-lg bg-slate-100 text-slate-700 font-mono text-xs font-bold"
+                                            >GET</span
+                                        >
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        <span class="text-sm font-mono text-on-surface-variant"
+                                            >/api/v1/legacy/export</span
+                                        >
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        <span
+                                            class="px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 text-[10px] font-bold uppercase"
+                                            >404 NOT</span
+                                        >
+                                    </td>
+                                    <td class="px-6 py-4 text-right">
+                                        <span class="text-xs text-on-surface-variant font-medium"
+                                            >2023-10-24 14:31:50.125</span
+                                        >
+                                    </td>
+                                </tr>
+                                <tr class="hover:bg-on-surface/[0.04] transition-colors group">
+                                    <td class="px-6 py-4">
+                                        <span
+                                            class="px-2 py-0.5 rounded-lg bg-blue-100 text-blue-700 font-mono text-xs font-bold"
+                                            >POST</span
+                                        >
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        <span class="text-sm font-mono text-on-surface-variant"
+                                            >/api/v1/transform/canvas-data</span
+                                        >
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        <span
+                                            class="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-[10px] font-bold uppercase"
+                                            >200 OK</span
+                                        >
+                                    </td>
+                                    <td class="px-6 py-4 text-right">
+                                        <span class="text-xs text-on-surface-variant font-medium"
+                                            >2023-10-24 14:31:48.001</span
+                                        >
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+        <!-- Background Decoration for Brand Identity -->
+        <div
+            class="fixed top-0 right-0 -z-10 w-[40rem] h-[40rem] bg-primary/5 rounded-full blur-[120px] opacity-50 translate-x-1/2 -translate-y-1/2 pointer-events-none"
+        ></div>
+        <div
+            class="fixed bottom-0 left-0 -z-10 w-[30rem] h-[30rem] bg-secondary/5 rounded-full blur-[100px] opacity-30 -translate-x-1/3 translate-y-1/3 pointer-events-none"
+        ></div>
+    </body>
+</html>

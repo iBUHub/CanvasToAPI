@@ -12,14 +12,14 @@ This directory contains guidelines for frontend development. Fill in each file w
 
 ## Guidelines Index
 
-| Guide                                             | Description                             | Status  |
-| ------------------------------------------------- | --------------------------------------- | ------- |
-| [Directory Structure](./directory-structure.md)   | Module organization and file layout     | To fill |
-| [Component Guidelines](./component-guidelines.md) | Component patterns, props, composition  | To fill |
-| [Hook Guidelines](./hook-guidelines.md)           | Custom hooks, data fetching patterns    | To fill |
-| [State Management](./state-management.md)         | Local state, global state, server state | To fill |
-| [Quality Guidelines](./quality-guidelines.md)     | Code standards, forbidden patterns      | To fill |
-| [Type Safety](./type-safety.md)                   | Type patterns, validation               | To fill |
+| Guide                                             | Description                             | Status    |
+| ------------------------------------------------- | --------------------------------------- | --------- |
+| [Directory Structure](./directory-structure.md)   | Module organization and file layout     | ✅ Filled |
+| [Component Guidelines](./component-guidelines.md) | Component patterns, props, composition  | ✅ Filled |
+| [Hook Guidelines](./hook-guidelines.md)           | Custom hooks, data fetching patterns    | To fill   |
+| [State Management](./state-management.md)         | Local state, global state, server state | To fill   |
+| [Quality Guidelines](./quality-guidelines.md)     | Code standards, forbidden patterns      | To fill   |
+| [Type Safety](./type-safety.md)                   | Type patterns, validation               | To fill   |
 
 ---
 
@@ -33,6 +33,25 @@ For each guideline file:
 4. Add **common mistakes** your team has made
 
 The goal is to help AI assistants and new team members understand how YOUR project works.
+
+---
+
+## Quick Reference
+
+### Component Types
+
+| Type            | Location                                                   | Purpose                   |
+| --------------- | ---------------------------------------------------------- | ------------------------- |
+| **Layout**      | `components/SideNavBar.vue`, `components/TopAppBar.vue`    | Fixed structural elements |
+| **Display**     | `components/MetricCard.vue`, `components/TrafficChart.vue` | Data presentation         |
+| **Interactive** | `components/RequestTable.vue`                              | User interactions         |
+| **Tooltip**     | `components/EnvVarTooltip.vue`                             | Contextual help           |
+
+### Styling
+
+- Use **LESS variables** mapped to **CSS custom properties** for theming
+- Use **rgba()** directly for transparency (LESS `fade()` doesn't work with CSS variables)
+- Import `@import "../styles/variables.less"` in component styles
 
 ---
 

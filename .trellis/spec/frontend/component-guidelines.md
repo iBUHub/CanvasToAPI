@@ -538,3 +538,225 @@ See `ui/app/pages/LoginPage.vue`:
 - Computed properties for error handling
 - watchEffect for document title
 - Scoped styles with LESS variables
+
+---
+
+## Component Patterns
+
+### Layout Components
+
+Layout components provide the structural framework for pages. They are fixed-position elements that remain visible across route changes.
+
+**SideNavBar Pattern** (`ui/app/components/SideNavBar.vue`):
+
+```vue
+<script setup>
+import { ref, defineProps, defineEmits } from "vue";
+
+// Props with default for optional behavior
+defineProps({
+  activeItem: {
+    default: "dashboard",
+    required: false,
+    type: String,
+  },
+});
+
+// Emits for parent communication
+const emit = defineEmits(["navigate"]);
+
+// Static navigation data
+const navItems = ref([{ icon: "dashboard", id: "dashboard", label: "Dashboard" }]);
+
+const handleNavClick = itemId => {
+  emit("navigate", itemId);
+};
+</script>
+```
+
+**Key Points:**
+
+- Use `emit` for navigation instead of router.push (parent controls routing)
+- Use Material Symbols for icons (via Google Fonts CDN)
+- Fixed positioning with CSS variable for width (`@sidebar-width`)
+
+### Display Components
+
+Display components present data without complex state management.
+
+**MetricCard Pattern** (`ui/app/components/MetricCard.vue`):
+
+```vue
+<script setup>
+import { computed, defineProps } from "vue";
+
+// Omit 'props' assignment when not using props in script
+defineProps({
+  icon: {
+    default: "",
+    required: false,
+    type: String,
+  },
+  label: {
+    required: true,
+    type: String,
+  },
+  value: {
+    required: true,
+    type: [String, Number],
+  },
+  statusType: {
+    default: "success",
+    required: false,
+    type: String,
+  },
+});
+
+// Computed for derived values
+const formattedValue = computed(() => {
+  // Transform logic here
+});
+</script>
+```
+
+**Key Points:**
+
+- Use `defineProps()` directly without assignment if props not accessed in script
+- Accept both String and Number for flexible value types
+- Provide sensible defaults for optional props
+- Use computed for derived/transformed values
+
+**Data Table Pattern** (`ui/app/components/RequestTable.vue`):
+
+- Provide default data array for standalone usage
+- Use computed for status/method class mapping
+- Emit events for user actions (filter, refresh)
+
+---
+
+## Styling Patterns
+
+### Material Design 3 Color System
+
+The project uses a Material Design 3 inspired color system with CSS custom properties for theming:
+
+```less
+// In variables.less
+:root {
+  // Primary palette
+  --color-primary: #004ac6;
+  --color-primary-container: #2563eb;
+  --color-on-primary: #ffffff;
+
+  // Surface palette
+  --color-surface: #faf8ff;
+  --color-surface-container: #ededf9;
+
+  // Text colors
+  --color-on-surface: #191b23;
+  --color-on-surface-variant: #434655;
+}
+
+[data-theme="dark"] {
+  --color-primary: #b4c5ff;
+  --color-surface: #121318;
+  --color-on-surface: #e3e2e8;
+}
+
+// LESS variables mapped to CSS custom properties
+@primary-color: var(--color-primary);
+@surface: var(--color-surface);
+```
+
+### Using Colors in Components
+
+```less
+// ✅ CORRECT: Use LESS variables that map to CSS custom properties
+.my-component {
+  background-color: @surface-container;
+  color: @on-surface;
+  border: 1px solid @outline-variant;
+}
+
+// ❌ WRONG: Hardcoded colors
+.my-component {
+  background-color: #ededf9;
+  color: #191b23;
+}
+
+// ❌ WRONG: fade() with CSS custom properties (LESS can't evaluate)
+.my-component {
+  opacity: fade(var(--color-primary), 50%); // Error!
+}
+
+// ✅ CORRECT: Use rgba() directly for transparency
+.my-component {
+  background-color: rgba(0, 74, 198, 0.1);
+}
+```
+
+### Fixed Layout Pattern
+
+For dashboard-style layouts with fixed sidebar and header:
+
+```less
+.sidebar {
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: @sidebar-width; // 256px
+  height: 100vh;
+  z-index: @z-index-fixed;
+}
+
+.topbar {
+  position: fixed;
+  top: 0;
+  left: @sidebar-width; // Start after sidebar
+  right: 0;
+  height: @topbar-height; // 64px
+  z-index: @z-index-sticky;
+}
+
+.main-content {
+  margin-left: @sidebar-width;
+  padding-top: @topbar-height;
+  min-height: 100vh;
+}
+```
+
+---
+
+## Common Mistakes
+
+### 6. Using fade() with CSS Custom Properties
+
+LESS's `fade()` function cannot evaluate CSS custom properties at compile time:
+
+```less
+// ❌ WRONG: LESS error - "Argument cannot be evaluated to a color"
+border: 1px solid fade(@outline-variant, 15%);
+
+// ✅ CORRECT: Use hardcoded rgba values for transparency
+border: 1px solid rgba(195, 198, 215, 0.15);
+```
+
+### 7. Unused Props Assignment
+
+```vue
+<!-- ❌ WRONG: Assigning props but never using them -->
+<script setup>
+const props = defineProps({ ... });  // 'props' is assigned but never used
+</script>
+
+<!-- ✅ CORRECT: Use defineProps() directly if not accessing props in script -->
+<script setup>
+defineProps({ ... });
+</script>
+
+<!-- ✅ CORRECT: Use props in template or computed -->
+<script setup>
+const props = defineProps({ value: { type: String } });
+const formatted = computed(() => props.value.toUpperCase());
+</script>
+```

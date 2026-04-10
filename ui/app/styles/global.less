@@ -26,6 +26,14 @@ body,
     overflow: visible;
 }
 
+// Body styling
+body {
+    font-size: @font-size-base;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    line-height: 1.5;
+}
+
 // Vue cloak directive
 [v-cloak] {
     display: none;
@@ -36,9 +44,69 @@ body,
     display: contents;
 }
 
-// Smooth scrolling、
+// Smooth scrolling
 @media (prefers-reduced-motion: no-preference) {
     html {
         scroll-behavior: smooth;
+    }
+}
+
+// Material Symbols configuration
+.material-symbols-outlined {
+    direction: ltr;
+    display: inline-block;
+    -webkit-font-smoothing: antialiased;
+    font-style: normal;
+    font-variation-settings:
+        "FILL" 0,
+        "wght" 400,
+        "GRAD" 0,
+        "opsz" 24;
+    font-weight: normal;
+    letter-spacing: normal;
+    line-height: 1;
+    text-transform: none;
+    white-space: nowrap;
+    word-wrap: normal;
+}
+
+// Focus visible for accessibility
+:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+}
+
+// Selection styling
+::selection {
+    background-color: rgba(0, 74, 198, 0.2);
+}
+
+// Scrollbar styling (optional)
+::-webkit-scrollbar {
+    height: 8px;
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: @outline-variant;
+    border-radius: @border-radius-full;
+
+    &:hover {
+        background: @outline;
+    }
+}
+
+// Dark mode scrollbar
+[data-theme="dark"] {
+    ::-webkit-scrollbar-thumb {
+        background: var(--color-outline-variant);
+
+        &:hover {
+            background: var(--color-outline);
+        }
     }
 }
