@@ -42,11 +42,11 @@
                 <div class="metrics-grid">
                     <MetricCard
                         :label="t('serverStatus')"
-                        :value="'99.98%'"
+                        :value="state.serviceConnected ? t('online') : t('offline')"
                         :subtitle="t('uptime24h')"
                         icon=""
-                        status="Online"
-                        status-type="success"
+                        :status="state.serviceConnected ? t('online') : t('offline')"
+                        :status-type="state.serviceConnected ? 'success' : 'error'"
                         :show-sparkline="true"
                     />
                     <MetricCard
@@ -56,35 +56,12 @@
                         icon="groups"
                         icon-color="var(--color-primary)"
                     />
-                    <MetricCard
-                        :label="t('todayRequests')"
-                        :value="'1,452'"
-                        :subtitle="'+12% vs yesterday'"
-                        icon="swap_calls"
-                        icon-color="var(--color-secondary)"
-                        trend="up"
-                    />
-                    <MetricCard
-                        :label="t('avgLatency')"
-                        :value="'240ms'"
-                        :subtitle="'P95: 385ms'"
-                        icon="timer"
-                        icon-color="var(--color-tertiary-container)"
-                    />
                 </div>
 
                 <!-- Charts Grid -->
                 <div class="charts-grid">
-                    <TrafficChart class="chart-traffic" />
-                    <LoadDistribution class="chart-load" @view-logs="handleViewLogs" />
+                    <LoadDistribution :items="loadDistributionItems" class="chart-load" @view-logs="handleViewLogs" />
                 </div>
-
-                <!-- Recent Requests Table -->
-                <RequestTable
-                    :requests="recentRequests"
-                    @refresh="handleRefreshRequests"
-                    @filter="handleFilterRequests"
-                />
             </div>
         </main>
 
@@ -96,25 +73,27 @@
 
 <script setup>
 import { computed, onBeforeUnmount, onMounted, reactive, ref, watchEffect } from "vue";
+import { useRouter } from "vue-router";
 import { ElMessage } from "element-plus";
 
 // Components
 import SideNavBar from "../components/SideNavBar.vue";
 import TopAppBar from "../components/TopAppBar.vue";
 import MetricCard from "../components/MetricCard.vue";
-import TrafficChart from "../components/TrafficChart.vue";
 import LoadDistribution from "../components/LoadDistribution.vue";
-import RequestTable from "../components/RequestTable.vue";
 
 // Utils
 import I18n from "../utils/i18n";
 import { useTheme } from "../utils/useTheme";
 
+// Router
+const router = useRouter();
+
 // State
 const activeTab = ref("dashboard");
 const sessions = ref([]);
 const updateTimer = ref(null);
-const langVersion = ref(I18n.state.version);
+const langVersion = ref(0);
 const { theme, setTheme } = useTheme();
 
 const state = reactive({
@@ -134,35 +113,6 @@ const state = reactive({
     streamingMode: "fake",
 });
 
-// Sample data for recent requests
-const recentRequests = ref([
-    { method: "POST", path: "/api/v1/transform/canvas-data", status: "200 OK", timestamp: formatTime(new Date()) },
-    {
-        method: "GET",
-        path: "/api/v1/health/detailed",
-        status: "200 OK",
-        timestamp: formatTime(new Date(Date.now() - 3000)),
-    },
-    {
-        method: "POST",
-        path: "/api/v1/auth/provision",
-        status: "500 ERR",
-        timestamp: formatTime(new Date(Date.now() - 6000)),
-    },
-    {
-        method: "GET",
-        path: "/api/v1/legacy/export",
-        status: "404 NOT",
-        timestamp: formatTime(new Date(Date.now() - 11000)),
-    },
-    {
-        method: "POST",
-        path: "/api/v1/transform/canvas-data",
-        status: "200 OK",
-        timestamp: formatTime(new Date(Date.now() - 14000)),
-    },
-]);
-
 // i18n helper
 const t = (key, options) => {
     langVersion.value; // trigger reactivity
@@ -174,15 +124,49 @@ const activeSessionCount = computed(() => sessions.value.filter(s => !s.disabled
 
 const wsConnectedCount = computed(() => sessions.value.filter(s => !s.disabledAt).length);
 
-// Helper functions
-function formatTime(date) {
-    return date.toISOString().replace("T", " ").slice(0, 19);
-}
+const loadDistributionItems = computed(() => {
+    const activeSessions = sessions.value.filter(s => !s.disabledAt);
+    if (activeSessions.length === 0) {
+        return [];
+    }
+
+    const totalUsage = activeSessions.reduce((sum, s) => sum + (s.usageCount || 0), 0);
+    if (totalUsage === 0) {
+        return activeSessions.map((s, idx) => ({
+            color: `var(--color-${idx === 0 ? "primary" : idx === 1 ? "secondary" : "tertiary-container"})`,
+            id: s.connectionId || `session-${idx}`,
+            label: s.connectionId || `Session ${idx + 1}`,
+            value: 0,
+        }));
+    }
+
+    const colors = [
+        "var(--color-primary)",
+        "var(--color-secondary)",
+        "var(--color-tertiary-container)",
+        "var(--color-outline)",
+    ];
+
+    return activeSessions.map((s, idx) => ({
+        color: colors[idx % colors.length],
+        id: s.connectionId || `session-${idx}`,
+        label: s.connectionId || `Session ${idx + 1}`,
+        value: Math.round(((s.usageCount || 0) / totalUsage) * 100),
+    }));
+});
 
 // Navigation
 const handleNavigate = itemId => {
     activeTab.value = itemId;
-    // Future: implement routing to different pages
+
+    // Route to corresponding page
+    if (itemId === "dashboard") {
+        router.push("/");
+    } else if (itemId === "sessions") {
+        router.push("/sessions");
+    } else if (itemId === "settings") {
+        router.push("/settings");
+    }
 };
 
 // Search
@@ -215,16 +199,6 @@ const handleExportReport = () => {
 // View logs
 const handleViewLogs = () => {
     activeTab.value = "logs";
-};
-
-// Refresh requests
-const handleRefreshRequests = () => {
-    ElMessage.success(t("refreshed", { fallback: "Refreshed" }));
-};
-
-// Filter requests
-const handleFilterRequests = () => {
-    console.log("Filter requests");
 };
 
 // Fetch status data
@@ -262,6 +236,9 @@ const applyStatusPayload = payload => {
 onMounted(() => {
     fetchStatus();
     updateTimer.value = setInterval(fetchStatus, 5000);
+
+    // Initialize langVersion
+    langVersion.value = I18n.state.version;
 
     // Apply i18n
     if (I18n.isInitialized()) {
@@ -404,10 +381,6 @@ onBeforeUnmount(() => {
     @media (max-width: 1024px) {
         grid-template-columns: 1fr;
     }
-}
-
-.chart-traffic {
-    //
 }
 
 .chart-load {
