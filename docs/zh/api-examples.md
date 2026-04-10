@@ -190,6 +190,48 @@ curl -X POST http://localhost:7861/v1beta/models/gemini-2.5-flash-image-preview:
   }'
 ```
 
+### 🎨 Imagen 图像生成 [官方文档](https://ai.google.dev/gemini-api/docs/imagen?hl=zh-cn)
+
+使用 `imagen` 系列模型通过 `:predict` 端点生成图像。
+
+#### 基础图像生成
+
+```bash
+curl -X POST http://localhost:7861/v1beta/models/imagen-4.0-generate-001:predict \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer your-api-key-1" \
+  -d '{
+    "instances": [
+      {
+        "prompt": "机器人手持红色滑板"
+      }
+    ],
+    "parameters": {
+      "sampleCount": 1
+    }
+  }'
+```
+
+#### 批量生成多张图像
+
+调整 `sampleCount` 可一次生成多张图像（最多 4 张）。
+
+```bash
+curl -X POST http://localhost:7861/v1beta/models/imagen-4.0-generate-001:predict \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer your-api-key-1" \
+  -d '{
+    "instances": [
+      {
+        "prompt": "夕阳下的未来城市，天空中有飞行汽车"
+      }
+    ],
+    "parameters": {
+      "sampleCount": 4
+    }
+  }'
+```
+
 > 💡 **提示**：Imagen 响应返回的是 base64 编码的图像数据，每张生成的图像都会包含在 `predictions` 数组中。
 
 ### 🎤 TTS 语音合成 [官方文档](https://ai.google.dev/gemini-api/docs/speech-generation?hl=zh-cn)

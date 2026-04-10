@@ -57,11 +57,11 @@
    该页面的实际内容可参考仓库中的 [scripts/client/canvas.html](scripts/client/canvas.html)。
 
    打开后请手动填写：
-   - `Server WS Endpoint`：例如本地部署填写 `ws://127.0.0.1:7861/ws`，远程部署填写你的服务端 WebSocket 地址
+   - `Server WS Endpoint`：本地部署填写 `ws://127.0.0.1:7861/ws`
    - `API Key`：填写与请求时相同的 `API_KEYS` 中任意一个 key
    - `Browser Identifier`：浏览器标志，可自定义；留空时页面会自动生成每日标志
 
-   填写完成后点击 `Connect`。连接成功后，回到状态页确认 `Browser Sessions` 中已有在线会话。
+   填写完成后点击 `保存` 再点击 `连接`。连接成功后，回到状态页确认 `浏览器会话` 中已有在线会话。
 
 6. 开始调用 API：
 
@@ -71,11 +71,13 @@
 > 旧版 README 中的 `npm run setup-auth`、`auth-N.json`、VNC 登录和上传 Auth 文件等流程，已不适用于当前版本。
 
 > 💡 **提示：**
-> 如果服务部署在远程机器上，建立会话的浏览器只需要能够访问服务端的 HTTP 端口 `PORT`。浏览器会话 WebSocket 现已复用同一端口，通过 `/ws` 路径连接。
+> 如果服务部署在远程机器上，且浏览器连接非本地服务端的话，需要为服务端开启反向代理，才能在浏览器端使用 `wss://`。
 
 ### 🐋 Docker 部署
 
-#### 🎮️ 方式 1：Docker 命令
+#### 🚢 步骤 1：部署容器
+
+##### 🎮️ 方式 1：Docker 命令
 
 ```bash
 docker run -d \
@@ -95,7 +97,7 @@ docker run -d \
 - `-e API_KEYS`：客户端访问 API 和控制台时使用的密钥
 - `-e TZ=Asia/Shanghai`：日志和页面显示时间的时区（可选）
 
-#### 📦 方式 2：Docker Compose
+##### 📦 方式 2：Docker Compose
 
 创建 `docker-compose.yml`：
 
@@ -114,7 +116,7 @@ services:
       TZ: Asia/Shanghai
 ```
 
-#### 🛠️ 方式 3：从源码构建
+##### 🛠️ 方式 3：从源码构建
 
 如果你希望自己构建 Docker 镜像，可以使用以下命令：
 
@@ -142,7 +144,7 @@ services:
 
 [https://gemini.google.com/share/a106ab8dac80](https://gemini.google.com/share/a106ab8dac80)
 
-页面中需要手动填写浏览器标志（`Browser Identifier`）、API Key，以及服务端 WebSocket 地址（`Server WS Endpoint`，例如 `ws://your-host:7861/ws` 或 `wss://your-host/ws`）。其中 API Key 请填写与请求时相同的 key。连接建立成功后，状态页会显示在线浏览器会话，之后 API 请求才会被转发。
+页面中需要手动填写浏览器标志（`Browser Identifier`）、API Key，以及服务端 WebSocket 地址（`Server WS Endpoint`，例如 `ws://127.0.0.1:7861/ws` 或 `wss://your-host/ws`）。其中 API Key 请填写与请求时相同的 key。连接建立成功后，状态页会显示在线浏览器会话，之后 API 请求才会被转发。
 
 #### 🌐 步骤 3（可选）：使用 Nginx 反向代理
 

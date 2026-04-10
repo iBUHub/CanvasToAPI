@@ -57,11 +57,11 @@ A tool that exposes a Gemini web session as OpenAI API, Gemini API, and Anthropi
    The actual page content is also available in the repository at [scripts/client/canvas.html](scripts/client/canvas.html).
 
    Fill in:
-   - `Server WS Endpoint`: for example `ws://127.0.0.1:7861/ws` for local use, or your public server WebSocket address for remote deployments
+   - `Server WS Endpoint`: `ws://127.0.0.1:7861/ws` for local use
    - `API Key`: enter the same key you use for API requests
    - `Browser Identifier`: an optional browser tag; if left blank, the page auto-generates a daily identifier
 
-   Then click `Connect`. Once connected, confirm that `Browser Sessions` shows at least one online session in the status page.
+   Then click `Save` and click `Connect`. Once connected, confirm that `Browser Sessions` shows at least one online session in the status page.
 
 6. Start sending API requests:
 
@@ -71,11 +71,13 @@ A tool that exposes a Gemini web session as OpenAI API, Gemini API, and Anthropi
 > The old `npm run setup-auth`, `auth-N.json`, VNC login, and auth upload flow described in earlier versions no longer applies.
 
 > 💡 **Tip:**
-> If the server is deployed remotely, the browser that opens the share page only needs to reach the HTTP port (`PORT`). Browser-session WebSocket traffic now reuses the same port through the `/ws` path.
+> If the service is deployed on a remote machine and the browser connects to a non-local server endpoint, you need to enable a reverse proxy for the server so the browser can use `wss://`.
 
 ### 🐋 Docker Deployment
 
-#### 🎮️ Option 1: Docker Command
+#### 🚢 Step 1: Deploy Container
+
+##### 🎮️ Option 1: Docker Command
 
 ```bash
 docker run -d \
@@ -95,7 +97,7 @@ Parameters:
 - `-e API_KEYS`: API and console access key
 - `-e TZ=America/New_York`: Time zone for logs and UI timestamps (optional)
 
-#### 📦 Option 2: Docker Compose
+##### 📦 Option 2: Docker Compose
 
 Create `docker-compose.yml`:
 
@@ -114,7 +116,7 @@ services:
       TZ: America/New_York
 ```
 
-#### 🛠️ Option 3: Build from Source
+##### 🛠️ Option 3: Build from Source
 
 If you prefer to build the Docker image yourself, use the following commands:
 
@@ -142,7 +144,7 @@ After the container starts, you still need to manually open the following page a
 
 [https://gemini.google.com/share/a106ab8dac80](https://gemini.google.com/share/a106ab8dac80)
 
-On that page, manually enter the browser tag (`Browser Identifier`), API key, and the server WebSocket address (`Server WS Endpoint`), for example `ws://your-host:7861/ws` or `wss://your-host/ws`. The API key should be the same one you use for API requests. Once the browser session is connected, the status page will show it as online and the API can begin forwarding requests.
+On that page, manually enter the browser tag (`Browser Identifier`), API key, and the server WebSocket address (`Server WS Endpoint`), for example `ws://127.0.0.1:7861/ws` or `wss://your-host/ws`. The API key should be the same one you use for API requests. Once the browser session is connected, the status page will show it as online and the API can begin forwarding requests.
 
 #### 🌐 Step 3 (Optional): Nginx Reverse Proxy
 
