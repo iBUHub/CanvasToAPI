@@ -1,6 +1,6 @@
 <!--
  * File: ui/app/components/LoadDistribution.vue
- * Description: Account load distribution progress bars component
+ * Description: Session load distribution progress bars component showing usage across browser sessions
  *
  * Author: iBUHUB
 -->
@@ -45,17 +45,12 @@ import { defineProps, defineEmits } from "vue";
 // Props
 defineProps({
     items: {
-        default: () => [
-            { color: "var(--color-primary)", id: "account-01", label: "account-01", value: 42 },
-            { color: "var(--color-secondary)", id: "account-02", label: "account-02", value: 28 },
-            { color: "var(--color-tertiary-container)", id: "account-03", label: "account-03", value: 15 },
-            { color: "var(--color-outline)", id: "account-04", label: "account-04", value: 15 },
-        ],
+        default: () => [],
         required: false,
         type: Array,
     },
     subtitle: {
-        default: "Requests per account unit",
+        default: "Requests per session",
         required: false,
         type: String,
     },

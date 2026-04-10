@@ -42,6 +42,23 @@ post_create:
 # Commands to verify code quality before allowing check agent to finish
 # If configured, Ralph Loop will run these commands - all must pass to allow completion
 # If not configured or empty, trusts agent's completion markers
+#
+# Verification Strategy: See .trellis/verification-strategy.md for options
+#
+# Option A: Fast Quality Check (Recommended for active development)
+# - Catches code quality issues early
+# - ~2-3 seconds per iteration
+# - Clear error separation (JS vs CSS)
+#
 verify:
-  # - pnpm lint
-  # - pnpm typecheck
+  - npm run lint:js
+  - npm run lint:css
+#
+# Option B: Comprehensive Check (Recommended for pre-merge)
+# - Includes build verification
+# - ~7-8 seconds per iteration
+# - Use for important changes or production readiness
+#
+# verify:
+#   - npm run lint
+#   - npm run build:ui

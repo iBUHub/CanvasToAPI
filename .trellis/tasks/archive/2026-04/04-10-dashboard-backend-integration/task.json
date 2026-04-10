@@ -1,29 +1,29 @@
 {
-  "id": "dashboard-backend-integration",
-  "name": "dashboard-backend-integration",
-  "title": "Dashboard Backend Integration",
-  "status": "completed",
-  "dev_type": "frontend",
-  "priority": "P2",
-  "creator": "mika",
-  "assignee": "mika",
-  "createdAt": "2026-04-10",
-  "branch": "feature/dashboard-backend",
-  "base_branch": "frontend-refactor",
-  "current_phase": 0,
-  "next_action": [
-    {
-      "phase": 1,
-      "action": "implement"
-    },
-    {
-      "phase": 2,
-      "action": "check"
-    },
-    {
-      "phase": 3,
-      "action": "create-pr"
-    }
-  ],
-  "completedAt": "2026-04-10"
+    "id": "dashboard-backend-integration",
+    "name": "dashboard-backend-integration",
+    "title": "Dashboard Backend Integration",
+    "status": "completed",
+    "dev_type": "frontend",
+    "priority": "P2",
+    "creator": "mika",
+    "assignee": "mika",
+    "createdAt": "2026-04-10",
+    "branch": "feature/dashboard-backend",
+    "base_branch": "frontend-refactor",
+    "current_phase": 0,
+    "next_action": [
+        {
+            "phase": 1,
+            "action": "implement"
+        },
+        {
+            "phase": 2,
+            "action": "check"
+        },
+        {
+            "phase": 3,
+            "action": "create-pr"
+        }
+    ],
+    "completedAt": "2026-04-10"
 }

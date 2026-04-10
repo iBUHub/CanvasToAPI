@@ -27,28 +27,10 @@
                         <h1 class="page-title">{{ t("dashboardOverview") }}</h1>
                         <p class="page-subtitle">{{ t("realTimeInfrastructure") }}</p>
                     </div>
-                    <div class="header-actions">
-                        <button class="btn-secondary" @click="handleExportReport">
-                            {{ t("exportReport") }}
-                        </button>
-                        <button class="btn-primary">
-                            <span class="material-symbols-outlined btn-icon">add</span>
-                            {{ t("newDeployment") }}
-                        </button>
-                    </div>
                 </div>
 
                 <!-- Metrics Grid -->
                 <div class="metrics-grid">
-                    <MetricCard
-                        :label="t('serverStatus')"
-                        :value="'99.98%'"
-                        :subtitle="t('uptime24h')"
-                        icon=""
-                        status="Online"
-                        status-type="success"
-                        :show-sparkline="true"
-                    />
                     <MetricCard
                         :label="t('activeSessions')"
                         :value="activeSessionCount"
@@ -56,35 +38,12 @@
                         icon="groups"
                         icon-color="var(--color-primary)"
                     />
-                    <MetricCard
-                        :label="t('todayRequests')"
-                        :value="'1,452'"
-                        :subtitle="'+12% vs yesterday'"
-                        icon="swap_calls"
-                        icon-color="var(--color-secondary)"
-                        trend="up"
-                    />
-                    <MetricCard
-                        :label="t('avgLatency')"
-                        :value="'240ms'"
-                        :subtitle="'P95: 385ms'"
-                        icon="timer"
-                        icon-color="var(--color-tertiary-container)"
-                    />
                 </div>
 
-                <!-- Charts Grid -->
-                <div class="charts-grid">
-                    <TrafficChart class="chart-traffic" />
-                    <LoadDistribution class="chart-load" @view-logs="handleViewLogs" />
+                <!-- Load Distribution -->
+                <div v-if="loadDistributionItems.length > 0" class="load-distribution-wrapper">
+                    <LoadDistribution :items="loadDistributionItems" @view-logs="handleViewLogs" />
                 </div>
-
-                <!-- Recent Requests Table -->
-                <RequestTable
-                    :requests="recentRequests"
-                    @refresh="handleRefreshRequests"
-                    @filter="handleFilterRequests"
-                />
             </div>
         </main>
 
@@ -97,15 +56,12 @@
 <script setup>
 import { computed, onBeforeUnmount, onMounted, reactive, ref, watchEffect } from "vue";
 import { useRouter } from "vue-router";
-import { ElMessage } from "element-plus";
 
 // Components
 import SideNavBar from "../components/SideNavBar.vue";
 import TopAppBar from "../components/TopAppBar.vue";
 import MetricCard from "../components/MetricCard.vue";
-import TrafficChart from "../components/TrafficChart.vue";
 import LoadDistribution from "../components/LoadDistribution.vue";
-import RequestTable from "../components/RequestTable.vue";
 
 // Utils
 import I18n from "../utils/i18n";
@@ -138,35 +94,6 @@ const state = reactive({
     streamingMode: "fake",
 });
 
-// Sample data for recent requests
-const recentRequests = ref([
-    { method: "POST", path: "/api/v1/transform/canvas-data", status: "200 OK", timestamp: formatTime(new Date()) },
-    {
-        method: "GET",
-        path: "/api/v1/health/detailed",
-        status: "200 OK",
-        timestamp: formatTime(new Date(Date.now() - 3000)),
-    },
-    {
-        method: "POST",
-        path: "/api/v1/auth/provision",
-        status: "500 ERR",
-        timestamp: formatTime(new Date(Date.now() - 6000)),
-    },
-    {
-        method: "GET",
-        path: "/api/v1/legacy/export",
-        status: "404 NOT",
-        timestamp: formatTime(new Date(Date.now() - 11000)),
-    },
-    {
-        method: "POST",
-        path: "/api/v1/transform/canvas-data",
-        status: "200 OK",
-        timestamp: formatTime(new Date(Date.now() - 14000)),
-    },
-]);
-
 // i18n helper
 const t = (key, options) => {
     langVersion.value; // trigger reactivity
@@ -178,10 +105,29 @@ const activeSessionCount = computed(() => sessions.value.filter(s => !s.disabled
 
 const wsConnectedCount = computed(() => sessions.value.filter(s => !s.disabledAt).length);
 
-// Helper functions
-function formatTime(date) {
-    return date.toISOString().replace("T", " ").slice(0, 19);
-}
+// Transform sessions data for LoadDistribution component
+const loadDistributionItems = computed(() => {
+    const activeSessions = sessions.value.filter(s => !s.disabledAt);
+    const totalUsage = activeSessions.reduce((sum, s) => sum + (s.usageCount || 0), 0);
+
+    if (totalUsage === 0) {
+        return [];
+    }
+
+    const colors = [
+        "var(--color-primary)",
+        "var(--color-secondary)",
+        "var(--color-tertiary-container)",
+        "var(--color-outline)",
+    ];
+
+    return activeSessions.map((session, index) => ({
+        color: colors[index % colors.length],
+        id: session.sessionId || session.connectionId,
+        label: session.sessionId || session.connectionId,
+        value: totalUsage > 0 ? Math.round(((session.usageCount || 0) / totalUsage) * 100) : 0,
+    }));
+});
 
 // Navigation
 const handleNavigate = itemId => {
@@ -192,13 +138,13 @@ const handleNavigate = itemId => {
 };
 
 // Search
-const handleSearch = query => {
-    console.log("Search:", query);
+const handleSearch = () => {
+    // TODO: Implement search functionality
 };
 
 // Actions
-const handleAction = action => {
-    console.log("Action:", action);
+const handleAction = () => {
+    // TODO: Implement action handling
 };
 
 // Theme toggle
@@ -213,24 +159,10 @@ const toggleLanguage = () => {
     langVersion.value++;
 };
 
-// Export report
-const handleExportReport = () => {
-    ElMessage.success(t("exportReportStarted", { fallback: "Export started..." }));
-};
-
 // View logs
 const handleViewLogs = () => {
     activeTab.value = "logs";
-};
-
-// Refresh requests
-const handleRefreshRequests = () => {
-    ElMessage.success(t("refreshed", { fallback: "Refreshed" }));
-};
-
-// Filter requests
-const handleFilterRequests = () => {
-    console.log("Filter requests");
+    router.push({ name: "settings" });
 };
 
 // Fetch status data
@@ -313,7 +245,7 @@ onBeforeUnmount(() => {
 .page-header {
     display: flex;
     align-items: flex-end;
-    justify-content: space-between;
+    justify-content: flex-start;
     margin-bottom: @spacing-2xl;
 }
 
@@ -336,88 +268,21 @@ onBeforeUnmount(() => {
     color: @on-surface-variant;
 }
 
-.header-actions {
-    display: flex;
-    gap: @spacing-md;
-}
-
-// Buttons
-.btn-secondary {
-    padding: @spacing-md @spacing-lg;
-    border: none;
-    border-radius: @border-radius-xl;
-    background-color: @surface-container-high;
-    font-family: @font-family-sans;
-    font-size: @font-size-sm;
-    font-weight: 500;
-    color: @on-surface;
-    cursor: pointer;
-    transition: opacity @transition-fast;
-
-    &:hover {
-        opacity: 0.8;
-    }
-}
-
-.btn-primary {
-    display: flex;
-    align-items: center;
-    gap: @spacing-sm;
-    padding: @spacing-md @spacing-lg;
-    border: none;
-    border-radius: @border-radius-xl;
-    background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-container) 100%);
-    font-family: @font-family-sans;
-    font-size: @font-size-sm;
-    font-weight: 500;
-    color: @on-primary;
-    cursor: pointer;
-    box-shadow: @shadow-sm;
-    transition: opacity @transition-fast;
-
-    &:hover {
-        opacity: 0.9;
-    }
-}
-
-.btn-icon {
-    font-size: 16px;
-}
-
 // Metrics Grid
 .metrics-grid {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: 1fr;
     gap: @spacing-xl;
     margin-bottom: @spacing-2xl;
-
-    @media (max-width: 1200px) {
-        grid-template-columns: repeat(2, 1fr);
-    }
 
     @media (max-width: 768px) {
         grid-template-columns: 1fr;
     }
 }
 
-// Charts Grid
-.charts-grid {
-    display: grid;
-    grid-template-columns: 2fr 1fr;
-    gap: @spacing-xl;
+// Load Distribution
+.load-distribution-wrapper {
     margin-bottom: @spacing-2xl;
-
-    @media (max-width: 1024px) {
-        grid-template-columns: 1fr;
-    }
-}
-
-.chart-traffic {
-    //
-}
-
-.chart-load {
-    //
 }
 
 // Background Decorations
