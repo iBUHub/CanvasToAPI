@@ -575,3 +575,151 @@ Removed features without backend support (~850 lines), integrated LoadDistributi
 ### Next Steps
 
 - None - task complete
+
+## Session 9: 前端操作逻辑对齐 - 需求发现与规划
+
+**Date**: 2026-04-10
+**Task**: 前端操作逻辑对齐 - 需求发现与规划
+**Branch**: `frontend-refactor`
+
+### Summary
+
+(Add summary)
+
+### Main Changes
+
+## 会话目标
+
+对齐重构后网页前端与原版网页的操作逻辑，实现"仅设计样式改变，原有功能全部不变"。
+
+## 主要工作
+
+### 1. 需求发现与明确
+
+通过代码对比分析，识别了原版 main 分支与重构后 frontend-refactor 分支的核心差异：
+
+**原版架构**：
+
+- 单页面应用，标签切换（home / settings / logs）
+- home 标签：状态展示 + 会话池管理
+- settings 标签：设置配置
+- logs 标签：实时日志查看和下载
+- 版本检查功能（/api/version/check）
+
+**重构后架构**：
+
+- 多页面应用，路由导航（Dashboard / Sessions / Settings）
+- Dashboard 页面：简化状态展示 + LoadDistribution
+- Sessions 页面：会话池管理（独立页面）
+- Settings 页面：设置配置 + 日志（合并）
+- 缺失版本检查功能
+
+### 2. 核心差异识别
+
+**❌ 缺失功能**：
+
+- 版本检查功能完全缺失
+
+**🔄 行为变更**：
+
+- 导航方式：单页面标签切换 → 多页面路由导航
+- 页面状态：标签切换保留状态 → 路由跳转丢失状态
+- 标签结构：home(状态+会话) → Dashboard(状态) + Sessions(会话) 分离
+
+**🆕 新增功能**：
+
+- LoadDistribution 组件（原版没有）
+- TrafficChart/RequestTable（重构过程中创建后移除，原版也没有）
+
+### 3. 决策确认
+
+通过多轮问答，明确了以下决策：
+
+**版本检查功能**：需要恢复 ✅
+
+**导航方式**：改回单页面标签切换 ✅
+
+- 保留 Material Design 3 组件（SideNavBar + TopAppBar）
+- 移除路由跳转，使用 activeTab state 切换
+- 保留页面状态（v-if/v-show）
+
+**标签结构**：完全对齐原版 ✅
+
+- dashboard: 状态展示 + 会话池管理（合并）
+- settings: 设置配置
+- logs: 实时日志
+
+**新增功能处理**：移除 LoadDistribution ✅
+
+- TrafficChart/RequestTable 不恢复（原版也没有）
+
+**UI 组件结构**：保持 Material Design 3 风格 ✅
+
+### 4. 技术方案设计
+
+**架构方案**：
+
+- 单个 StatusPage.vue 文件包含所有标签内容
+- 使用 activeTab state + v-if/v-show 切换
+- 合并 SessionsPage 和 SettingsPage 内容到 StatusPage
+- 删除独立页面文件和简化 Router 配置
+
+**实施路径**：
+
+1. Phase 1: 架构调整（标签切换逻辑、页面合并）
+2. Phase 2: 功能恢复（版本检查、设置项、日志）
+3. Phase 3: 清理和测试（移除组件、删除文件）
+
+## 输出成果
+
+### PRD 文档
+
+创建了详细的 PRD 文档（`.trellis/tasks/04-10-align-refactored-frontend/prd.md`），包含：
+
+- ✅ 明确的目标和需求
+- ✅ 完整的 Acceptance Criteria
+- ✅ 详细的 Technical Approach
+- ✅ ADR-lite 决策记录
+- ✅ 实施路径规划
+
+### 关键决策记录
+
+| 决策项           | 选择              | 理由                                   |
+| ---------------- | ----------------- | -------------------------------------- |
+| 版本检查         | 恢复              | 原版功能，用户需要知道更新             |
+| 导航方式         | 单页面标签切换    | 对齐原版体验，保留状态                 |
+| 标签结构         | 合并对齐          | dashboard(状态+会话) / settings / logs |
+| UI 风格          | Material Design 3 | 保留新设计，只改逻辑                   |
+| LoadDistribution | 移除              | 原版没有                               |
+
+## 下一步
+
+**实施阶段（下个会话）**：
+
+1. 修改 SideNavBar 逻辑（移除路由，改用 emit）
+2. 在 StatusPage 实现标签切换
+3. 合并 SessionsPage 和 SettingsPage 内容
+4. 添加版本检查功能
+5. 移除 LoadDistribution 和独立页面文件
+6. 全量功能测试
+
+## 未提交文件
+
+- `.trellis/tasks/04-10-align-refactored-frontend/` - 任务目录和 PRD
+- `CLAUDE.md` - 项目说明（1处未提交修改）
+
+### Git Commits
+
+(No commits - planning session)
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete
