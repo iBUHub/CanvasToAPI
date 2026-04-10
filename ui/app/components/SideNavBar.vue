@@ -43,6 +43,7 @@
 
 <script setup>
 import { ref, defineProps, defineEmits } from "vue";
+import { useRouter } from "vue-router";
 
 // Props
 defineProps({
@@ -56,16 +57,24 @@ defineProps({
 // Emits
 const emit = defineEmits(["navigate"]);
 
+// Router
+const router = useRouter();
+
 // Navigation items
 const navItems = ref([
-    { icon: "dashboard", id: "dashboard", label: "Dashboard" },
-    { icon: "manage_accounts", id: "accounts", label: "Accounts" },
-    { icon: "settings_input_component", id: "config", label: "Configuration" },
-    { icon: "terminal", id: "logs", label: "System Logs" },
+    { icon: "dashboard", id: "dashboard", label: "Dashboard", route: "/" },
+    { icon: "devices", id: "sessions", label: "Sessions", route: "/sessions" },
+    { icon: "manage_accounts", id: "accounts", label: "Accounts", route: null },
+    { icon: "settings_input_component", id: "config", label: "Configuration", route: null },
+    { icon: "terminal", id: "logs", label: "System Logs", route: null },
 ]);
 
 // Methods
 const handleNavClick = itemId => {
+    const item = navItems.value.find(i => i.id === itemId);
+    if (item && item.route) {
+        router.push(item.route);
+    }
     emit("navigate", itemId);
 };
 </script>

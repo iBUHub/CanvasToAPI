@@ -8,13 +8,25 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import LoginPage from '../pages/LoginPage.vue';
 import StatusPage from '../pages/StatusPage.vue';
+import SessionsPage from '../pages/SessionsPage.vue';
+import SettingsPage from '../pages/SettingsPage.vue';
 import NotFound from '../pages/NotFound.vue';
 
 const routes = [
     {
         component: StatusPage,
-        name: 'status',
+        name: 'dashboard',
         path: '/',
+    },
+    {
+        component: SessionsPage,
+        name: 'sessions',
+        path: '/sessions',
+    },
+    {
+        component: SettingsPage,
+        name: 'settings',
+        path: '/settings',
     },
     {
         component: LoginPage,

@@ -193,6 +193,24 @@ class StatusRoutes {
                 res.status(400).json({ error: "Invalid count", message: "settingFailed" });
             }
         });
+
+        app.put("/api/settings/session-error-threshold", isAuthenticated, (req, res) => {
+            const { threshold } = req.body;
+            const newThreshold = parseInt(threshold, 10);
+
+            if (Number.isFinite(newThreshold) && newThreshold >= 0) {
+                this.config.sessionErrorThreshold = newThreshold;
+                this.serverSystem.sessionRegistry.sessionErrorThreshold = newThreshold;
+                this.logger.info(`[WebUI] Session error threshold updated to: ${newThreshold}`);
+                res.status(200).json({
+                    message: "settingUpdateSuccess",
+                    setting: "sessionErrorThreshold",
+                    value: newThreshold,
+                });
+            } else {
+                res.status(400).json({ error: "Invalid threshold", message: "settingFailed" });
+            }
+        });
     }
 
     _getSystemSummary() {
