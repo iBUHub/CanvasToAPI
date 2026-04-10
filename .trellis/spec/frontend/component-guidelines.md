@@ -760,3 +760,190 @@ const props = defineProps({ value: { type: String } });
 const formatted = computed(() => props.value.toUpperCase());
 </script>
 ```
+
+---
+
+## Navigation Component Pattern (Hybrid Navigation)
+
+Navigation components (like `SideNavBar`) should support both **Vue Router navigation** and **event-based communication**. This allows flexibility for pages that need routing while maintaining backward compatibility with event-based patterns.
+
+### Pattern: Hybrid Navigation
+
+**Navigation Item Structure**:
+
+```vue
+<script setup>
+import { ref } from "vue";
+import { useRouter } from "vue-router";
+
+const router = useRouter();
+
+// Navigation items with optional route property
+const navItems = ref([
+  { icon: "dashboard", id: "dashboard", label: "Dashboard", route: "/" },
+  { icon: "devices", id: "sessions", label: "Sessions", route: "/sessions" },
+  { icon: "settings", id: "settings", label: "Settings", route: "/settings" },
+  { icon: "help", id: "help", label: "Help", route: null }, // No route - emit event
+]);
+
+const emit = defineEmits(["navigate"]);
+
+const handleNavClick = itemId => {
+  const item = navItems.value.find(i => i.id === itemId);
+
+  // If item has a route, navigate via router
+  if (item && item.route) {
+    router.push(item.route);
+  }
+
+  // Always emit event for backward compatibility
+  emit("navigate", itemId);
+};
+</script>
+```
+
+### When to Use
+
+**Use Router Navigation When**:
+
+- ✅ Item navigates to a different page (Dashboard → Sessions)
+- ✅ URL should change
+- ✅ Browser back/forward should work
+- ✅ User can bookmark the page
+
+**Use Event Emission When**:
+
+- ✅ Item triggers an action (not a page change)
+- ✅ Component needs to handle navigation differently
+- ✅ Complex navigation logic required
+- ✅ Maintaining backward compatibility
+
+### Real Example: SideNavBar.vue
+
+```vue
+<template>
+  <nav class="sidebar">
+    <div
+      v-for="item in navItems"
+      :key="item.id"
+      class="nav-item"
+      :class="{ active: activeItem === item.id }"
+      @click="handleNavClick(item.id)"
+    >
+      <span class="material-symbols-outlined">{{ item.icon }}</span>
+      <span>{{ item.label }}</span>
+    </div>
+  </nav>
+</template>
+
+<script setup>
+import { ref } from "vue";
+import { useRouter } from "vue-router";
+
+const props = defineProps({
+  activeItem: { type: String, default: "dashboard" },
+});
+
+const emit = defineEmits(["navigate"]);
+const router = useRouter();
+
+const navItems = ref([
+  { icon: "dashboard", id: "dashboard", label: "Dashboard", route: "/" },
+  { icon: "devices", id: "sessions", label: "Sessions", route: "/sessions" },
+  { icon: "settings", id: "settings", label: "Settings", route: "/settings" },
+  { icon: "manage_accounts", id: "accounts", label: "Accounts", route: null },
+]);
+
+const handleNavClick = itemId => {
+  const item = navItems.value.find(i => i.id === itemId);
+
+  // Router navigation for pages
+  if (item && item.route) {
+    router.push(item.route);
+  }
+
+  // Event emission for all items
+  emit("navigate", itemId);
+};
+</script>
+```
+
+### Parent Component Usage
+
+```vue
+<template>
+  <div class="app">
+    <!-- Navigation handles routing automatically -->
+    <SideNavBar :active-item="activeTab" @navigate="handleNavigate" />
+
+    <main>
+      <router-view />
+      <!-- Shows current route's component -->
+    </main>
+  </div>
+</template>
+
+<script setup>
+import { ref } from "vue";
+
+const activeTab = ref("dashboard");
+
+const handleNavigate = itemId => {
+  activeTab.value = itemId;
+  // Router navigation already handled by SideNavBar
+  // This is for additional side effects (e.g., analytics, logging)
+  console.log("Navigated to:", itemId);
+};
+</script>
+```
+
+### Benefits
+
+1. **Flexibility**: Supports both routing and event patterns
+2. **Backward Compatibility**: Existing event-based code still works
+3. **URL Management**: Router handles URL changes automatically
+4. **Separation of Concerns**: Navigation logic stays in nav component
+5. **Testability**: Can test routing and events separately
+
+### Common Mistakes
+
+```vue
+<script setup>
+// ❌ WRONG: Only emit event, no router integration
+const handleNavClick = itemId => {
+  emit("navigate", itemId);
+  // Parent must handle routing manually
+};
+
+// ❌ WRONG: Only router, no event emission
+const handleNavClick = itemId => {
+  const item = navItems.value.find(i => i.id === itemId);
+  if (item.route) {
+    router.push(item.route);
+  }
+  // No event - parent can't track navigation
+};
+
+// ✅ CORRECT: Hybrid approach
+const handleNavClick = itemId => {
+  const item = navItems.value.find(i => i.id === itemId);
+  if (item && item.route) {
+    router.push(item.route); // Automatic routing
+  }
+  emit("navigate", itemId); // Notify parent
+};
+</script>
+```
+
+---
+
+## Summary
+
+| Pattern           | Use Case       | Key Point                                   |
+| ----------------- | -------------- | ------------------------------------------- |
+| Props validation  | All components | Use object syntax with required + type      |
+| Element Plus UI   | All components | Use Element Plus components for consistency |
+| Scoped styles     | All components | Use `<style scoped>` for component styles   |
+| LESS variables    | Theming        | Use `@color` mapped to `var(--color-*)`     |
+| Hybrid navigation | Nav components | Router + events for flexibility             |
+| Polling pattern   | Real-time data | Clear interval in onBeforeUnmount           |
