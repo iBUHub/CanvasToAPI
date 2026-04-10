@@ -1,0 +1,6 @@
+{"file": ".trellis/workflow.md", "reason": "Project workflow and conventions"}
+{"file": ".trellis/spec/frontend/index.md", "reason": "Frontend development guide"}
+{"file": ".trellis/spec/frontend/component-guidelines.md", "reason": "Vue 3 Composition API patterns"}
+{"file": ".trellis/spec/frontend/directory-structure.md", "reason": "Module organization conventions"}
+{"file": ".temp/main-frontend/ui/app/pages/StatusPage.vue", "reason": "Extract session pool management logic"}
+{"file": "ui/app/components/MetricCard.vue", "reason": "Style reference for consistent design"}

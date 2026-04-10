@@ -1,0 +1,7 @@
+{"file": ".trellis/workflow.md", "reason": "Project workflow and conventions"}
+{"file": ".trellis/spec/frontend/index.md", "reason": "Frontend development guide"}
+{"file": ".trellis/spec/frontend/component-guidelines.md", "reason": "Vue 3 Composition API patterns, props validation"}
+{"file": ".trellis/spec/frontend/directory-structure.md", "reason": "Module organization conventions"}
+{"file": ".trellis/spec/frontend/state-management.md", "reason": "Polling and data fetching patterns"}
+{"file": "ui/app/pages/StatusPage.vue", "reason": "Current implementation to modify"}
+{"file": ".temp/main-frontend/ui/app/pages/StatusPage.vue", "reason": "Reference: working backend integration"}
