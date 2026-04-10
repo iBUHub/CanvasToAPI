@@ -76,6 +76,43 @@
 
 ---
 
+## Phase 5: Backend Integration ⏳ IN PROGRESS
+
+### 5.1 Architecture Setup
+
+- [ ] Update router configuration for multi-page navigation
+- [ ] Create 2 new page components: SessionsPage, SettingsPage
+- [ ] Update SideNavBar with 3 navigation items
+- [ ] Implement page routing logic
+
+### 5.2 Dashboard Page (StatusPage.vue) - Hybrid Approach
+
+- [ ] Update metric cards:
+  - Server Status → Service Status badge
+  - Active Sessions → Real browserSessionCount
+  - Today Requests → Total Usage
+  - Remove Avg Latency card
+- [ ] Simplify TrafficChart → Session Activity
+- [ ] Update LoadDistribution → Session usage
+- [ ] Remove RequestTable component
+- [ ] Connect to `/api/status` endpoint
+- [ ] Implement real-time updates
+
+### 5.3 Sessions Page (New)
+
+- [ ] Migrate Session Pool UI from main branch
+- [ ] Connect to session endpoints
+- [ ] Apply Material Design 3 styling
+
+### 5.4 Settings Page (New)
+
+- [ ] Migrate Settings UI from main branch
+- [ ] Migrate Logs UI from main branch
+- [ ] Connect to settings endpoints
+- [ ] Apply Material Design 3 styling
+
+---
+
 ## Build Status
 
 ✅ Build successful - CSS (419KB) + JS (1MB)
