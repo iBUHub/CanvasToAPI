@@ -10,7 +10,7 @@ The frontend follows a feature-based directory structure with clear separation b
 
 **Key Principles:**
 
-- Pages are route-level components
+- StatusPage uses tab-based navigation (single-page architecture)
 - Components are reusable UI elements
 - Utils contain both utility functions and Composables
 - Styles use LESS with CSS custom properties for theming
@@ -26,18 +26,15 @@ ui/
 │   ├── index.js                  # Application entry point
 │   ├── router/                   # Vue Router configuration
 │   │   └── index.js              # Route definitions and guards
-│   ├── pages/                    # Page-level components (route targets)
+│   ├── pages/                    # Page-level components
 │   │   ├── LoginPage.vue         # Authentication page
-│   │   ├── StatusPage.vue        # Main dashboard page
+│   │   ├── StatusPage.vue        # Main page with tabs (Dashboard, Settings, Logs)
 │   │   └── NotFound.vue          # 404 error page
 │   ├── components/               # Reusable components
 │   │   ├── EnvVarTooltip.vue     # Environment variable tooltip
 │   │   ├── SideNavBar.vue        # Left sidebar navigation
 │   │   ├── TopAppBar.vue         # Top header with search/actions
-│   │   ├── MetricCard.vue        # Dashboard metric card
-│   │   ├── TrafficChart.vue      # Real-time traffic chart
-│   │   ├── LoadDistribution.vue  # Account load progress bars
-│   │   └── RequestTable.vue      # API requests data table
+│   │   └── MetricCard.vue        # Dashboard metric card
 │   ├── utils/                    # Utility functions and Composables
 │   │   ├── useTheme.js           # Theme management Composable
 │   │   ├── i18n.js               # Internationalization utility
@@ -118,18 +115,18 @@ ui/
 **Pages** (`ui/app/pages/`):
 
 - `LoginPage.vue` - Authentication page with form handling
-- `StatusPage.vue` - Dashboard with session status, settings, and controls
+- `StatusPage.vue` - Main page with tab-based navigation (Dashboard, Settings, Logs)
+  - Dashboard tab: Service status, session pool management
+  - Settings tab: Version info, configuration settings
+  - Logs tab: Real-time log viewer with download
 - Each page is a self-contained route target
 
 **Components** (`ui/app/components/`):
 
 - `EnvVarTooltip.vue` - Reusable tooltip for environment variables
-- `SideNavBar.vue` - Fixed left sidebar with navigation and user profile
+- `SideNavBar.vue` - Fixed left sidebar with navigation (event-based, no router)
 - `TopAppBar.vue` - Fixed top header with search and action buttons
 - `MetricCard.vue` - Dashboard metric card with status indicator
-- `TrafficChart.vue` - Bar chart for real-time traffic visualization
-- `LoadDistribution.vue` - Progress bars for account load distribution
-- `RequestTable.vue` - Data table for recent API requests
 - Each component is self-contained with scoped styles
 
 **Utils/Composables** (`ui/app/utils/`):

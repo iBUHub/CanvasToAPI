@@ -43,7 +43,6 @@
 
 <script setup>
 import { ref, defineProps, defineEmits } from "vue";
-import { useRouter } from "vue-router";
 
 // Props
 defineProps({
@@ -57,24 +56,15 @@ defineProps({
 // Emits
 const emit = defineEmits(["navigate"]);
 
-// Router
-const router = useRouter();
-
-// Navigation items
+// Navigation items - aligned with original tab structure
 const navItems = ref([
-    { icon: "dashboard", id: "dashboard", label: "Dashboard", route: "/" },
-    { icon: "devices", id: "sessions", label: "Sessions", route: "/sessions" },
-    { icon: "manage_accounts", id: "accounts", label: "Accounts", route: null },
-    { icon: "settings_input_component", id: "config", label: "Configuration", route: null },
-    { icon: "terminal", id: "logs", label: "System Logs", route: null },
+    { icon: "dashboard", id: "dashboard", label: "Dashboard" },
+    { icon: "settings_input_component", id: "settings", label: "Settings" },
+    { icon: "terminal", id: "logs", label: "System Logs" },
 ]);
 
 // Methods
 const handleNavClick = itemId => {
-    const item = navItems.value.find(i => i.id === itemId);
-    if (item && item.route) {
-        router.push(item.route);
-    }
     emit("navigate", itemId);
 };
 </script>

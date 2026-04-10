@@ -1,6 +1,6 @@
 /**
  * File: ui/app/router/index.js
- * Description: Vue Router configuration for the application, defining all routes and navigation behavior
+ * Description: Vue Router configuration for the application
  *
  * Author: iBUHUB
  */
@@ -8,8 +8,6 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import LoginPage from '../pages/LoginPage.vue';
 import StatusPage from '../pages/StatusPage.vue';
-import SessionsPage from '../pages/SessionsPage.vue';
-import SettingsPage from '../pages/SettingsPage.vue';
 import NotFound from '../pages/NotFound.vue';
 
 const routes = [
@@ -17,16 +15,6 @@ const routes = [
         component: StatusPage,
         name: 'dashboard',
         path: '/',
-    },
-    {
-        component: SessionsPage,
-        name: 'sessions',
-        path: '/sessions',
-    },
-    {
-        component: SettingsPage,
-        name: 'settings',
-        path: '/settings',
     },
     {
         component: LoginPage,

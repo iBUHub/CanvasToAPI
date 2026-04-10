@@ -626,12 +626,6 @@ const formattedValue = computed(() => {
 - Provide sensible defaults for optional props
 - Use computed for derived/transformed values
 
-**Data Table Pattern** (`ui/app/components/RequestTable.vue`):
-
-- Provide default data array for standalone usage
-- Use computed for status/method class mapping
-- Emit events for user actions (filter, refresh)
-
 ---
 
 ## Styling Patterns
@@ -763,40 +757,29 @@ const formatted = computed(() => props.value.toUpperCase());
 
 ---
 
-## Navigation Component Pattern (Hybrid Navigation)
+## Navigation Component Pattern (Event-Based)
 
-Navigation components (like `SideNavBar`) should support both **Vue Router navigation** and **event-based communication**. This allows flexibility for pages that need routing while maintaining backward compatibility with event-based patterns.
+Navigation components (like `SideNavBar`) use **event-based communication** for flexibility. The parent component handles navigation logic, allowing for tab switching without route changes.
 
-### Pattern: Hybrid Navigation
+### Pattern: Event-Based Navigation
 
 **Navigation Item Structure**:
 
 ```vue
 <script setup>
 import { ref } from "vue";
-import { useRouter } from "vue-router";
 
-const router = useRouter();
-
-// Navigation items with optional route property
+// Navigation items (no route property - parent handles navigation)
 const navItems = ref([
-  { icon: "dashboard", id: "dashboard", label: "Dashboard", route: "/" },
-  { icon: "devices", id: "sessions", label: "Sessions", route: "/sessions" },
-  { icon: "settings", id: "settings", label: "Settings", route: "/settings" },
-  { icon: "help", id: "help", label: "Help", route: null }, // No route - emit event
+  { icon: "dashboard", id: "dashboard", label: "Dashboard" },
+  { icon: "settings", id: "settings", label: "Settings" },
+  { icon: "article", id: "logs", label: "Logs" },
 ]);
 
 const emit = defineEmits(["navigate"]);
 
 const handleNavClick = itemId => {
-  const item = navItems.value.find(i => i.id === itemId);
-
-  // If item has a route, navigate via router
-  if (item && item.route) {
-    router.push(item.route);
-  }
-
-  // Always emit event for backward compatibility
+  // Only emit event - parent handles navigation
   emit("navigate", itemId);
 };
 </script>
@@ -804,19 +787,19 @@ const handleNavClick = itemId => {
 
 ### When to Use
 
+**Use Event-Based Navigation When**:
+
+- ✅ Single-page application with tab switching
+- ✅ URL should NOT change
+- ✅ State should be preserved across tab switches
+- ✅ No browser history needed
+
 **Use Router Navigation When**:
 
-- ✅ Item navigates to a different page (Dashboard → Sessions)
+- ✅ Item navigates to a different page (Dashboard → Login)
 - ✅ URL should change
 - ✅ Browser back/forward should work
 - ✅ User can bookmark the page
-
-**Use Event Emission When**:
-
-- ✅ Item triggers an action (not a page change)
-- ✅ Component needs to handle navigation differently
-- ✅ Complex navigation logic required
-- ✅ Maintaining backward compatibility
 
 ### Real Example: SideNavBar.vue
 
@@ -838,47 +821,43 @@ const handleNavClick = itemId => {
 
 <script setup>
 import { ref } from "vue";
-import { useRouter } from "vue-router";
 
 const props = defineProps({
   activeItem: { type: String, default: "dashboard" },
 });
 
 const emit = defineEmits(["navigate"]);
-const router = useRouter();
 
 const navItems = ref([
-  { icon: "dashboard", id: "dashboard", label: "Dashboard", route: "/" },
-  { icon: "devices", id: "sessions", label: "Sessions", route: "/sessions" },
-  { icon: "settings", id: "settings", label: "Settings", route: "/settings" },
-  { icon: "manage_accounts", id: "accounts", label: "Accounts", route: null },
+  { icon: "dashboard", id: "dashboard", label: "Dashboard" },
+  { icon: "settings", id: "settings", label: "Settings" },
+  { icon: "article", id: "logs", label: "Logs" },
 ]);
 
 const handleNavClick = itemId => {
-  const item = navItems.value.find(i => i.id === itemId);
-
-  // Router navigation for pages
-  if (item && item.route) {
-    router.push(item.route);
-  }
-
-  // Event emission for all items
   emit("navigate", itemId);
 };
 </script>
 ```
 
-### Parent Component Usage
+### Parent Component Usage (Tab Switching)
 
 ```vue
 <template>
   <div class="app">
-    <!-- Navigation handles routing automatically -->
-    <SideNavBar :active-item="activeTab" @navigate="handleNavigate" />
+    <SideNavBar :active-item="activeTab" @navigate="switchTab" />
 
     <main>
-      <router-view />
-      <!-- Shows current route's component -->
+      <!-- Tab content with v-show to preserve state -->
+      <div v-show="activeTab === 'dashboard'">
+        <!-- Dashboard content -->
+      </div>
+      <div v-show="activeTab === 'settings'">
+        <!-- Settings content -->
+      </div>
+      <div v-show="activeTab === 'logs'">
+        <!-- Logs content -->
+      </div>
     </main>
   </div>
 </template>
@@ -888,49 +867,33 @@ import { ref } from "vue";
 
 const activeTab = ref("dashboard");
 
-const handleNavigate = itemId => {
+const switchTab = itemId => {
   activeTab.value = itemId;
-  // Router navigation already handled by SideNavBar
-  // This is for additional side effects (e.g., analytics, logging)
-  console.log("Navigated to:", itemId);
 };
 </script>
 ```
 
 ### Benefits
 
-1. **Flexibility**: Supports both routing and event patterns
-2. **Backward Compatibility**: Existing event-based code still works
-3. **URL Management**: Router handles URL changes automatically
-4. **Separation of Concerns**: Navigation logic stays in nav component
-5. **Testability**: Can test routing and events separately
+1. **State Preservation**: Using `v-show` keeps DOM alive
+2. **No URL Changes**: Single-page experience
+3. **Flexibility**: Parent controls navigation logic
+4. **Testability**: Navigation is simple event emission
 
 ### Common Mistakes
 
 ```vue
 <script setup>
-// ❌ WRONG: Only emit event, no router integration
+// ❌ WRONG: Using router.push in nav component
+import { useRouter } from "vue-router";
+const router = useRouter();
 const handleNavClick = itemId => {
-  emit("navigate", itemId);
-  // Parent must handle routing manually
+  router.push(itemId); // Forces URL change
 };
 
-// ❌ WRONG: Only router, no event emission
+// ✅ CORRECT: Event-based navigation
 const handleNavClick = itemId => {
-  const item = navItems.value.find(i => i.id === itemId);
-  if (item.route) {
-    router.push(item.route);
-  }
-  // No event - parent can't track navigation
-};
-
-// ✅ CORRECT: Hybrid approach
-const handleNavClick = itemId => {
-  const item = navItems.value.find(i => i.id === itemId);
-  if (item && item.route) {
-    router.push(item.route); // Automatic routing
-  }
-  emit("navigate", itemId); // Notify parent
+  emit("navigate", itemId); // Parent decides what to do
 };
 </script>
 ```
@@ -939,11 +902,11 @@ const handleNavClick = itemId => {
 
 ## Summary
 
-| Pattern           | Use Case       | Key Point                                   |
-| ----------------- | -------------- | ------------------------------------------- |
-| Props validation  | All components | Use object syntax with required + type      |
-| Element Plus UI   | All components | Use Element Plus components for consistency |
-| Scoped styles     | All components | Use `<style scoped>` for component styles   |
-| LESS variables    | Theming        | Use `@color` mapped to `var(--color-*)`     |
-| Hybrid navigation | Nav components | Router + events for flexibility             |
-| Polling pattern   | Real-time data | Clear interval in onBeforeUnmount           |
+| Pattern            | Use Case       | Key Point                                   |
+| ------------------ | -------------- | ------------------------------------------- |
+| Props validation   | All components | Use object syntax with required + type      |
+| Element Plus UI    | All components | Use Element Plus components for consistency |
+| Scoped styles      | All components | Use `<style scoped>` for component styles   |
+| LESS variables     | Theming        | Use `@color` mapped to `var(--color-*)`     |
+| Event-based nav    | Nav components | Emit events, parent handles navigation      |
+| Tab state (v-show) | Tab switching  | Use v-show to preserve state across tabs    |
