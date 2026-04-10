@@ -723,3 +723,89 @@ Removed features without backend support (~850 lines), integrated LoadDistributi
 ### Next Steps
 
 - None - task complete
+
+## Session 10: 对齐重构后前端与原版操作逻辑
+
+**Date**: 2026-04-10
+**Task**: 对齐重构后前端与原版操作逻辑
+**Branch**: `frontend-refactor`
+
+### Summary
+
+(Add summary)
+
+### Main Changes
+
+## Task
+
+将重构后的 Material Design 3 风格前端对齐原版 main 分支的操作逻辑，实现"仅设计样式改变，原有功能全部不变"。
+
+## Changes
+
+| Feature                   | Description                                                                                            |
+| ------------------------- | ------------------------------------------------------------------------------------------------------ |
+| Single-page Tab Switching | Merged SessionsPage and SettingsPage into StatusPage, changed from multi-page routing to tab switching |
+| Version Check             | Restored `/api/version/check` functionality with version display                                       |
+| Navigation                | SideNavBar changed from router-based to event-based navigation                                         |
+| Component Cleanup         | Removed LoadDistribution, SessionsPage, SettingsPage                                                   |
+| State Preservation        | Using v-show to preserve tab state across switches                                                     |
+
+## Implementation Details
+
+**Architecture Changes**:
+
+- Tab structure: dashboard (status + sessions) / settings / logs
+- Uses `activeTab` state + `v-show` for tab switching
+- URL remains constant (no route changes)
+- SideNavBar emits navigation events, parent handles switching
+
+**Files Modified**:
+
+- `ui/app/pages/StatusPage.vue` - Rewritten with merged content
+- `ui/app/components/SideNavBar.vue` - Removed router integration
+- `ui/app/router/index.js` - Simplified routes
+
+**Files Deleted**:
+
+- `ui/app/components/LoadDistribution.vue`
+- `ui/app/pages/SessionsPage.vue`
+- `ui/app/pages/SettingsPage.vue`
+
+**Spec Updates**:
+
+- `.trellis/spec/frontend/directory-structure.md` - Updated architecture description
+- `.trellis/spec/frontend/component-guidelines.md` - Updated navigation pattern to event-based
+
+## Acceptance Criteria
+
+- [x] Version check functionality restored
+- [x] Single-page tab switching implemented
+- [x] Tab content aligned with original structure
+- [x] State preservation working correctly
+- [x] LoadDistribution component removed
+- [x] Material Design 3 visual style preserved
+- [x] All code quality guidelines followed
+
+## Quality Checks
+
+- Lint: Passed (0 errors)
+- Code follows `.trellis/spec/frontend/` guidelines
+- Material Design 3 visual style preserved
+
+### Git Commits
+
+| Hash      | Message       |
+| --------- | ------------- |
+| `1123464` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete
