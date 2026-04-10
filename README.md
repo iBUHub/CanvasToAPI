@@ -71,11 +71,13 @@
 > 旧版 README 中的 `npm run setup-auth`、`auth-N.json`、VNC 登录和上传 Auth 文件等流程，已不适用于当前版本。
 
 > 💡 **提示：**
-> 如果服务部署在远程机器上，建立会话的浏览器只需要能够访问服务端的 HTTP 端口 `PORT`。浏览器会话 WebSocket 现已复用同一端口，通过 `/ws` 路径连接。
+> 如果服务部署在远程机器上，且浏览器连接非本地服务端的话，需要为服务端开启反向代理，才能在浏览器端使用 `wss://`。
 
 ### 🐋 Docker 部署
 
-#### 🎮️ 方式 1：Docker 命令
+#### 🚢 步骤 1：部署容器
+
+##### 🎮️ 方式 1：Docker 命令
 
 ```bash
 docker run -d \
@@ -95,7 +97,7 @@ docker run -d \
 - `-e API_KEYS`：客户端访问 API 和控制台时使用的密钥
 - `-e TZ=Asia/Shanghai`：日志和页面显示时间的时区（可选）
 
-#### 📦 方式 2：Docker Compose
+##### 📦 方式 2：Docker Compose
 
 创建 `docker-compose.yml`：
 
@@ -114,7 +116,7 @@ services:
       TZ: Asia/Shanghai
 ```
 
-#### 🛠️ 方式 3：从源码构建
+##### 🛠️ 方式 3：从源码构建
 
 如果你希望自己构建 Docker 镜像，可以使用以下命令：
 

@@ -71,11 +71,13 @@ A tool that exposes a Gemini web session as OpenAI API, Gemini API, and Anthropi
 > The old `npm run setup-auth`, `auth-N.json`, VNC login, and auth upload flow described in earlier versions no longer applies.
 
 > 💡 **Tip:**
-> If the server is deployed remotely, the browser that opens the share page only needs to reach the HTTP port (`PORT`). Browser-session WebSocket traffic now reuses the same port through the `/ws` path.
+> If the service is deployed on a remote machine and the browser connects to a non-local server endpoint, you need to enable a reverse proxy for the server so the browser can use `wss://`.
 
 ### 🐋 Docker Deployment
 
-#### 🎮️ Option 1: Docker Command
+#### 🚢 Step 1: Deploy Container
+
+##### 🎮️ Option 1: Docker Command
 
 ```bash
 docker run -d \
@@ -95,7 +97,7 @@ Parameters:
 - `-e API_KEYS`: API and console access key
 - `-e TZ=America/New_York`: Time zone for logs and UI timestamps (optional)
 
-#### 📦 Option 2: Docker Compose
+##### 📦 Option 2: Docker Compose
 
 Create `docker-compose.yml`:
 
@@ -114,7 +116,7 @@ services:
       TZ: America/New_York
 ```
 
-#### 🛠️ Option 3: Build from Source
+##### 🛠️ Option 3: Build from Source
 
 If you prefer to build the Docker image yourself, use the following commands:
 
