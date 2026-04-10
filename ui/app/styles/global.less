@@ -100,7 +100,29 @@ body {
     }
 }
 
-// Dark mode scrollbar
+// ========== Element Plus Theme Overrides ==========
+// Override Element Plus CSS variables to match Material Design 3 theme
+:root {
+    // Text colors for inputs and selects
+    --el-text-color-primary: var(--color-on-surface);
+    --el-text-color-regular: var(--color-on-surface-variant);
+    --el-input-text-color: var(--color-on-surface);
+    --el-select-input-color: var(--color-on-surface);
+
+    // Input placeholder color
+    --el-input-placeholder-color: var(--color-on-surface-variant);
+
+    // Border colors to match Material Design 3
+    --el-border-color: var(--color-outline-variant);
+    --el-border-color-light: var(--color-outline-variant);
+    --el-border-color-hover: var(--color-outline);
+
+    // Background colors
+    --el-fill-color-blank: var(--color-surface-container-lowest);
+    --el-bg-color-overlay: var(--color-surface-container-lowest);
+}
+
+// Dark mode scrollbar and Element Plus overrides
 [data-theme="dark"] {
     ::-webkit-scrollbar-thumb {
         background: var(--color-outline-variant);
@@ -109,4 +131,22 @@ body {
             background: var(--color-outline);
         }
     }
+
+    // Text colors for inputs and selects in dark mode
+    --el-text-color-primary: var(--color-on-surface);
+    --el-text-color-regular: var(--color-on-surface-variant);
+    --el-input-text-color: var(--color-on-surface);
+    --el-select-input-color: var(--color-on-surface);
+
+    // Input placeholder color in dark mode
+    --el-input-placeholder-color: var(--color-on-surface-variant);
+
+    // Border colors in dark mode
+    --el-border-color: var(--color-outline-variant);
+    --el-border-color-light: var(--color-outline-variant);
+    --el-border-color-hover: var(--color-outline);
+
+    // Background colors in dark mode
+    --el-fill-color-blank: var(--color-surface-container-lowest);
+    --el-bg-color-overlay: var(--color-surface-container-lowest);
 }

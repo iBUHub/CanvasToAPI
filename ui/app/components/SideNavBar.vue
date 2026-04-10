@@ -27,17 +27,6 @@
                 <span class="nav-label">{{ item.label }}</span>
             </button>
         </nav>
-
-        <!-- User Profile -->
-        <div class="sidebar-footer">
-            <div class="user-avatar">
-                <span class="material-symbols-outlined">person</span>
-            </div>
-            <div class="user-info">
-                <p class="user-name">Admin User</p>
-                <p class="user-email">admin@canvastoapi.io</p>
-            </div>
-        </div>
     </aside>
 </template>
 
@@ -153,55 +142,6 @@ const handleNavClick = itemId => {
 
 .nav-label {
     white-space: nowrap;
-}
-
-.sidebar-footer {
-    display: flex;
-    align-items: center;
-    gap: @spacing-md;
-    margin-top: auto;
-    padding-top: @spacing-xl;
-    border-top: 1px solid @outline-variant;
-}
-
-.user-avatar {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 32px;
-    height: 32px;
-    border-radius: @border-radius-circle;
-    background-color: var(--color-primary-container);
-    color: @on-primary;
-
-    .material-symbols-outlined {
-        font-size: 16px;
-    }
-}
-
-.user-info {
-    flex: 1;
-    min-width: 0;
-    overflow: hidden;
-}
-
-.user-name {
-    margin: 0;
-    font-size: @font-size-xs;
-    font-weight: 700;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    color: @text-primary;
-}
-
-.user-email {
-    margin: 2px 0 0;
-    font-size: 10px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    color: @text-secondary;
 }
 
 // Dark mode adjustments
