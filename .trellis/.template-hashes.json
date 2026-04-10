@@ -195,5 +195,6 @@
   ".windsurf\\workflows\\trellis-onboard.md": "6706be65564d5612d3add01c7731e25ccfb5d9c8eba0e639049f549ef3728dbf",
   ".windsurf\\workflows\\trellis-record-session.md": "6ab51c9db85650b90dc86d8c57223f2d551462f27bd79a78d02e9c76bb9df39a",
   ".windsurf\\workflows\\trellis-start.md": "7e2a16130dab53ba77c18d601d2fa4ddb7b7c06eca521b46fc0c5c5e0d7c4791",
-  ".windsurf\\workflows\\trellis-update-spec.md": "5d39a22e070752c9f7fde9f48b8280ae8be0b600ab00a38474415debe4682486"
+  ".windsurf\\workflows\\trellis-update-spec.md": "5d39a22e070752c9f7fde9f48b8280ae8be0b600ab00a38474415debe4682486",
+  ".claude/hooks/ralph-loop.py": "df864b971ea5faf5801a88f013f230c92d458f52f64731a91f02cd78d7b932c3"
 }

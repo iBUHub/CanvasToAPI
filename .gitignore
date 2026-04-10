@@ -6,6 +6,15 @@
 /AGENTS.md
 .codex_tmp
 
+# AI agent workspaces
+.agent/
+.agents/
+.codex/
+.gemini/
+.iflow/
+.opencode/
+.windsurf/
+
 # Environment variables (keep .env.example)
 .env
 .env.local
