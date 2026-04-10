@@ -271,3 +271,177 @@ From `/api/status` endpoint:
 ### Next Steps
 
 - None - task complete
+
+## Session 4: Optimize UI Redesign Task Planning for Parallel Execution
+
+**Date**: 2026-04-10
+**Task**: Optimize UI Redesign Task Planning for Parallel Execution
+**Branch**: `frontend-refactor`
+
+### Summary
+
+(Add summary)
+
+### Main Changes
+
+# Session: Optimize UI Redesign Task Planning
+
+## Overview
+
+Prepared and optimized the UI Redesign - Dashboard Backend Integration task for parallel execution using multi-agent pipeline.
+
+---
+
+## Work Completed
+
+### 1. Document Structure Reorganization
+
+**Created:**
+
+- `DECISIONS.md` - Architecture Decision Records (ADR style)
+  - ADR-001: Multi-page architecture (Dashboard, Sessions, Settings)
+  - ADR-002: Hybrid metrics approach (map available backend data)
+  - ADR-003: Parallel execution strategy (save 4-6 hours)
+  - ADR-004: Component reuse strategy (extract and adapt)
+
+**Updated:**
+
+- `PRD.md` - Refined from 14KB to 8KB
+  - Clear goal, scope, and background
+  - Functional requirements (FR-1 to FR-4)
+  - Non-functional requirements (NFR-1 to NFR-3)
+  - Acceptance criteria, risks, timeline
+- `IMPLEMENTATION.md` - Detailed parallel execution plan
+  - Phase 5.1: Architecture Setup (1-2h, sequential)
+  - Phase 5.2-5.4: Parallel execution (5-7h total)
+  - Phase 5.5: Final integration (1-2h, sequential)
+  - Detailed task breakdown and verification checklists
+
+### 2. Task Context Configuration
+
+**Configured agent context files:**
+
+- `implement.jsonl` - 9 context files
+  - Frontend specs (component-guidelines, directory-structure, state-management)
+  - Utils (i18n.js, useTheme.js)
+  - Styles (variables.less)
+  - Reference code (main branch StatusPage.vue)
+- `check.jsonl` - 3 context files
+  - Quality guidelines
+  - Finish work checklist
+  - Code quality check spec
+
+- `debug.jsonl` - Default debugging context
+
+### 3. Codebase Research
+
+**Analyzed via Research Agent:**
+
+- Frontend spec files relevance
+- Existing code patterns (Vue 3 Composition API, router, i18n)
+- Backend integration references (API endpoints, polling pattern)
+- Main branch files to migrate
+
+**Key Findings:**
+
+- Backend provides: serviceConnected, browserSessionCount, browserSessions, settings, logs
+- Missing backend data: uptime, request count, latency, traffic time-series
+- Main branch StatusPage.vue (1547 lines) has working backend integration to migrate
+- Uses HTTP polling (3s interval), not WebSocket
+
+---
+
+## Technical Decisions
+
+### Hybrid Metrics Approach
+
+| Design Metric     | Backend Support   | Action                              |
+| ----------------- | ----------------- | ----------------------------------- |
+| Server Status     | ❌ No uptime      | Replace with serviceConnected badge |
+| Active Sessions   | ✅ Yes            | Use real browserSessionCount        |
+| Today Requests    | ❌ No counter     | Remove card                         |
+| Avg Latency       | ❌ No metrics     | Remove card                         |
+| Traffic Chart     | ❌ No time-series | Remove or simplify                  |
+| Load Distribution | ⚠️ Partial        | Map to usageCount                   |
+| Recent Requests   | ❌ No log         | Remove table                        |
+
+### Parallel Execution Strategy
+
+```
+Phase 5.1 (Sequential - Main Agent)
+  ↓
+Phase 5.2-5.4 (Parallel - Worktree Agents)
+  ├── Dashboard Backend Integration (2-3h)
+  ├── Sessions Page (3-4h)
+  └── Settings Page (3-4h)
+      ↓
+Phase 5.5 (Sequential - Main Agent)
+```
+
+**Time Savings**: 4-6 hours (from 9-13h to 5-7h)
+
+---
+
+## Next Session Plan
+
+### Phase 5.1: Architecture Setup (1-2 hours)
+
+**Tasks:**
+
+1. Update router configuration
+   - Add routes: `/sessions`, `/settings`
+   - Ensure auth guard applies
+2. Create page component skeletons
+   - SessionsPage.vue (empty structure)
+   - SettingsPage.vue (empty structure)
+3. Update SideNavBar navigation
+   - Add 3 nav items (Dashboard, Sessions, Settings)
+   - Implement navigation handler with router.push()
+4. Test navigation flow
+   - Verify all pages accessible
+   - No console errors
+
+**After Phase 5.1:**
+
+- Start 3 worktree agents for Phase 5.2-5.4
+- Each agent works in isolated branch
+- Final integration in Phase 5.5
+
+---
+
+## Files Updated
+
+| File                                                     | Change                                 |
+| -------------------------------------------------------- | -------------------------------------- |
+| `.trellis/tasks/ui-redesign-dashboard/DECISIONS.md`      | Created - ADR-style decision records   |
+| `.trellis/tasks/ui-redesign-dashboard/PRD.md`            | Refined - clear requirements and scope |
+| `.trellis/tasks/ui-redesign-dashboard/IMPLEMENTATION.md` | Updated - parallel execution plan      |
+| `.trellis/tasks/ui-redesign-dashboard/implement.jsonl`   | Configured - 9 context files           |
+| `.trellis/tasks/ui-redesign-dashboard/check.jsonl`       | Configured - 3 context files           |
+| `.trellis/tasks/ui-redesign-dashboard/debug.jsonl`       | Created - default debugging context    |
+| `.trellis/tasks/ui-redesign-dashboard/task.json`         | Updated - phase tracking               |
+
+---
+
+## Session Status
+
+- ✅ Planning optimized for parallel execution
+- ✅ Context configured for worktree agents
+- ⏭️ Ready to start Phase 5.1 in next session
+- ⏳ Phase 5 backend integration pending
+
+### Git Commits
+
+(No commits - planning session)
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete
