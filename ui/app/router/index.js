@@ -1,6 +1,6 @@
 /**
  * File: ui/app/router/index.js
- * Description: Vue Router configuration for the application, defining all routes and navigation behavior
+ * Description: Vue Router configuration for the application
  *
  * Author: iBUHUB
  */
@@ -13,7 +13,7 @@ import NotFound from '../pages/NotFound.vue';
 const routes = [
     {
         component: StatusPage,
-        name: 'status',
+        name: 'dashboard',
         path: '/',
     },
     {

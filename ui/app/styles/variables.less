@@ -5,57 +5,215 @@
  * Author: iBUHUB
  */
 
-// ========== CSS Variables System ==========
+// ========== CSS Variables System (Material Design 3 Inspired) ==========
 :root {
-    // Light theme (Default)
-    --color-primary: #007bff;
-    --color-primary-rgb: 0, 123, 255;
-    --color-primary-hover: #0069d9;
-    --color-primary-active: #0056b3;
-    --color-success: #2ecc71;
-    --color-success-rgb: 46, 204, 113;
-    --color-warning: #f39c12;
-    --color-warning-rgb: 243, 156, 18;
-    --color-error: #e74c3c;
-    --color-error-rgb: 231, 76, 60;
-    --bg-body: #f0f2f5;
-    --bg-card: #fff;
-    --bg-list-item-hover: #e1e6eb; // darken #f0f2f5 by ~3%
-    --text-primary: #333;
-    --text-secondary: #666;
-    --border-color: #ccc;
-    --border-light: #eee;
+    // ===== Primary Palette =====
+    --color-primary: #004ac6;
+    --color-primary-rgb: 0, 74, 198;
+    --color-primary-hover: #003ea8;
+    --color-primary-active: #003090;
+    --color-primary-container: #2563eb;
+    --color-primary-fixed: #dbe1ff;
+    --color-primary-fixed-dim: #b4c5ff;
+    --color-on-primary: #fff;
+    --color-on-primary-container: #eeefff;
+    --color-on-primary-fixed: #00174b;
+    --color-on-primary-fixed-variant: #003ea8;
+    --color-inverse-primary: #b4c5ff;
 
-    // Affix
-    --affix-bg: rgba(255, 255, 255, 0.95);
+    // ===== Secondary Palette =====
+    --color-secondary: #515f74;
+    --color-secondary-rgb: 81, 95, 116;
+    --color-secondary-container: #d5e3fc;
+    --color-secondary-fixed: #d5e3fc;
+    --color-secondary-fixed-dim: #b9c7df;
+    --color-on-secondary: #fff;
+    --color-on-secondary-container: #57657a;
+    --color-on-secondary-fixed: #0d1c2e;
+    --color-on-secondary-fixed-variant: #3a485b;
+
+    // ===== Tertiary Palette =====
+    --color-tertiary: #943700;
+    --color-tertiary-rgb: 148, 55, 0;
+    --color-tertiary-container: #bc4800;
+    --color-tertiary-fixed: #ffdbcd;
+    --color-tertiary-fixed-dim: #ffb596;
+    --color-on-tertiary: #fff;
+    --color-on-tertiary-container: #ffede6;
+    --color-on-tertiary-fixed: #360f00;
+    --color-on-tertiary-fixed-variant: #7d2d00;
+
+    // ===== Error Palette =====
+    --color-error: #ba1a1a;
+    --color-error-rgb: 186, 26, 26;
+    --color-error-container: #ffdad6;
+    --color-on-error: #fff;
+    --color-on-error-container: #93000a;
+
+    // ===== Success Palette (Emerald) =====
+    --color-success: #059669;
+    --color-success-rgb: 5, 150, 105;
+    --color-success-container: #d1fae5;
+    --color-on-success: #fff;
+    --color-on-success-container: #064e3b;
+
+    // ===== Warning Palette (Amber) =====
+    --color-warning: #d97706;
+    --color-warning-rgb: 217, 119, 6;
+    --color-warning-container: #fef3c7;
+    --color-on-warning: #fff;
+    --color-on-warning-container: #78350f;
+
+    // ===== Surface & Background =====
+    --color-background: #faf8ff;
+    --color-surface: #faf8ff;
+    --color-surface-dim: #d9d9e5;
+    --color-surface-bright: #faf8ff;
+    --color-surface-container-lowest: #fff;
+    --color-surface-container-low: #f3f3fe;
+    --color-surface-container: #ededf9;
+    --color-surface-container-high: #e7e7f3;
+    --color-surface-container-highest: #e1e2ed;
+    --color-surface-variant: #e1e2ed;
+    --color-surface-tint: #0053db;
+
+    // ===== Text Colors =====
+    --color-on-background: #191b23;
+    --color-on-surface: #191b23;
+    --color-on-surface-variant: #434655;
+
+    // ===== Outline =====
+    --color-outline: #737686;
+    --color-outline-variant: #c3c6d7;
+
+    // ===== Inverse Colors =====
+    --color-inverse-surface: #2e3039;
+    --color-inverse-on-surface: #f0f0fb;
+
+    // ===== Border & Shadow =====
+    --border-color: #c3c6d7;
+    --border-light: #e1e2ed;
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.07);
+    --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+    --shadow-focus: 0 0 0 3px rgba(0, 74, 198, 0.25);
+
+    // ===== Affix =====
+    --affix-bg: rgba(255, 255, 255, 0.7);
     --affix-border: rgba(0, 0, 0, 0.1);
     --affix-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 
-    // Text on primary
-    --text-on-primary: #fff;
+    // ===== Legacy Compatibility =====
+    --bg-body: #faf8ff;
+    --bg-card: #fff;
+    --bg-list-item-hover: #e7e7f3;
+    --text-primary: #191b23;
+    --text-secondary: #434655;
 }
 
+// ========== Dark Theme ==========
 [data-theme="dark"] {
-    // Dark theme overrides
-    --bg-body: #1a1a1a;
-    --bg-card: #242424;
-    --bg-list-item-hover: #2a2a2a; // slightly lighter than #1a1a1a
-    --text-primary: #f0f0f0;
-    --text-secondary: #aaa;
-    --border-color: #444;
-    --border-light: #333;
+    // ===== Primary Palette =====
+    --color-primary: #b4c5ff;
+    --color-primary-rgb: 180, 197, 255;
+    --color-primary-hover: #94a8ff;
+    --color-primary-active: #7488ff;
+    --color-primary-container: #004ac6;
+    --color-primary-fixed: #dbe1ff;
+    --color-primary-fixed-dim: #b4c5ff;
+    --color-on-primary: #003090;
+    --color-on-primary-container: #dbe1ff;
+    --color-on-primary-fixed: #00174b;
+    --color-on-primary-fixed-variant: #003ea8;
+    --color-inverse-primary: #004ac6;
 
-    // Adjust brand colors for dark mode if needed
-    --color-primary: #339aff;
-    --color-primary-rgb: 51, 154, 255;
+    // ===== Secondary Palette =====
+    --color-secondary: #b9c7df;
+    --color-secondary-rgb: 185, 199, 223;
+    --color-secondary-container: #3a485b;
+    --color-secondary-fixed: #d5e3fc;
+    --color-secondary-fixed-dim: #b9c7df;
+    --color-on-secondary: #1a2a3e;
+    --color-on-secondary-container: #d5e3fc;
+    --color-on-secondary-fixed: #0d1c2e;
+    --color-on-secondary-fixed-variant: #3a485b;
 
-    // Ensure sufficient contrast on potentially lighter primary in dark mode
-    --text-on-primary: #fff; // Can be changed to #000 if primary becomes too light
+    // ===== Tertiary Palette =====
+    --color-tertiary: #ffb596;
+    --color-tertiary-rgb: 255, 181, 150;
+    --color-tertiary-container: #5a2000;
+    --color-tertiary-fixed: #ffdbcd;
+    --color-tertiary-fixed-dim: #ffb596;
+    --color-on-tertiary: #5a2000;
+    --color-on-tertiary-container: #ffdbcd;
+    --color-on-tertiary-fixed: #360f00;
+    --color-on-tertiary-fixed-variant: #7d2d00;
 
-    // Affix
-    --affix-bg: rgba(60, 60, 60, 0.95);
-    --affix-border: rgba(255, 255, 255, 0.15);
+    // ===== Error Palette =====
+    --color-error: #ffb4ab;
+    --color-error-rgb: 255, 180, 171;
+    --color-error-container: #93000a;
+    --color-on-error: #690005;
+    --color-on-error-container: #ffdad6;
+
+    // ===== Success Palette =====
+    --color-success: #34d399;
+    --color-success-rgb: 52, 211, 153;
+    --color-success-container: #064e3b;
+    --color-on-success: #022c22;
+    --color-on-success-container: #a7f3d0;
+
+    // ===== Warning Palette =====
+    --color-warning: #fbbf24;
+    --color-warning-rgb: 251, 191, 36;
+    --color-warning-container: #78350f;
+    --color-on-warning: #451a03;
+    --color-on-warning-container: #fef3c7;
+
+    // ===== Surface & Background =====
+    --color-background: #121318;
+    --color-surface: #121318;
+    --color-surface-dim: #0c0c10;
+    --color-surface-bright: #38393f;
+    --color-surface-container-lowest: #070709;
+    --color-surface-container-low: #1a1b21;
+    --color-surface-container: #1e1f25;
+    --color-surface-container-high: #28292f;
+    --color-surface-container-highest: #33343a;
+    --color-surface-variant: #43454e;
+    --color-surface-tint: #b4c5ff;
+
+    // ===== Text Colors =====
+    --color-on-background: #e3e2e8;
+    --color-on-surface: #e3e2e8;
+    --color-on-surface-variant: #c3c6d7;
+
+    // ===== Outline =====
+    --color-outline: #8d90a1;
+    --color-outline-variant: #43454e;
+
+    // ===== Inverse Colors =====
+    --color-inverse-surface: #e3e2e8;
+    --color-inverse-on-surface: #1a1b21;
+
+    // ===== Border & Shadow =====
+    --border-color: #43454e;
+    --border-light: #33343a;
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+    --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.4);
+    --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.5);
+
+    // ===== Affix =====
+    --affix-bg: rgba(30, 31, 37, 0.95);
+    --affix-border: rgba(255, 255, 255, 0.1);
     --affix-shadow: 0 4px 16px rgba(0, 0, 0, 0.6);
+
+    // ===== Legacy Compatibility =====
+    --bg-body: #121318;
+    --bg-card: #1e1f25;
+    --bg-list-item-hover: #28292f;
+    --text-primary: #e3e2e8;
+    --text-secondary: #c3c6d7;
 }
 
 // ========== Color Variables (Mapped to CSS Vars) ==========
@@ -63,64 +221,124 @@
 @primary-color: var(--color-primary);
 @primary-hover-color: var(--color-primary-hover);
 @primary-active-color: var(--color-primary-active);
-@text-on-primary: var(--text-on-primary);
+@primary-container: var(--color-primary-container);
+@on-primary: var(--color-on-primary);
+@on-primary-container: var(--color-on-primary-container);
+@inverse-primary: var(--color-inverse-primary);
+@text-on-primary: var(--color-on-primary);
+
+// Secondary colors
+@secondary-color: var(--color-secondary);
+@secondary-container: var(--color-secondary-container);
+@on-secondary: var(--color-on-secondary);
+@on-secondary-container: var(--color-on-secondary-container);
+
+// Tertiary colors
+@tertiary-color: var(--color-tertiary);
+@tertiary-container: var(--color-tertiary-container);
+@on-tertiary: var(--color-on-tertiary);
+@on-tertiary-container: var(--color-on-tertiary-container);
 
 // Status colors
 @success-color: var(--color-success);
+@success-container: var(--color-success-container);
+@on-success: var(--color-on-success);
 @warning-color: var(--color-warning);
+@warning-container: var(--color-warning-container);
+@on-warning: var(--color-on-warning);
 @error-color: var(--color-error);
+@error-container: var(--color-error-container);
+@on-error: var(--color-on-error);
 
-// Neutral colors
+// Surface colors
 @background-light: var(--bg-body);
 @background-white: var(--bg-card);
+@surface: var(--color-surface);
+@surface-container-lowest: var(--color-surface-container-lowest);
+@surface-container: var(--color-surface-container);
+@surface-container-low: var(--color-surface-container-low);
+@surface-container-high: var(--color-surface-container-high);
+@surface-container-highest: var(--color-surface-container-highest);
+@surface-variant: var(--color-surface-variant);
+
+// Text colors
 @text-primary: var(--text-primary);
 @text-secondary: var(--text-secondary);
+@on-surface: var(--color-on-surface);
+@on-surface-variant: var(--color-on-surface-variant);
+
+// Outline
+@outline: var(--color-outline);
+@outline-variant: var(--color-outline-variant);
+
+// Inverse
+@inverse-surface: var(--color-inverse-surface);
+@inverse-on-surface: var(--color-inverse-on-surface);
+
+// Border & Shadow
 @border-color: var(--border-color);
 @border-light: var(--border-light);
-
-// Deprecated or mapped to new system
-@dark-background: #2d2d2d; // Keeping for legacy if used elsewhere, but preferable to use vars
-@dark-text: #f0f0f0;
+@shadow-sm: var(--shadow-sm);
+@shadow-md: var(--shadow-md);
+@shadow-lg: var(--shadow-lg);
+@shadow-focus: var(--shadow-focus);
 
 // ========== Typography ==========
-@font-family-sans: sans-serif;
+@font-family-sans: "Inter", sans-serif;
+@font-family-headline: "Manrope", sans-serif;
 @font-family-mono: "SF Mono", Consolas, Menlo, monospace;
-@font-size-base: 1em;
-@font-size-small: 0.9em;
-@font-size-large: 1.1em;
+@font-size-base: 14px;
+@font-size-xs: 10px;
+@font-size-sm: 12px;
+@font-size-md: 14px;
+@font-size-lg: 16px;
+@font-size-xl: 18px;
+@font-size-2xl: 20px;
+@font-size-3xl: 24px;
 
 // ========== Spacing ==========
-@spacing-xs: 8px;
-@spacing-sm: 10px;
-@spacing-md: 15px;
-@spacing-lg: 20px;
-@spacing-xl: 40px;
+@spacing-xs: 4px;
+@spacing-sm: 8px;
+@spacing-md: 12px;
+@spacing-lg: 16px;
+@spacing-xl: 24px;
+@spacing-2xl: 32px;
+@spacing-3xl: 48px;
 
 // ========== Border Radius ==========
-@border-radius-sm: 5px;
+@border-radius-sm: 4px;
 @border-radius-md: 8px;
-@border-radius-lg: 10px;
-@border-radius-xl: 12px;
+@border-radius-lg: 12px;
+@border-radius-xl: 16px;
+@border-radius-2xl: 20px;
+@border-radius-full: 24px;
 @border-radius-circle: 50%;
 
 // ========== Shadows ==========
-@shadow-light: 0 4px 6px rgba(0, 0, 0, 0.1);
-@shadow-medium: 0 4px 8px rgba(0, 0, 0, 0.1);
-@shadow-focus: 0 0 0 3px rgba(0, 123, 255, 0.25);
+@shadow-light: @shadow-md;
+@shadow-medium: @shadow-lg;
 
 // ========== Transitions ==========
-@transition-fast: 0.2s ease;
-@transition-normal: 0.3s ease;
+@transition-fast: 0.15s ease;
+@transition-normal: 0.2s ease;
+@transition-slow: 0.3s ease;
 
 // ========== Dimensions ==========
-@button-min-height: 44px;
-@container-max-width: 800px;
+@sidebar-width: 256px;
+@topbar-height: 64px;
+@button-min-height: 36px;
+@container-max-width: 1200px;
 @log-container-max-height: 400px;
 
 // ========== Z-Index ==========
 @z-index-base: 1;
 @z-index-dropdown: 10;
+@z-index-sticky: 40;
+@z-index-fixed: 50;
+@z-index-modal-backdrop: 80;
 @z-index-modal: 100;
+@z-index-popover: 200;
+@z-index-tooltip: 300;
 @z-index-affix: 999;
 
 // ========== Affix Floating Buttons ==========
@@ -132,3 +350,12 @@
 @affix-button-border: var(--affix-border);
 @affix-button-shadow: var(--affix-shadow);
 @affix-button-hover-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+
+// ========== Material Symbols ==========
+.material-symbols-outlined {
+    font-variation-settings:
+        "FILL" 0,
+        "wght" 400,
+        "GRAD" 0,
+        "opsz" 24;
+}
