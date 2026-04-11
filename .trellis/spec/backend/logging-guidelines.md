@@ -314,6 +314,12 @@ this.logger.info(
 - User personal information (email, IP addresses in production logs)
 - Session cookies or browser state
 
+> **Automatic Sanitization**: The `LoggingService` automatically sanitizes log messages to redact sensitive field values. This feature is **enabled by default** and configured via `configs/security.json`.
+>
+> **Protected fields**: `password`, `token`, `apiKey`, `api_key`, `authorization`, `cookie`, `session`, `secret`, `credential`
+>
+> **Example**: `password="secret123"` → `password="[REDACTED]"`
+
 **Example of what NOT to do:**
 
 ```javascript
@@ -329,6 +335,8 @@ this.logger.info(`[Auth] API key: ${apiKey}`);
 this.logger.info(`[Auth] API key verification passed (from: ${clientIp})`);
 this.logger.warn(`[Auth] Invalid API key attempt from ${clientIp}`);
 ```
+
+See [Security Guidelines](./security-guidelines.md) for details on configuring log sanitization.
 
 ### Verbose Data in Production
 

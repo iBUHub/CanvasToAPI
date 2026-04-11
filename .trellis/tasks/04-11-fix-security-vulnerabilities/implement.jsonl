@@ -1,0 +1,6 @@
+{"file": ".trellis/workflow.md", "reason": "Project workflow and conventions"}
+{"file": ".trellis/spec/backend/index.md", "reason": "Backend development guide"}
+{"file": ".trellis/spec/backend/error-handling.md", "reason": "安全修复需要正确的错误处理模式"}
+{"file": ".trellis/spec/backend/quality-guidelines.md", "reason": "安全修复必须遵循质量标准"}
+{"file": ".trellis/spec/backend/logging-guidelines.md", "reason": "敏感数据日志修复需要遵循日志规范"}
+{"file": ".trellis/tasks/04-11-backend-security-audit/security-audit-report-complete.md", "reason": "完整的安全审查报告，包含所有漏洞详情和修复建议"}

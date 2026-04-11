@@ -5,6 +5,8 @@
  * Author: iBUHUB
  */
 
+const SecurityValidator = require("./SecurityValidator");
+
 /**
  * Logging Service Module
  * Responsible for formatting and recording system logs
@@ -95,7 +97,9 @@ class LoggingService {
 
     _formatMessage(level, message) {
         const timestamp = this._getTimestamp();
-        const formatted = `[${level}] ${timestamp} [${this.serviceName}] - ${message}`;
+        // Sanitize message to redact sensitive information
+        const sanitizedMessage = SecurityValidator.sanitizeMessage(message);
+        const formatted = `[${level}] ${timestamp} [${this.serviceName}] - ${sanitizedMessage}`;
 
         this.logBuffer.push(formatted);
         // Physical hard limit for memory safety

@@ -7,6 +7,7 @@
 
 const axios = require("axios");
 const mime = require("mime-types");
+const SecurityValidator = require("../utils/SecurityValidator");
 
 /**
  * Format Converter Module
@@ -640,6 +641,16 @@ class FormatConverter {
                             });
                         } else if (dataUrl.match(/^https?:\/\//)) {
                             try {
+                                // SSRF protection: validate URL before fetching
+                                const validation = await SecurityValidator.validateImageUrl(dataUrl);
+                                if (!validation.valid) {
+                                    this.logger.warn(`[Adapter] Blocked image URL: ${validation.reason}`);
+                                    googleParts.push({
+                                        text: `[System Note: Image URL blocked for security: ${validation.reason}]`,
+                                    });
+                                    continue;
+                                }
+
                                 this.logger.info(`[Adapter] Downloading image from URL: ${dataUrl}`);
                                 const response = await axios.get(dataUrl, {
                                     responseType: "arraybuffer",
@@ -2150,6 +2161,16 @@ class FormatConverter {
                                 });
                             } else if (source.type === "url") {
                                 try {
+                                    // SSRF protection: validate URL before fetching
+                                    const validation = await SecurityValidator.validateImageUrl(source.url);
+                                    if (!validation.valid) {
+                                        this.logger.warn(`[Adapter] Blocked image URL: ${validation.reason}`);
+                                        googleParts.push({
+                                            text: `[System Note: Image URL blocked for security: ${validation.reason}]`,
+                                        });
+                                        continue;
+                                    }
+
                                     this.logger.info(`[Adapter] Downloading image from URL: ${source.url}`);
                                     const response = await axios.get(source.url, { responseType: "arraybuffer" });
                                     const imageBuffer = Buffer.from(response.data, "binary");
@@ -2939,6 +2960,16 @@ class FormatConverter {
                                         }
                                     } else if (imageUrl.match(/^https?:\/\//)) {
                                         try {
+                                            // SSRF protection: validate URL before fetching
+                                            const validation = await SecurityValidator.validateImageUrl(imageUrl);
+                                            if (!validation.valid) {
+                                                this.logger.warn(`[Adapter] Blocked image URL: ${validation.reason}`);
+                                                googleParts.push({
+                                                    text: `[System Note: Image URL blocked for security: ${validation.reason}]`,
+                                                });
+                                                continue;
+                                            }
+
                                             this.logger.info(`[Adapter] Downloading image from URL: ${imageUrl}`);
                                             const response = await axios.get(imageUrl, {
                                                 responseType: "arraybuffer",

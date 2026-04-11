@@ -1,0 +1,27 @@
+{
+    "ssrf": {
+        "enabled": false,
+        "allowPrivateIPs": true,
+        "allowedProtocols": ["https"],
+        "allowedDomains": [],
+        "blockedDomains": []
+    },
+    "openRedirect": {
+        "enabled": false,
+        "allowedRedirectDomains": []
+    },
+    "logFilter": {
+        "enabled": true,
+        "sensitiveFields": [
+            "password",
+            "token",
+            "apiKey",
+            "api_key",
+            "authorization",
+            "cookie",
+            "session",
+            "secret",
+            "credential"
+        ]
+    }
+}

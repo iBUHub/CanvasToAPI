@@ -5,6 +5,7 @@
 
 const VersionChecker = require("../utils/VersionChecker");
 const LoggingService = require("../utils/LoggingService");
+const SecurityValidator = require("../utils/SecurityValidator");
 
 class StatusRoutes {
     constructor(serverSystem) {
@@ -18,6 +19,14 @@ class StatusRoutes {
     setupRoutes(app, isAuthenticated) {
         app.get("/favicon.ico", (req, res) => {
             const iconUrl = process.env.ICON_URL || "/AIStudio_logo.svg";
+
+            // Open redirect protection: validate URL before redirecting
+            const validation = SecurityValidator.validateRedirectUrl(iconUrl);
+            if (!validation.valid) {
+                this.logger.warn(`[Security] Blocked redirect to: ${iconUrl} - ${validation.reason}`);
+                // Fallback to local icon on validation failure
+                return res.redirect(302, "/AIStudio_logo.svg");
+            }
 
             // Redirect to the configured icon URL (default: local SVG icon)
             // This supports any icon format (ICO, PNG, SVG, etc.) and any size
