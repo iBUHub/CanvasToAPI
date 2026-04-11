@@ -870,3 +870,35 @@ Removed features without backend support (~850 lines), integrated LoadDistributi
 ### Next Steps
 
 - None - task complete
+
+## Session 12: Refactor StatusPage and improve MetricCard
+
+**Date**: 2026-04-11
+**Task**: Refactor StatusPage and improve MetricCard
+**Branch**: `frontend-refactor`
+
+### Summary
+
+Extract 6 composables from StatusPage.vue (1330→400 lines), add copyable URL feature with dynamic font sizing, fix unused Vue imports
+
+### Main Changes
+
+(Add details)
+
+### Git Commits
+
+| Hash      | Message       |
+| --------- | ------------- |
+| `1a0cd7b` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete
