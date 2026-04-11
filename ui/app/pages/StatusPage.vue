@@ -387,6 +387,7 @@
                 <!-- Logs Content -->
                 <div class="logs-section">
                     <div class="logs-content">
+                        <!-- eslint-disable-next-line vue/no-v-html -->
                         <pre id="log-container" v-html="formattedLogs"></pre>
                     </div>
                 </div>
