@@ -55,6 +55,7 @@ A tool that exposes a Gemini web session as OpenAI API, Gemini API, and Anthropi
    [https://gemini.google.com/share/0e87cc62be50](https://gemini.google.com/share/0e87cc62be50)
 
    The actual page content is also available in the repository at [scripts/client/canvas.html](scripts/client/canvas.html).
+   If the shared Gemini link has expired, open Gemini directly, enable Canvas, and create a new Canvas by pasting in the contents of [scripts/client/canvas.html](scripts/client/canvas.html).
 
    Fill in:
    - `Server WS Endpoint`: `ws://127.0.0.1:7861/ws` for local use
@@ -144,6 +145,8 @@ After the container starts, you still need to manually open the following page a
 
 [https://gemini.google.com/share/0e87cc62be50](https://gemini.google.com/share/0e87cc62be50)
 
+If the shared link has expired, go to Gemini directly, enable Canvas, and create a new Canvas by pasting in the contents of [scripts/client/canvas.html](scripts/client/canvas.html).
+
 On that page, manually enter the browser tag (`Browser Identifier`), API key, and the server WebSocket address (`Server WS Endpoint`), for example `ws://127.0.0.1:7861/ws` or `wss://your-host/ws`. The API key should be the same one you use for API requests. Once the browser session is connected, the status page will show it as online and the API can begin forwarding requests.
 
 #### 🌐 Step 3 (Optional): Nginx Reverse Proxy
@@ -231,6 +234,7 @@ The current version no longer uses local `auth` files or a `setup-auth` bootstra
 1. Start the server and make sure `PORT` is reachable from the browser that will carry the session.
 2. Open the console and check the browser-session endpoint and connection status.
 3. Open [https://gemini.google.com/share/0e87cc62be50](https://gemini.google.com/share/0e87cc62be50) in a browser.
+   If that shared link is no longer available, go to Gemini, turn on Canvas, and create a new Canvas with the contents of [scripts/client/canvas.html](scripts/client/canvas.html).
 4. Enter the browser identifier (`Browser Identifier`), API key, and the server WebSocket endpoint (`Server WS Endpoint`) on that page.
 5. Use the same API key that you use for API requests. For local deployments, `Server WS Endpoint` can be `ws://127.0.0.1:7861/ws`. If the console is accessed through `https://` on a remote server, it should be `wss://your-domain-or-public-address/ws`.
 6. Wait until the status page shows at least one online browser session before sending API traffic.
