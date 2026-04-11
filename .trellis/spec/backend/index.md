@@ -22,6 +22,22 @@ This directory contains guidelines for backend development. Fill in each file wi
 
 ---
 
+## GitNexus Code Intelligence
+
+The [main development guide](./doc.md) includes integrated GitNexus skills for code intelligence:
+
+| Skill                | When to use                                    | Section ID                       |
+| -------------------- | ---------------------------------------------- | -------------------------------- |
+| **Code Exploration** | "How does X work?", "Show me the request flow" | `skill-gitnexus-exploring`       |
+| **Impact Analysis**  | "What breaks if I change X?", "Is it safe?"    | `skill-gitnexus-impact-analysis` |
+| **Debugging**        | "Why is X failing?", "Trace this error"        | `skill-gitnexus-debugging`       |
+| **Refactoring**      | "Rename this function", "Extract this module"  | `skill-gitnexus-refactoring`     |
+| **CLI Commands**     | Index, status, clean, wiki generation          | `skill-gitnexus-cli`             |
+
+See the [full development guide](./doc.md) for detailed workflows and examples.
+
+---
+
 ## How to Fill These Guidelines
 
 For each guideline file:

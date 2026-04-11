@@ -23,6 +23,21 @@ This directory contains guidelines for frontend development. Fill in each file w
 
 ---
 
+## GitNexus Code Intelligence
+
+The [main development guide](./doc.md) includes integrated GitNexus skills for code intelligence:
+
+| Skill                | When to use                                    | Section ID                       |
+| -------------------- | ---------------------------------------------- | -------------------------------- |
+| **Code Exploration** | "How does X work?", "Show me the auth flow"    | `skill-gitnexus-exploring`       |
+| **Impact Analysis**  | "What breaks if I change X?", "Is it safe?"    | `skill-gitnexus-impact-analysis` |
+| **Debugging**        | "Why is X failing?", "Trace this error"        | `skill-gitnexus-debugging`       |
+| **Refactoring**      | "Rename this component", "Extract this module" | `skill-gitnexus-refactoring`     |
+
+See the [full development guide](./doc.md) for detailed workflows and examples.
+
+---
+
 ## How to Fill These Guidelines
 
 For each guideline file:
