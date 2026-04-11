@@ -50,11 +50,8 @@ A tool that exposes a Gemini web session as OpenAI API, Gemini API, and Anthropi
 
 5. Manually connect a browser session:
 
-   Open this page in the browser that should carry the Gemini session:
+   Open this page in the browser that should carry the Gemini session: [https://gemini.google.com/share/0e87cc62be50](https://gemini.google.com/share/0e87cc62be50)
 
-   [https://gemini.google.com/share/0e87cc62be50](https://gemini.google.com/share/0e87cc62be50)
-
-   The actual page content is also available in the repository at [scripts/client/canvas.html](scripts/client/canvas.html).
    If the shared Gemini link has expired, open Gemini directly, enable Canvas, and create a new Canvas by pasting in the contents of [scripts/client/canvas.html](scripts/client/canvas.html).
 
    Fill in:
@@ -141,9 +138,7 @@ If you prefer to build the Docker image yourself, use the following commands:
 
 #### 🔌 Step 2: Connect a Browser Session
 
-After the container starts, you still need to manually open the following page and connect a browser session:
-
-[https://gemini.google.com/share/0e87cc62be50](https://gemini.google.com/share/0e87cc62be50)
+After the container starts, you still need to manually open the following page and connect a browser session: [https://gemini.google.com/share/0e87cc62be50](https://gemini.google.com/share/0e87cc62be50)
 
 If the shared link has expired, go to Gemini directly, enable Canvas, and create a new Canvas by pasting in the contents of [scripts/client/canvas.html](scripts/client/canvas.html).
 

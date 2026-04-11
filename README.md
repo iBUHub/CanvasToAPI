@@ -50,11 +50,8 @@
 
 5. 手动建立浏览器会话：
 
-   在需要承载 Gemini 会话的浏览器中打开：
+   在需要承载 Gemini 会话的浏览器中打开：[https://gemini.google.com/share/0e87cc62be50](https://gemini.google.com/share/0e87cc62be50)
 
-   [https://gemini.google.com/share/0e87cc62be50](https://gemini.google.com/share/0e87cc62be50)
-
-   该页面的实际内容可参考仓库中的 [scripts/client/canvas.html](scripts/client/canvas.html)。
    如果分享链接已过期，请直接打开 Gemini 页面，启用 Canvas，然后将 [scripts/client/canvas.html](scripts/client/canvas.html) 中的内容粘贴进去新建一个 Canvas。
 
    打开后请手动填写：
@@ -141,9 +138,7 @@ services:
 
 #### 🔌 步骤 2：连接浏览器会话
 
-容器启动后，仍然需要手动打开以下页面建立浏览器会话：
-
-[https://gemini.google.com/share/0e87cc62be50](https://gemini.google.com/share/0e87cc62be50)
+容器启动后，仍然需要手动打开以下页面建立浏览器会话：[https://gemini.google.com/share/0e87cc62be50](https://gemini.google.com/share/0e87cc62be50)
 
 如果该分享链接已过期，请直接前往 Gemini 页面，开启 Canvas，并将 [scripts/client/canvas.html](scripts/client/canvas.html) 中的内容粘贴进去新建一个 Canvas。
 
