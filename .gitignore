@@ -46,3 +46,4 @@ test/
 debug_*.png
 debug_*.html
 .gitnexus
+.temp/

@@ -10,7 +10,7 @@ The frontend follows a feature-based directory structure with clear separation b
 
 **Key Principles:**
 
-- Pages are route-level components
+- StatusPage uses tab-based navigation (single-page architecture)
 - Components are reusable UI elements
 - Utils contain both utility functions and Composables
 - Styles use LESS with CSS custom properties for theming
@@ -26,13 +26,23 @@ ui/
 │   ├── index.js                  # Application entry point
 │   ├── router/                   # Vue Router configuration
 │   │   └── index.js              # Route definitions and guards
-│   ├── pages/                    # Page-level components (route targets)
+│   ├── pages/                    # Page-level components
 │   │   ├── LoginPage.vue         # Authentication page
-│   │   ├── StatusPage.vue        # Main dashboard page
+│   │   ├── StatusPage.vue        # Main page with tabs (Dashboard, Settings, Logs)
 │   │   └── NotFound.vue          # 404 error page
 │   ├── components/               # Reusable components
-│   │   └── EnvVarTooltip.vue     # Environment variable tooltip
-│   ├── utils/                    # Utility functions and Composables
+│   │   ├── EnvVarTooltip.vue     # Environment variable tooltip
+│   │   ├── SideNavBar.vue        # Left sidebar navigation
+│   │   ├── TopAppBar.vue         # Top header with search/actions
+│   │   └── MetricCard.vue        # Dashboard metric card
+│   ├── composables/              # Vue Composables (stateful reusable logic)
+│   │   ├── useSettings.js        # Settings state and API update methods
+│   │   ├── useSessions.js        # Browser sessions management
+│   │   ├── useLogs.js            # Log formatting and operations
+│   │   ├── useVersionInfo.js     # Version checking and display
+│   │   ├── useI18nHelper.js      # Internationalization helper
+│   │   └── useStatusPolling.js   # Status polling and data sync
+│   ├── utils/                    # Utility functions (stateless)
 │   │   ├── useTheme.js           # Theme management Composable
 │   │   ├── i18n.js               # Internationalization utility
 │   │   └── escapeHtml.js         # XSS prevention utility
@@ -68,7 +78,7 @@ ui/
 
 - Multiple components need the same stateful logic
 - Logic involves reactive state (ref, reactive, computed)
-- Example: A shared data fetcher → `ui/app/utils/useFetchData.js`
+- Example: A shared data fetcher → `ui/app/composables/useFetchData.js`
 
 **Create a new Utility** when:
 
@@ -80,8 +90,9 @@ ui/
 
 1. **One component per file**: Each `.vue` file contains one component
 2. **Colocate related code**: Keep components close to where they're used
-3. **Utils for shared logic**: Functions used in 2+ files belong in `utils/`
-4. **Styles**: Global styles in `styles/`, component styles in `<style scoped>`
+3. **Composables for stateful logic**: Vue composables with reactive state go in `composables/`
+4. **Utils for stateless functions**: Pure functions used in 2+ files belong in `utils/`
+5. **Styles**: Global styles in `styles/`, component styles in `<style scoped>`
 
 ---
 
@@ -112,14 +123,19 @@ ui/
 **Pages** (`ui/app/pages/`):
 
 - `LoginPage.vue` - Authentication page with form handling
-- `StatusPage.vue` - Dashboard with session status, settings, and controls
+- `StatusPage.vue` - Main page with tab-based navigation (Dashboard, Settings, Logs)
+  - Dashboard tab: Service status, session pool management
+  - Settings tab: Version info, configuration settings
+  - Logs tab: Real-time log viewer with download
 - Each page is a self-contained route target
 
 **Components** (`ui/app/components/`):
 
 - `EnvVarTooltip.vue` - Reusable tooltip for environment variables
-- Used in `StatusPage.vue` for documentation links
-- Contains both logic and scoped styles
+- `SideNavBar.vue` - Fixed left sidebar with navigation (event-based, no router)
+- `TopAppBar.vue` - Fixed top header with search and action buttons
+- `MetricCard.vue` - Dashboard metric card with status indicator
+- Each component is self-contained with scoped styles
 
 **Utils/Composables** (`ui/app/utils/`):
 

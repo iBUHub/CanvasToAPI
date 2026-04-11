@@ -578,16 +578,189 @@ const form = reactive({
 
 ---
 
+## Polling Pattern for Real-time Data
+
+When components need to display real-time data that updates periodically (e.g., status dashboards, session pools), use the polling pattern.
+
+### Basic Polling Pattern
+
+```vue
+<script setup>
+import { ref, onMounted, onBeforeUnmount } from "vue";
+
+const data = ref(null);
+const updateTimer = ref(null);
+
+const fetchData = async () => {
+  try {
+    const res = await fetch("/api/data");
+    if (res.ok) {
+      data.value = await res.json();
+    }
+  } catch (err) {
+    console.error("Failed to fetch data:", err);
+    // Don't throw - polling should continue
+  }
+};
+
+onMounted(() => {
+  fetchData(); // Initial fetch
+  updateTimer.value = setInterval(fetchData, 5000); // Poll every 5 seconds
+});
+
+onBeforeUnmount(() => {
+  if (updateTimer.value) {
+    clearInterval(updateTimer.value);
+  }
+});
+</script>
+```
+
+### Key Points
+
+1. **Start in onMounted**: Fetch initial data and start interval
+2. **Clear in onBeforeUnmount**: **CRITICAL** - Prevent memory leaks
+3. **Error handling**: Catch errors but don't throw - polling should continue
+4. **Interval choice**: 3-5 seconds is common for dashboards
+
+### Real Examples
+
+**StatusPage.vue (Dashboard)**:
+
+```vue
+<script setup>
+import { ref, onMounted, onBeforeUnmount } from "vue";
+
+const sessions = ref([]);
+const updateTimer = ref(null);
+
+const fetchStatus = async () => {
+  try {
+    const response = await fetch("/api/status");
+    if (!response.ok) {
+      throw new Error("Failed to fetch status");
+    }
+    const data = await response.json();
+    sessions.value = data.status.browserSessions || [];
+  } catch (error) {
+    console.error("Failed to fetch status:", error);
+  }
+};
+
+onMounted(() => {
+  fetchStatus();
+  updateTimer.value = setInterval(fetchStatus, 5000); // 5 seconds
+});
+
+onBeforeUnmount(() => {
+  if (updateTimer.value) {
+    clearInterval(updateTimer.value);
+  }
+});
+</script>
+```
+
+**SessionsPage.vue (Session Pool)**:
+
+```vue
+<script setup>
+const sessions = ref([]);
+const updateTimer = ref(null);
+
+const fetchStatus = async () => {
+  try {
+    const response = await fetch("/api/status");
+    const data = await response.json();
+    sessions.value = data.status.browserSessions || [];
+  } catch (error) {
+    console.error("Failed to fetch status:", error);
+  }
+};
+
+onMounted(() => {
+  fetchStatus();
+  updateTimer.value = setInterval(fetchStatus, 4000); // 4 seconds
+});
+
+onBeforeUnmount(() => {
+  if (updateTimer.value) {
+    clearInterval(updateTimer.value);
+  }
+});
+</script>
+```
+
+### Common Mistakes
+
+```vue
+<script setup>
+// ❌ WRONG: Forget to clear interval - memory leak!
+onMounted(() => {
+  setInterval(fetchData, 5000);
+});
+
+// ❌ WRONG: Throw on error - stops polling
+const fetchData = async () => {
+  const res = await fetch("/api/data");
+  if (!res.ok) {
+    throw new Error("Failed"); // Polling stops!
+  }
+};
+
+// ✅ CORRECT: Clear interval on unmount
+onMounted(() => {
+  updateTimer.value = setInterval(fetchData, 5000);
+});
+
+onBeforeUnmount(() => {
+  if (updateTimer.value) {
+    clearInterval(updateTimer.value);
+  }
+});
+
+// ✅ CORRECT: Handle errors gracefully
+const fetchData = async () => {
+  try {
+    const res = await fetch("/api/data");
+    if (res.ok) {
+      data.value = await res.json();
+    }
+  } catch (err) {
+    console.error("Failed:", err);
+    // Continue polling
+  }
+};
+</script>
+```
+
+### When to Use Polling
+
+Use polling when:
+
+- ✅ Data changes frequently (every few seconds)
+- ✅ Real-time updates improve UX (dashboards, status pages)
+- ✅ Server doesn't support WebSocket
+- ✅ Multiple components need same data
+
+Don't use polling when:
+
+- ❌ Data rarely changes (fetch once on mount)
+- ❌ Need instant updates (use WebSocket instead)
+- ❌ Only one user action triggers data change (refetch on action)
+
+---
+
 ## Examples Summary
 
-| State Type      | Location   | Pattern                   | Example                                      |
-| --------------- | ---------- | ------------------------- | -------------------------------------------- |
-| Local primitive | Component  | `ref()`                   | `const count = ref(0)`                       |
-| Local object    | Component  | `reactive()` or `ref({})` | `const form = reactive({ username: '' })`    |
-| Global          | Composable | Module-level `ref()`      | `const theme = ref('auto')` in `useTheme.js` |
-| Server          | Component  | `ref()` + `onMounted()`   | Fetch API data                               |
-| URL             | Component  | `useRoute()`              | `route.query.error`                          |
-| Derived         | Component  | `computed()`              | `const filtered = computed(() => ...)`       |
+| State Type       | Location   | Pattern                   | Example                                      |
+| ---------------- | ---------- | ------------------------- | -------------------------------------------- |
+| Local primitive  | Component  | `ref()`                   | `const count = ref(0)`                       |
+| Local object     | Component  | `reactive()` or `ref({})` | `const form = reactive({ username: '' })`    |
+| Global           | Composable | Module-level `ref()`      | `const theme = ref('auto')` in `useTheme.js` |
+| Server           | Component  | `ref()` + `onMounted()`   | Fetch API data                               |
+| Server (polling) | Component  | `ref()` + `setInterval()` | Real-time dashboards                         |
+| URL              | Component  | `useRoute()`              | `route.query.error`                          |
+| Derived          | Component  | `computed()`              | `const filtered = computed(() => ...)`       |
 
 ---
 
@@ -600,3 +773,4 @@ const form = reactive({
 5. **Prefer ref over reactive** - Simpler for primitives, consistent API
 6. **Don't mutate props** - Emit events instead
 7. **Watch for side effects** - Use watchEffect, not computed
+8. **Clear intervals in onBeforeUnmount** - Prevent memory leaks in polling

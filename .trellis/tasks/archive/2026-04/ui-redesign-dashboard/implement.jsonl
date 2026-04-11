@@ -1,0 +1,9 @@
+{"file": ".trellis/workflow.md", "reason": "Project workflow and conventions"}
+{"file": ".trellis/spec/frontend/index.md", "reason": "Frontend development guide"}
+{"file": ".trellis/spec/frontend/component-guidelines.md", "reason": "Vue 3 Composition API patterns, props validation, Element Plus integration"}
+{"file": ".trellis/spec/frontend/directory-structure.md", "reason": "Module organization, file naming conventions"}
+{"file": ".trellis/spec/frontend/state-management.md", "reason": "State patterns, reactive data, polling implementation"}
+{"file": "ui/app/utils/i18n.js", "reason": "i18n utility with reactive state and localStorage persistence"}
+{"file": "ui/app/utils/useTheme.js", "reason": "Theme management with singleton pattern"}
+{"file": "ui/app/styles/variables.less", "reason": "Material Design 3 color system, CSS custom properties"}
+{"file": ".temp/main-frontend/ui/app/pages/StatusPage.vue", "reason": "Reference: working backend integration logic, API calls, state management"}

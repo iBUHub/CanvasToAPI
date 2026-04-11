@@ -1,0 +1,4 @@
+{"file": ".opencode/commands/trellis/finish-work.md", "reason": "Finish work checklist"}
+{"file": ".opencode/commands/trellis/check.md", "reason": "Code quality check spec"}
+{"file": ".trellis/spec/frontend/component-guidelines.md", "reason": "Verify Element Plus integration follows guidelines"}
+{"file": ".trellis/spec/frontend/quality-guidelines.md", "reason": "Verify code quality standards are met"}
