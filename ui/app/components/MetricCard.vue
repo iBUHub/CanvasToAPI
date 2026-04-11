@@ -6,23 +6,30 @@
 -->
 
 <template>
-    <div class="metric-card">
+    <div class="metric-card" :class="{ 'metric-card-copyable': copyable }" @click="handleCopy">
         <!-- Header -->
         <div class="metric-header">
-            <span class="metric-label">{{ label }}</span>
+            <div class="metric-label-group">
+                <span class="metric-label">{{ label }}</span>
+                <span v-if="copyable" class="metric-copy-hint">{{ copyHint }}</span>
+            </div>
             <div v-if="status" class="metric-status" :class="statusClass">
                 <span class="status-dot"></span>
                 <span class="status-text">{{ status }}</span>
             </div>
-            <span v-if="icon" class="material-symbols-outlined metric-icon" :style="{ color: iconColor }">
+            <span v-if="icon && !status" class="material-symbols-outlined metric-icon" :style="{ color: iconColor }">
                 {{ icon }}
             </span>
         </div>
 
         <!-- Value -->
         <div class="metric-value-container">
-            <div class="metric-value">{{ formattedValue }}</div>
-            <div class="metric-subtitle" :class="subtitleClass">{{ subtitle }}</div>
+            <div class="metric-value" :style="valueStyle">
+                {{ formattedValue }}
+            </div>
+            <div v-if="subtitle" class="metric-subtitle" :class="subtitleClass">
+                {{ subtitle }}
+            </div>
         </div>
 
         <!-- Sparkline (optional) -->
@@ -35,10 +42,21 @@
 </template>
 
 <script setup>
-import { computed, defineProps } from "vue";
+import { computed } from "vue";
+import { ElMessage } from "element-plus";
 
 // Props
 const props = defineProps({
+    copyable: {
+        default: false,
+        required: false,
+        type: Boolean,
+    },
+    copyHint: {
+        default: "Click to copy",
+        required: false,
+        type: String,
+    },
     icon: {
         default: "",
         required: false,
@@ -130,6 +148,41 @@ const sparklinePath = computed(() => {
         })
         .join(" ");
 });
+
+// Dynamic font size for long values (URLs)
+const valueStyle = computed(() => {
+    if (typeof props.value !== "string") {
+        return {};
+    }
+
+    const len = props.value.length;
+    // Base size: 24px, scale down for longer strings
+    // Card width is approximately 280px, we want the text to fit
+    let fontSize = 24; // @font-size-3xl
+
+    if (len > 30) {
+        fontSize = Math.max(12, 24 - (len - 30) * 0.3);
+    } else if (len > 20) {
+        fontSize = Math.max(18, 24 - (len - 20) * 0.6);
+    }
+
+    return {
+        fontFamily: len > 20 ? "'SF Mono', Consolas, Menlo, monospace" : undefined,
+        fontSize: `${fontSize}px`,
+    };
+});
+
+// Methods
+const handleCopy = async () => {
+    if (!props.copyable) return;
+
+    try {
+        await navigator.clipboard.writeText(String(props.value));
+        ElMessage.success("Copied to clipboard");
+    } catch {
+        ElMessage.error("Failed to copy");
+    }
+};
 </script>
 
 <style lang="less" scoped>
@@ -151,6 +204,18 @@ const sparklinePath = computed(() => {
     &:hover {
         box-shadow: @shadow-md;
     }
+
+    &.metric-card-copyable {
+        cursor: pointer;
+
+        &:hover {
+            background-color: @surface-container-low;
+
+            .metric-copy-hint {
+                color: var(--color-primary);
+            }
+        }
+    }
 }
 
 .metric-header {
@@ -159,12 +224,25 @@ const sparklinePath = computed(() => {
     justify-content: space-between;
 }
 
+.metric-label-group {
+    display: flex;
+    align-items: center;
+    gap: @spacing-sm;
+}
+
 .metric-label {
     font-size: @font-size-xs;
     font-weight: 600;
     letter-spacing: 0.05em;
     text-transform: uppercase;
     color: @on-surface-variant;
+}
+
+.metric-copy-hint {
+    font-size: @font-size-xs;
+    font-weight: 400;
+    color: @outline;
+    transition: color @transition-fast;
 }
 
 .metric-status {
@@ -235,15 +313,17 @@ const sparklinePath = computed(() => {
 
 .metric-value {
     font-family: @font-family-headline;
-    font-size: @font-size-3xl;
     font-weight: 700;
     color: @on-surface;
+    word-break: break-all;
+    line-height: 1.2;
 }
 
 .metric-subtitle {
-    margin-top: 2px;
+    margin-top: 4px;
     font-size: 10px;
     color: @on-surface-variant;
+    transition: color @transition-fast;
 
     &.trend-up {
         color: var(--color-success);

@@ -79,6 +79,7 @@
     "btnSwitchAccount": "切换账号",
     "cancel": "取消",
     "clearViewLabel": "清空视图",
+    "clickToCopy": "点击复制",
     "collapse": "收起",
     "confirmBatchDelete": "确定要删除选中的 {count} 个账号吗？",
     "confirmDelete": "确定要删除账号",

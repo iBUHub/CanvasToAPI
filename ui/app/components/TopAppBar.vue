@@ -38,7 +38,7 @@
 </template>
 
 <script setup>
-import { ref, computed, defineEmits } from "vue";
+import { ref, computed } from "vue";
 import I18n from "../utils/i18n";
 
 // Emits

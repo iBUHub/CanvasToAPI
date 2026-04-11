@@ -79,6 +79,7 @@
     "btnSwitchAccount": "Switch Account",
     "cancel": "Cancel",
     "clearViewLabel": "Clear View",
+    "clickToCopy": "Click to copy",
     "collapse": "Collapse",
     "confirmBatchDelete": "Are you sure you want to delete {count} selected accounts?",
     "confirmDelete": "Are you sure you want to delete account",

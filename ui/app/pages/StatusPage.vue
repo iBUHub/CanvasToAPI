@@ -34,14 +34,14 @@
                 <div class="metrics-grid">
                     <MetricCard
                         :label="t('serviceStatus')"
-                        :value="state.serviceConnected ? t('connected') : t('disconnected')"
+                        :value="pollingState.serviceConnected ? t('connected') : t('disconnected')"
                         icon="cloud"
-                        :icon-color="state.serviceConnected ? 'var(--color-success)' : 'var(--color-error)'"
-                        :status="state.serviceConnected ? t('onlineLabel') : t('disconnected')"
-                        :status-type="state.serviceConnected ? 'success' : 'error'"
+                        :icon-color="pollingState.serviceConnected ? 'var(--color-success)' : 'var(--color-error)'"
+                        :status="pollingState.serviceConnected ? t('onlineLabel') : t('disconnected')"
+                        :status-type="pollingState.serviceConnected ? 'success' : 'error'"
                     />
                     <MetricCard
-                        v-if="state.serviceConnected"
+                        v-if="pollingState.serviceConnected"
                         :label="t('totalSessionsLabel')"
                         :value="sessions.length"
                         :subtitle="t('activeSessionsLabel') + ': ' + activeSessionCount"
@@ -49,7 +49,7 @@
                         icon-color="var(--color-primary)"
                     />
                     <MetricCard
-                        v-if="state.serviceConnected"
+                        v-if="pollingState.serviceConnected"
                         :label="t('activeSessions')"
                         :value="activeSessionCount"
                         :subtitle="t('disabledLabel') + ': ' + disabledSessionCount"
@@ -59,19 +59,21 @@
                     <MetricCard
                         :label="t('wsEndpointLabel')"
                         :value="browserWsEndpointText"
+                        :copy-hint="t('clickToCopy')"
                         icon="cable"
                         icon-color="var(--color-tertiary-container)"
+                        copyable
                     />
                 </div>
 
                 <!-- Session Pool Section -->
-                <div v-if="state.serviceConnected" class="sessions-section">
+                <div v-if="pollingState.serviceConnected" class="sessions-section">
                     <div class="section-header">
                         <h2 class="section-title">{{ t("browserSessionsHeading") }}</h2>
                         <a
-                            v-if="state.sharePageUrl"
+                            v-if="pollingState.sharePageUrl"
                             class="status-link"
-                            :href="state.sharePageUrl"
+                            :href="pollingState.sharePageUrl"
                             target="_blank"
                             rel="noopener noreferrer"
                         >
@@ -179,9 +181,11 @@
                                 <label class="setting-label">{{ t("latestVersion") }}</label>
                             </div>
                             <div class="setting-control">
-                                <span v-if="state.hasUpdate" class="version-value has-update">
+                                <span v-if="versionState.hasUpdate" class="version-value has-update">
                                     <a
-                                        :href="state.releaseUrl || 'https://github.com/iBUHub/CanvasToAPI/releases'"
+                                        :href="
+                                            versionState.releaseUrl || 'https://github.com/iBUHub/CanvasToAPI/releases'
+                                        "
                                         target="_blank"
                                         class="update-link"
                                     >
@@ -204,8 +208,8 @@
                             </div>
                             <div class="setting-control">
                                 <ElSelect
-                                    :model-value="state.debugMode"
-                                    :disabled="loading.debugMode"
+                                    :model-value="settingsState.debugMode"
+                                    :disabled="settingsLoading.debugMode"
                                     @change="handleDebugModeChange"
                                 >
                                     <ElOption :label="t('normal')" :value="false" />
@@ -219,11 +223,11 @@
                             </div>
                             <div class="setting-control">
                                 <ElInputNumber
-                                    v-model="state.logMaxCount"
+                                    v-model="settingsState.logMaxCount"
                                     :min="10"
                                     :max="1000"
                                     :step="10"
-                                    :disabled="loading.logMaxCount"
+                                    :disabled="settingsLoading.logMaxCount"
                                     @change="updateLogMaxCount"
                                 />
                             </div>
@@ -243,8 +247,8 @@
                             </div>
                             <div class="setting-control">
                                 <ElSelect
-                                    v-model="state.streamingMode"
-                                    :disabled="loading.streamingMode"
+                                    v-model="settingsState.streamingMode"
+                                    :disabled="settingsLoading.streamingMode"
                                     @change="updateStreamingMode"
                                 >
                                     <ElOption :label="t('fake')" value="fake" />
@@ -260,8 +264,8 @@
                             </div>
                             <div class="setting-control">
                                 <ElSelect
-                                    v-model="state.selectionStrategy"
-                                    :disabled="loading.selectionStrategy"
+                                    v-model="settingsState.selectionStrategy"
+                                    :disabled="settingsLoading.selectionStrategy"
                                     @change="updateSelectionStrategy"
                                 >
                                     <ElOption :label="t('selectionStrategyRound')" value="round" />
@@ -278,10 +282,10 @@
                             </div>
                             <div class="setting-control">
                                 <ElInputNumber
-                                    v-model="state.sessionErrorThreshold"
+                                    v-model="settingsState.sessionErrorThreshold"
                                     :min="0"
                                     :max="100"
-                                    :disabled="loading.sessionErrorThreshold"
+                                    :disabled="settingsLoading.sessionErrorThreshold"
                                     @change="updateSessionErrorThreshold"
                                 />
                             </div>
@@ -294,8 +298,8 @@
                             </div>
                             <div class="setting-control">
                                 <ElSwitch
-                                    v-model="state.forceThinking"
-                                    :disabled="loading.forceThinking"
+                                    v-model="settingsState.forceThinking"
+                                    :disabled="settingsLoading.forceThinking"
                                     @change="updateForceThinking"
                                 />
                             </div>
@@ -308,8 +312,8 @@
                             </div>
                             <div class="setting-control">
                                 <ElSwitch
-                                    v-model="state.forceWebSearch"
-                                    :disabled="loading.forceWebSearch"
+                                    v-model="settingsState.forceWebSearch"
+                                    :disabled="settingsLoading.forceWebSearch"
                                     @change="updateForceWebSearch"
                                 />
                             </div>
@@ -322,8 +326,8 @@
                             </div>
                             <div class="setting-control">
                                 <ElSwitch
-                                    v-model="state.forceUrlContext"
-                                    :disabled="loading.forceUrlContext"
+                                    v-model="settingsState.forceUrlContext"
+                                    :disabled="settingsLoading.forceUrlContext"
                                     @change="updateForceUrlContext"
                                 />
                             </div>
@@ -352,7 +356,7 @@
                                 <label class="setting-label">{{ t("language") }}</label>
                             </div>
                             <div class="setting-control">
-                                <ElSelect :model-value="state.currentLang" @change="handleLanguageChange">
+                                <ElSelect :model-value="currentLang" @change="onLanguageChange">
                                     <ElOption label="中文" value="zh" />
                                     <ElOption label="English" value="en" />
                                 </ElSelect>
@@ -367,14 +371,14 @@
                 <!-- Header Section -->
                 <div class="page-header page-header-split">
                     <div class="header-title-group">
-                        <h1 class="page-title">{{ t("realtimeLogs") }} ({{ state.logCount }})</h1>
+                        <h1 class="page-title">{{ t("realtimeLogs") }} ({{ pollingState.logCount }})</h1>
                         <p class="page-subtitle">{{ t("systemLogs") }}</p>
                     </div>
                     <div class="header-actions">
-                        <ElButton @click="clearLogsView">
+                        <ElButton @click="handleClearLogsView">
                             {{ t("clearViewLabel") }}
                         </ElButton>
-                        <ElButton type="primary" @click="downloadLogs">
+                        <ElButton type="primary" @click="handleDownloadLogs">
                             {{ t("downloadLogs") }}
                         </ElButton>
                     </div>
@@ -396,146 +400,78 @@
 </template>
 
 <script setup>
-import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, watchEffect } from "vue";
-import { ElMessage, ElMessageBox } from "element-plus";
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watchEffect } from "vue";
 
 // Components
 import SideNavBar from "../components/SideNavBar.vue";
 import TopAppBar from "../components/TopAppBar.vue";
 import MetricCard from "../components/MetricCard.vue";
 
+// Composables
+import { useSettings } from "../composables/useSettings";
+import { useSessions } from "../composables/useSessions";
+import { useLogs } from "../composables/useLogs";
+import { useVersionInfo } from "../composables/useVersionInfo";
+import { useI18nHelper } from "../composables/useI18nHelper";
+import { useStatusPolling } from "../composables/useStatusPolling";
+
 // Utils
 import I18n from "../utils/i18n";
-import escapeHtml from "../utils/escapeHtml";
 import { useTheme } from "../utils/useTheme";
 
-// State
+// Initialize composables
+const {
+    state: settingsState,
+    loading: settingsLoading,
+    handleDebugModeChange,
+    updateLogMaxCount,
+    updateStreamingMode,
+    updateSelectionStrategy,
+    updateSessionErrorThreshold,
+    updateForceThinking,
+    updateForceWebSearch,
+    updateForceUrlContext,
+} = useSettings();
+
+const {
+    sessions,
+    activeSessionCount,
+    disabledSessionCount,
+    formatTime,
+    getSessionStatusClass,
+    getSessionStatusText,
+    handleResetHealth: resetSessionHealth,
+} = useSessions();
+
+const { getFormattedLogs, clearLogsView, downloadLogs } = useLogs();
+
+const { state: versionState, appVersion, latestVersionFormatted, fetchVersionInfo } = useVersionInfo();
+
+const { t, getCurrentLang, toggleLanguage: toggleLang, handleLanguageChange } = useI18nHelper();
+
+// Page-level state
 const activeTab = ref("dashboard");
-const sessions = ref([]);
-const updateTimer = ref(null);
-const langVersion = ref(I18n.state.version);
 const { theme, setTheme } = useTheme();
+const currentLang = ref(getCurrentLang());
 
-const state = reactive({
-    browserWsPath: "/ws",
-    currentLang: I18n.getLang(),
-    currentVersion: "",
-    debugMode: false,
-    forceThinking: false,
-    forceUrlContext: false,
-    forceWebSearch: false,
-    hasUpdate: false,
-    latestVersion: "",
-    logCount: 0,
-    logMaxCount: 100,
-    logs: "",
-    logScrollTop: 0,
-    releaseUrl: "",
-    selectionStrategy: "round",
-    serviceConnected: false,
-    sessionErrorThreshold: 3,
-    sharePageUrl: "",
-    streamingMode: "fake",
-});
+// Status polling - pass required state references
+const {
+    state: pollingState,
+    browserWsEndpointText,
+    fetchStatus,
+    startPolling,
+    stopPolling,
+} = useStatusPolling(settingsState, versionState, sessions, () => activeTab.value);
 
-const loading = reactive({
-    debugMode: false,
-    forceThinking: false,
-    forceUrlContext: false,
-    forceWebSearch: false,
-    logMaxCount: false,
-    selectionStrategy: false,
-    sessionErrorThreshold: false,
-    streamingMode: false,
-});
-
-// i18n helper
-const t = (key, options) => {
-    langVersion.value; // trigger reactivity
-    return I18n.t(key, options);
-};
-
-// Computed
-const activeSessionCount = computed(() => sessions.value.filter(s => !s.disabledAt).length);
-const disabledSessionCount = computed(() => sessions.value.filter(s => s.disabledAt).length);
-
-const browserWsEndpointText = computed(() => {
-    if (typeof window === "undefined") {
-        return state.browserWsPath || "/ws";
-    }
-
-    const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-    return `${protocol}//${window.location.host}${state.browserWsPath || "/ws"}`;
-});
-
-const appVersion = computed(() => {
-    const version = state.currentVersion || (typeof __APP_VERSION__ !== "undefined" ? __APP_VERSION__ : "dev");
-    if (/^\d/.test(version)) {
-        return `v${version}`;
-    }
-    if (version.startsWith("preview")) {
-        return version.charAt(0).toUpperCase() + version.slice(1);
-    }
-    return version;
-});
-
-const latestVersionFormatted = computed(() => {
-    const version =
-        state.latestVersion ||
-        state.currentVersion ||
-        (typeof __APP_VERSION__ !== "undefined" ? __APP_VERSION__ : "dev");
-    if (/^\d/.test(version)) {
-        return `v${version}`;
-    }
-    if (version.startsWith("preview")) {
-        return version.charAt(0).toUpperCase() + version.slice(1);
-    }
-    return version;
-});
-
-const highlightLogLevel = (content, level, color) =>
-    content.replace(
-        new RegExp(`(^|\\r?\\n)(\\[${level}\\])(?=\\s)`, "g"),
-        `$1<span style="color: ${color}; font-weight: bold;">$2</span>`
-    );
-
-const formattedLogs = computed(() => {
-    let safeLogs = escapeHtml(state.logs || t("loading"));
-
-    safeLogs = highlightLogLevel(safeLogs, "DEBUG", "#3498db");
-    safeLogs = highlightLogLevel(safeLogs, "WARN", "#f39c12");
-    safeLogs = highlightLogLevel(safeLogs, "ERROR", "#e74c3c");
-
-    return safeLogs;
-});
-
-// Helper functions
-function formatTime(timestamp) {
-    if (!timestamp) return "-";
-    const date = new Date(timestamp);
-    return date.toLocaleString();
-}
-
-function getSessionStatusClass(session) {
-    if (session.disabledAt) {
-        return "status-disabled";
-    }
-    return "status-online";
-}
-
-function getSessionStatusText(session) {
-    if (session.disabledAt) {
-        return t("disabledLabel");
-    }
-    return t("onlineLabel");
-}
+// Computed for formatted logs
+const formattedLogs = computed(() => getFormattedLogs(pollingState.logs));
 
 // Tab switching
 const switchTab = tabName => {
     if (activeTab.value === "logs") {
         const logContainer = document.getElementById("log-container");
         if (logContainer) {
-            state.logScrollTop = logContainer.scrollTop;
+            pollingState.logScrollTop = logContainer.scrollTop;
         }
     }
 
@@ -545,7 +481,7 @@ const switchTab = tabName => {
         nextTick(() => {
             const logContainer = document.getElementById("log-container");
             if (logContainer) {
-                logContainer.scrollTop = state.logScrollTop || 0;
+                logContainer.scrollTop = pollingState.logScrollTop || 0;
             }
         });
     }
@@ -566,368 +502,37 @@ const toggleTheme = () => {
     setTheme(newTheme);
 };
 
-// Language toggle
+// Language toggle wrapper
 const toggleLanguage = () => {
-    I18n.toggleLang();
-    langVersion.value++;
+    toggleLang();
+    currentLang.value = getCurrentLang();
 };
 
-const handleLanguageChange = lang => {
-    I18n.setLang(lang);
-    state.currentLang = lang;
-    langVersion.value++;
+// Language change wrapper for template
+const onLanguageChange = lang => {
+    handleLanguageChange(lang);
+    currentLang.value = lang;
 };
 
-// Fetch status data
-const fetchStatus = async () => {
-    try {
-        const logContainer = activeTab.value === "logs" ? document.getElementById("log-container") : null;
-        if (logContainer) {
-            state.logScrollTop = logContainer.scrollTop;
-        }
-
-        const response = await fetch("/api/status");
-        if (response.redirected) {
-            window.location.href = response.url;
-            return;
-        }
-        if (response.status === 401) {
-            window.location.href = "/login";
-            return;
-        }
-        if (!response.ok) throw new Error(`status ${response.status}`);
-
-        const data = await response.json();
-        applyStatusPayload(data);
-
-        if (activeTab.value === "logs") {
-            nextTick(() => {
-                const updatedLogContainer = document.getElementById("log-container");
-                if (updatedLogContainer) {
-                    updatedLogContainer.scrollTop = state.logScrollTop || 0;
-                }
-            });
-        }
-    } catch (error) {
-        state.serviceConnected = false;
-    }
+// Reset session health with callback
+const handleResetHealth = session => {
+    resetSessionHealth(session, fetchStatus);
 };
 
-const applyStatusPayload = payload => {
-    const status = payload?.status || {};
-    state.sessionErrorThreshold = Number.isFinite(Number(status.sessionErrorThreshold))
-        ? Number(status.sessionErrorThreshold)
-        : 3;
-    state.debugMode = Boolean(status.debugMode);
-    state.forceThinking = Boolean(status.forceThinking);
-    state.forceUrlContext = Boolean(status.forceUrlContext);
-    state.forceWebSearch = Boolean(status.forceWebSearch);
-    state.logCount = Number(payload?.logCount || 0);
-    state.logMaxCount = Number(status.logMaxCount || 100);
-    state.logs = payload?.logs || "";
-    state.selectionStrategy = status.selectionStrategy || "round";
-    state.serviceConnected = Boolean(status.serviceConnected);
-    state.streamingMode = status.streamingMode || "fake";
-    state.browserWsPath = status.browserWsPath || "/ws";
-    state.sharePageUrl = status.sharePageUrl || "";
-    sessions.value = Array.isArray(status.browserSessions) ? status.browserSessions : [];
+// Clear logs view
+const handleClearLogsView = () => {
+    clearLogsView(pollingState);
 };
 
-// Fetch version info
-const fetchVersionInfo = async () => {
-    try {
-        const response = await fetch("/api/version/check");
-        if (!response.ok) {
-            return;
-        }
-
-        const data = await response.json();
-        state.currentVersion = data.current || "";
-        state.hasUpdate = Boolean(data.hasUpdate);
-        state.latestVersion = data.latest || "";
-        state.releaseUrl = data.releaseUrl || "";
-    } catch {
-        state.hasUpdate = false;
-    }
-};
-
-// Reset session health
-const handleResetHealth = async session => {
-    try {
-        await ElMessageBox.confirm(t("sessionResetConfirm", { session: session.connectionId }), t("warningTitle"), {
-            cancelButtonText: t("cancel"),
-            confirmButtonText: t("ok"),
-            type: "warning",
-        });
-
-        const response = await fetch(`/api/sessions/${session.sessionId}/reset-health`, {
-            headers: {
-                "Content-Type": "application/json",
-            },
-            method: "PUT",
-        });
-
-        if (!response.ok) {
-            const errorData = await response.json().catch(() => ({}));
-            throw new Error(errorData.message || "Reset failed");
-        }
-
-        ElMessage.success(t("sessionResetSuccess", { session: session.connectionId }));
-
-        // Refresh session list
-        await fetchStatus();
-    } catch (error) {
-        if (error !== "cancel") {
-            ElMessage.error(error.message || t("unknownError"));
-        }
-    }
-};
-
-// Settings update methods
-const handleDebugModeChange = async value => {
-    loading.debugMode = true;
-    try {
-        const response = await fetch("/api/settings/debug-mode", {
-            headers: { "Content-Type": "application/json" },
-            method: "PUT",
-        });
-
-        const data = await response.json();
-        if (response.ok) {
-            ElMessage.success(t("settingUpdateSuccess", { setting: t("logLevel"), value: data.value }));
-        } else {
-            ElMessage.error(t("settingFailed", { message: data.message || "Unknown error" }));
-            state.debugMode = !value;
-        }
-    } catch (error) {
-        ElMessage.error(t("settingFailed", { message: error.message }));
-        state.debugMode = !value;
-    } finally {
-        loading.debugMode = false;
-    }
-};
-
-const updateLogMaxCount = async value => {
-    loading.logMaxCount = true;
-    try {
-        const response = await fetch("/api/settings/log-max-count", {
-            body: JSON.stringify({ count: value }),
-            headers: { "Content-Type": "application/json" },
-            method: "PUT",
-        });
-
-        const data = await response.json();
-        if (response.ok) {
-            ElMessage.success(t("settingUpdateSuccess", { setting: t("logMaxCount"), value }));
-        } else {
-            ElMessage.error(t("settingFailed", { message: data.message || "Unknown error" }));
-        }
-    } catch (error) {
-        ElMessage.error(t("settingFailed", { message: error.message }));
-    } finally {
-        loading.logMaxCount = false;
-    }
-};
-
-const updateStreamingMode = async value => {
-    loading.streamingMode = true;
-    try {
-        // Show confirmation for "real" mode
-        if (value === "real") {
-            try {
-                await ElMessageBox.confirm(t("streamingModeEnableConfirm"), t("warningTitle"), {
-                    cancelButtonText: t("cancel"),
-                    confirmButtonText: t("ok"),
-                    type: "warning",
-                });
-            } catch {
-                // User cancelled, revert to "fake"
-                state.streamingMode = "fake";
-                loading.streamingMode = false;
-                return;
-            }
-        }
-
-        const response = await fetch("/api/settings/streaming-mode", {
-            body: JSON.stringify({ mode: value }),
-            headers: { "Content-Type": "application/json" },
-            method: "PUT",
-        });
-
-        const data = await response.json();
-        if (response.ok) {
-            ElMessage.success(t("settingUpdateSuccess", { setting: t("streamingMode"), value }));
-        } else {
-            ElMessage.error(t("settingFailed", { message: data.message || "Unknown error" }));
-            state.streamingMode = value === "real" ? "fake" : "real";
-        }
-    } catch (error) {
-        ElMessage.error(t("settingFailed", { message: error.message }));
-        state.streamingMode = value === "real" ? "fake" : "real";
-    } finally {
-        loading.streamingMode = false;
-    }
-};
-
-const updateSelectionStrategy = async value => {
-    loading.selectionStrategy = true;
-    try {
-        const response = await fetch("/api/settings/selection-strategy", {
-            body: JSON.stringify({ strategy: value }),
-            headers: { "Content-Type": "application/json" },
-            method: "PUT",
-        });
-
-        const data = await response.json();
-        if (response.ok) {
-            ElMessage.success(t("settingUpdateSuccess", { setting: t("selectionStrategyLabel"), value }));
-        } else {
-            ElMessage.error(t("settingFailed", { message: data.message || "Unknown error" }));
-            state.selectionStrategy = value === "round" ? "random" : "round";
-        }
-    } catch (error) {
-        ElMessage.error(t("settingFailed", { message: error.message }));
-        state.selectionStrategy = value === "round" ? "random" : "round";
-    } finally {
-        loading.selectionStrategy = false;
-    }
-};
-
-const updateSessionErrorThreshold = async value => {
-    loading.sessionErrorThreshold = true;
-    try {
-        const response = await fetch("/api/settings/session-error-threshold", {
-            body: JSON.stringify({ threshold: value }),
-            headers: { "Content-Type": "application/json" },
-            method: "PUT",
-        });
-
-        const data = await response.json();
-        if (response.ok) {
-            ElMessage.success(t("settingUpdateSuccess", { setting: t("sessionErrorThreshold"), value }));
-        } else {
-            ElMessage.error(t("settingFailed", { message: data.message || "Unknown error" }));
-        }
-    } catch (error) {
-        ElMessage.error(t("settingFailed", { message: error.message }));
-    } finally {
-        loading.sessionErrorThreshold = false;
-    }
-};
-
-const updateForceThinking = async value => {
-    loading.forceThinking = true;
-    try {
-        const response = await fetch("/api/settings/force-thinking", {
-            headers: { "Content-Type": "application/json" },
-            method: "PUT",
-        });
-
-        const data = await response.json();
-        if (response.ok) {
-            ElMessage.success(t("settingUpdateSuccess", { setting: t("forceThinking"), value: data.value }));
-        } else {
-            ElMessage.error(t("settingFailed", { message: data.message || "Unknown error" }));
-            state.forceThinking = !value;
-        }
-    } catch (error) {
-        ElMessage.error(t("settingFailed", { message: error.message }));
-        state.forceThinking = !value;
-    } finally {
-        loading.forceThinking = false;
-    }
-};
-
-const updateForceWebSearch = async value => {
-    loading.forceWebSearch = true;
-    try {
-        // Show confirmation when enabling
-        if (value) {
-            try {
-                await ElMessageBox.confirm(t("forceWebSearchEnableConfirm"), t("warningTitle"), {
-                    cancelButtonText: t("cancel"),
-                    confirmButtonText: t("ok"),
-                    type: "warning",
-                });
-            } catch {
-                // User cancelled, revert
-                state.forceWebSearch = false;
-                loading.forceWebSearch = false;
-                return;
-            }
-        }
-
-        const response = await fetch("/api/settings/force-web-search", {
-            headers: { "Content-Type": "application/json" },
-            method: "PUT",
-        });
-
-        const data = await response.json();
-        if (response.ok) {
-            ElMessage.success(t("settingUpdateSuccess", { setting: t("forceWebSearch"), value: data.value }));
-        } else {
-            ElMessage.error(t("settingFailed", { message: data.message || "Unknown error" }));
-            state.forceWebSearch = !value;
-        }
-    } catch (error) {
-        ElMessage.error(t("settingFailed", { message: error.message }));
-        state.forceWebSearch = !value;
-    } finally {
-        loading.forceWebSearch = false;
-    }
-};
-
-const updateForceUrlContext = async value => {
-    loading.forceUrlContext = true;
-    try {
-        const response = await fetch("/api/settings/force-url-context", {
-            headers: { "Content-Type": "application/json" },
-            method: "PUT",
-        });
-
-        const data = await response.json();
-        if (response.ok) {
-            ElMessage.success(t("settingUpdateSuccess", { setting: t("forceUrlContext"), value: data.value }));
-        } else {
-            ElMessage.error(t("settingFailed", { message: data.message || "Unknown error" }));
-            state.forceUrlContext = !value;
-        }
-    } catch (error) {
-        ElMessage.error(t("settingFailed", { message: error.message }));
-        state.forceUrlContext = !value;
-    } finally {
-        loading.forceUrlContext = false;
-    }
-};
-
-// Logs methods
-const clearLogsView = () => {
-    state.logs = "";
-};
-
-const downloadLogs = () => {
-    const logs = state.logs;
-    if (!logs) {
-        ElMessage.warning(t("noLogsAvailable"));
-        return;
-    }
-
-    const blob = new Blob([logs], { type: "text/plain" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `canvastoapi-logs-${new Date().toISOString().slice(0, 10)}.txt`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+// Download logs
+const handleDownloadLogs = () => {
+    downloadLogs(pollingState.logs);
 };
 
 // Lifecycle
 onMounted(() => {
-    fetchStatus();
+    startPolling(5000);
     fetchVersionInfo();
-    updateTimer.value = setInterval(fetchStatus, 5000);
 
     // Apply i18n
     if (I18n.isInitialized()) {
@@ -943,9 +548,7 @@ onMounted(() => {
 });
 
 onBeforeUnmount(() => {
-    if (updateTimer.value) {
-        clearInterval(updateTimer.value);
-    }
+    stopPolling();
 });
 </script>
 

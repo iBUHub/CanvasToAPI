@@ -35,7 +35,14 @@ ui/
 │   │   ├── SideNavBar.vue        # Left sidebar navigation
 │   │   ├── TopAppBar.vue         # Top header with search/actions
 │   │   └── MetricCard.vue        # Dashboard metric card
-│   ├── utils/                    # Utility functions and Composables
+│   ├── composables/              # Vue Composables (stateful reusable logic)
+│   │   ├── useSettings.js        # Settings state and API update methods
+│   │   ├── useSessions.js        # Browser sessions management
+│   │   ├── useLogs.js            # Log formatting and operations
+│   │   ├── useVersionInfo.js     # Version checking and display
+│   │   ├── useI18nHelper.js      # Internationalization helper
+│   │   └── useStatusPolling.js   # Status polling and data sync
+│   ├── utils/                    # Utility functions (stateless)
 │   │   ├── useTheme.js           # Theme management Composable
 │   │   ├── i18n.js               # Internationalization utility
 │   │   └── escapeHtml.js         # XSS prevention utility
@@ -71,7 +78,7 @@ ui/
 
 - Multiple components need the same stateful logic
 - Logic involves reactive state (ref, reactive, computed)
-- Example: A shared data fetcher → `ui/app/utils/useFetchData.js`
+- Example: A shared data fetcher → `ui/app/composables/useFetchData.js`
 
 **Create a new Utility** when:
 
@@ -83,8 +90,9 @@ ui/
 
 1. **One component per file**: Each `.vue` file contains one component
 2. **Colocate related code**: Keep components close to where they're used
-3. **Utils for shared logic**: Functions used in 2+ files belong in `utils/`
-4. **Styles**: Global styles in `styles/`, component styles in `<style scoped>`
+3. **Composables for stateful logic**: Vue composables with reactive state go in `composables/`
+4. **Utils for stateless functions**: Pure functions used in 2+ files belong in `utils/`
+5. **Styles**: Global styles in `styles/`, component styles in `<style scoped>`
 
 ---
 
