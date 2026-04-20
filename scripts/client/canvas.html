@@ -1391,7 +1391,7 @@
     const proxySystem = new ProxySystem(currentEndpoint, currentClientLabel, currentApiKey);
     setStatus(currentStatus);
 
-    saveBtn.addEventListener("click", () => {
+    const syncConfigurationFromInputs = ({ disconnectFirst = false, persist = false } = {}) => {
         const val = endpointInput.value.trim() || DEFAULT_ENDPOINT;
         const inputClientLabel = sanitizeClientLabel(clientLabelInput.value);
         const inputApiKey = sanitizeApiKey(apiKeyInput.value);
@@ -1405,22 +1405,38 @@
                 : inputClientLabel;
         currentClientLabelMode = currentClientLabel === activeAutoLabel ? "auto" : "manual";
 
-        safeStorageSet(ENDPOINT_STORAGE_KEY, currentEndpoint);
-        safeStorageSet(API_KEY_STORAGE_KEY, currentApiKey);
-        safeStorageSet(CLIENT_LABEL_MODE_STORAGE_KEY, currentClientLabelMode);
-        if (currentClientLabelMode === "manual") {
-            safeStorageSet(CLIENT_LABEL_STORAGE_KEY, currentClientLabel);
-        } else {
-            safeStorageRemove(CLIENT_LABEL_STORAGE_KEY);
+        if (persist) {
+            safeStorageSet(ENDPOINT_STORAGE_KEY, currentEndpoint);
+            safeStorageSet(API_KEY_STORAGE_KEY, currentApiKey);
+            safeStorageSet(CLIENT_LABEL_MODE_STORAGE_KEY, currentClientLabelMode);
+            if (currentClientLabelMode === "manual") {
+                safeStorageSet(CLIENT_LABEL_STORAGE_KEY, currentClientLabel);
+            } else {
+                safeStorageRemove(CLIENT_LABEL_STORAGE_KEY);
+            }
         }
 
+        endpointInput.value = currentEndpoint;
         clientLabelInput.value = currentClientLabel;
         apiKeyInput.value = currentApiKey;
 
-        proxySystem.connectionManager.disconnect();
-        proxySystem.connectionManager.updateEndpoint(val);
+        if (disconnectFirst) {
+            proxySystem.connectionManager.disconnect();
+        }
+        proxySystem.connectionManager.updateEndpoint(currentEndpoint);
         proxySystem.connectionManager.updateApiKey(currentApiKey);
         proxySystem.connectionManager.updateClientLabel(currentClientLabel);
+
+        Logger.info(`Configuration synchronized. Active browser identifier: ${currentClientLabel}`);
+        return {
+            apiKey: currentApiKey,
+            clientLabel: currentClientLabel,
+            endpoint: currentEndpoint,
+        };
+    };
+
+    saveBtn.addEventListener("click", () => {
+        syncConfigurationFromInputs({ disconnectFirst: true, persist: true });
         setStatus("disconnected");
 
         saveTip.classList.remove("opacity-0");
@@ -1448,17 +1464,24 @@
     }
 
     connectBtn.addEventListener("click", async () => {
-        const isStopping = proxySystem.connectionManager.isConnected || currentStatus === "reconnecting";
+        const isStopping =
+            proxySystem.connectionManager.isConnected ||
+            proxySystem.connectionManager.isAuthenticated ||
+            currentStatus === "reconnecting";
 
         if (isStopping) {
             Logger.info("Stopping connection/reconnection...");
             proxySystem.connectionManager.disconnect();
             setStatus("disconnected");
         } else {
+            const { clientLabel, endpoint } = syncConfigurationFromInputs({ disconnectFirst: false, persist: false });
+            Logger.info(`Starting connection with browser identifier: ${clientLabel || "(empty)"}`);
+            Logger.info(`Using endpoint: ${endpoint}`);
             try {
                 await proxySystem.initialize();
             } catch (error) {
                 Logger.error("Proxy system startup failed: " + error.message);
+                setStatus("error");
             }
         }
     });

@@ -360,7 +360,7 @@ class SessionRegistry extends EventEmitter {
                 return;
             }
 
-            if (parsedMessage.event_type === "authenticate") {
+            if (parsedMessage.event_type === "authenticate" || parsedMessage.type === "auth") {
                 this._handleAuthenticationMessage(connectionId, connection, parsedMessage);
                 return;
             }
